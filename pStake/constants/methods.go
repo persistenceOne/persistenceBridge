@@ -1,8 +1,7 @@
 package constants
 
 const (
-	STokensCalculateRewards = "calculateRewards"
-	STokensSetRewards       = "setRewards"
-	LiquidStakingStake      = "stake"
-	LiquidStakingUnStake    = "unStake"
+	LiquidStakingStake          = "stake"
+	LiquidStakingUnStake        = "unStake"
+	TokenWrapperWithdrawUTokens = "withdrawUTokens"
 )

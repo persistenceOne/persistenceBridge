@@ -5,7 +5,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceCore/pStake/abi"
+	abi2 "github.com/persistenceOne/persistenceCore/pStake/ethereum/abi"
 	"log"
 	"math/big"
 
@@ -56,7 +56,7 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 	auth.GasPrice = gasPrice
 
 	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
-	instance, err := abi.NewAbi(contractAddress, client)
+	instance, err := abi2.NewAbi(contractAddress, client)
 	if err != nil {
 		return "", err
 	}
@@ -73,5 +73,4 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 		return "", err
 	}
 	return tx.Hash().String(), err
-
 }

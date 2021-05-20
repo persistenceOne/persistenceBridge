@@ -7,4 +7,6 @@ import (
 
 func init() {
 	contracts.LiquidStaking.SetABI(constants.LiquidStakingABI)
+	contracts.TokenWrapper.SetABI(constants.TokenWrapperABI)
+	contracts.STokens.SetABI(constants.STokensABI)
 }
