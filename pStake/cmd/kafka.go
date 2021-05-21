@@ -93,7 +93,7 @@ func kafkaRoutine(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, cha
 
 	_, err := toml.DecodeFile(filepath.Join(kafkaState.HomeDir, "kafkaConfig.toml"), &kafkaConfig)
 	if err != nil {
-		log.Printf("Error decoding kafkaConfig file: %v", err)
+		log.Printf("Error decoding kafkaConfig file: %v\n", err.Error())
 	}
 	ctx := context.Background()
 

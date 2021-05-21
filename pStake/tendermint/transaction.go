@@ -52,7 +52,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 
 		transaction, ok := txInterface.(signing.Tx)
 		if !ok {
-			log.Fatalln("Unable to parse transaction")
+			log.Fatalln("Unable to parse transaction into signing.Tx")
 		}
 
 		memo := strings.TrimSpace(transaction.GetMemo())
@@ -84,9 +84,9 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					}
 					err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaState.Producer)
 					if err != nil {
-						log.Print("Failed to add msg to kafka queue: ", err)
+						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
-					log.Printf("Produced to kafka: %v, for topic %v ", msg.String(), utils.ToEth)
+					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
 				} else {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
@@ -99,9 +99,9 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					}
 					err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
 					if err != nil {
-						log.Print("Failed to add msg to kafka queue: ", err)
+						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
-					log.Printf("Produced to kafka: %v, for topic %v ", msg.String(), utils.ToTendermint)
+					log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.ToTendermint)
 				}
 			default:
 

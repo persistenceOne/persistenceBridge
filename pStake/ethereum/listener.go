@@ -2,7 +2,6 @@ package ethereum
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/big"
 	"time"
@@ -31,7 +30,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 
 		if latestEthHeight > uint64(ethStatus.LastCheckHeight) {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
-			fmt.Printf("ETH: %d\n", processHeight)
+			log.Printf("ETH: %d\n", processHeight)
 
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {

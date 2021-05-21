@@ -35,7 +35,7 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 func handleTransaction(client *ethclient.Client, ctx *context.Context, transaction *types.Transaction, contract contracts.ContractI, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) error {
 	receipt, err := client.TransactionReceipt(*ctx, transaction.Hash())
 	if err != nil {
-		log.Printf("Error while fetching receipt of tx %s: %s", transaction.Hash().String(), err.Error())
+		log.Printf("Error while fetching receipt of tx %s: %s\n", transaction.Hash().String(), err.Error())
 		return err
 	}
 
@@ -50,7 +50,7 @@ func handleTransaction(client *ethclient.Client, ctx *context.Context, transacti
 		if processFunc, ok := contract.GetMethods()[method.RawName]; ok {
 			err = processFunc(kafkaState, protoCodec, arguments)
 			if err != nil {
-				log.Fatalf("Error in processing arguments of contarct %s and method  %s,: %s\n", contract.GetName(), method.RawName, err.Error())
+				log.Fatalf("Error in processing arguments of contarct %s method %s for tx %s: %s\n", contract.GetName(), method.RawName, transaction.Hash().String(), err.Error())
 				return err
 			}
 		}
