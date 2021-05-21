@@ -3,14 +3,14 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"github.com/persistenceOne/persistenceCore/kafka/utils"
 	"log"
 	"math/big"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceCore/pStake/status"
+	"github.com/persistenceOne/persistenceCore/kafka/utils"
+	"github.com/persistenceOne/persistenceCore/pStake/data"
 )
 
 func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) {
@@ -24,7 +24,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			continue
 		}
 
-		ethStatus, err := status.GetEthereumStatus()
+		ethStatus, err := data.GetEthereumStatus()
 		if err != nil {
 			panic(err)
 		}
@@ -45,7 +45,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 				panic(err)
 			}
 
-			err = status.SetEthereumStatus(processHeight.Int64())
+			err = data.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
 				panic(err)
 			}

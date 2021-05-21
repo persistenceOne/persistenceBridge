@@ -3,14 +3,14 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceCore/kafka/utils"
 	"log"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/persistenceOne/persistenceCore/pStake/status"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceCore/kafka/utils"
+	"github.com/persistenceOne/persistenceCore/pStake/data"
 )
 
 func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
@@ -24,7 +24,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			continue
 		}
 
-		cosmosStatus, err := status.GetCosmosStatus()
+		cosmosStatus, err := data.GetCosmosStatus()
 		if err != nil {
 			panic(err)
 		}
@@ -45,7 +45,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 				panic(err)
 			}
 
-			err = status.SetCosmosStatus(processHeight)
+			err = data.SetCosmosStatus(processHeight)
 			if err != nil {
 				panic(err)
 			}

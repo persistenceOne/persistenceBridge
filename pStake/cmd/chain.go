@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/persistenceOne/persistenceCore/kafka/utils"
 	"log"
 	"strings"
 	"time"
@@ -11,10 +9,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceCore/kafka/utils"
 	"github.com/persistenceOne/persistenceCore/pStake/constants"
+	"github.com/persistenceOne/persistenceCore/pStake/data"
 	"github.com/persistenceOne/persistenceCore/pStake/ethereum"
-	"github.com/persistenceOne/persistenceCore/pStake/status"
 	"github.com/persistenceOne/persistenceCore/pStake/tendermint"
 	"github.com/spf13/cobra"
 )
@@ -99,7 +99,7 @@ func GetCmd(initClientCtx client.Context) *cobra.Command {
 			}
 			constants.EthGasLimit = ethGasLimit
 
-			db, err := status.InitializeDB(homePath+"/db", tmStart, ethStart)
+			db, err := data.InitializeDB(homePath+"/db", tmStart, ethStart)
 			if err != nil {
 				log.Fatalln(err)
 			}
