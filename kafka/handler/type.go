@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceCore/kafka/runconfig"
 	"github.com/persistenceOne/persistenceCore/kafka/utils"
+	pStakeConfig "github.com/persistenceOne/persistenceCore/pStake/config"
 	"github.com/persistenceOne/persistenceCore/pStake/constants"
 	"github.com/persistenceOne/persistenceCore/pStake/ethereum"
 	"log"
@@ -106,7 +107,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 		switch txMsg := msg.(type) {
 		case *bankTypes.MsgSend:
-			sum = sum.Add(txMsg.Amount.AmountOf(constants.PSTakeDenom))
+			sum = sum.Add(txMsg.Amount.AmountOf(pStakeConfig.GetAppConfiguration().PStakeDenom))
 		default:
 			log.Printf("Unexpected type found in topic: %v", utils.EthUnbond)
 		}
@@ -118,7 +119,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 			DelegatorAddress: m.Chain.MustGetAddress().String(),
 			ValidatorAddress: constants.Validator1.String(),
 			Amount: sdk.Coin{
-				Denom:  constants.PSTakeDenom,
+				Denom:  pStakeConfig.GetAppConfiguration().PStakeDenom,
 				Amount: sum,
 			},
 		}
@@ -208,7 +209,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, _ *codec.ProtoCodec, _ *
 	}
 	log.Printf("batched messages to send to ETH: %v", msgs)
 
-	hash, err := ethereum.SendTxToEth(ethClient, msgs, constants.EthGasLimit)
+	hash, err := ethereum.SendTxToEth(ethClient, msgs, pStakeConfig.GetAppConfiguration().EthGasLimit)
 	if err != nil {
 		log.Printf("error occuerd in eth transaction: %v", err)
 		return err

@@ -1,6 +1,7 @@
 package contracts
 
 import (
+	"github.com/persistenceOne/persistenceCore/pStake/config"
 	"log"
 	"math/big"
 
@@ -28,7 +29,7 @@ func onWithdrawUTokens(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec
 	if err != nil {
 		return err
 	}
-	sendCoinMsg := bankTypes.NewMsgSend(constants.PSTakeAddress, atomAddress, sdkTypes.NewCoins(sdkTypes.NewCoin(constants.PSTakeDenom, sdkTypes.NewInt(amount.Int64()))))
+	sendCoinMsg := bankTypes.NewMsgSend(config.GetAppConfiguration().PStakeAddress, atomAddress, sdkTypes.NewCoins(sdkTypes.NewCoin(config.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64()))))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(sendCoinMsg))
 	err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
 	if err != nil {

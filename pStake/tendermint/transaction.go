@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceCore/kafka/utils"
+	"github.com/persistenceOne/persistenceCore/pStake/config"
 	"github.com/persistenceOne/persistenceCore/pStake/ethereum"
 	"log"
 	"math/big"
@@ -16,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	goEthCommon "github.com/ethereum/go-ethereum/common"
-	"github.com/persistenceOne/persistenceCore/pStake/constants"
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
@@ -27,10 +27,10 @@ import (
 //}
 
 func handleTxSearchResult(clientCtx client.Context, txSearchResult *tmCoreTypes.ResultTxSearch, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) error {
-	for _, tx := range txSearchResult.Txs {
-		err := processTx(clientCtx, tx, kafkaState, protoCodec)
+	for _, transaction := range txSearchResult.Txs {
+		err := processTx(clientCtx, transaction, kafkaState, protoCodec)
 		if err != nil {
-			log.Printf("Failed to process tendermint tx: %s\n", tx.Hash.String())
+			log.Printf("Failed to process tendermint transaction: %s\n", transaction.Hash.String())
 			return err
 		}
 	}
@@ -50,29 +50,29 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 			log.Fatalln(err.Error())
 		}
 
-		tx, ok := txInterface.(signing.Tx)
+		transaction, ok := txInterface.(signing.Tx)
 		if !ok {
-			log.Fatalln("Unable to parse tx")
+			log.Fatalln("Unable to parse transaction")
 		}
 
-		memo := strings.TrimSpace(tx.GetMemo())
+		memo := strings.TrimSpace(transaction.GetMemo())
 		validMemo := goEthCommon.IsHexAddress(memo)
 		var ethAddress goEthCommon.Address
 		if validMemo {
 			ethAddress = goEthCommon.HexToAddress(memo)
 		}
 
-		for i, msg := range tx.GetMsgs() {
+		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
 				var amount *big.Int
 				for _, coin := range txMsg.Amount {
-					if coin.Denom == constants.PSTakeDenom {
+					if coin.Denom == config.GetAppConfiguration().PStakeDenom {
 						amount = coin.Amount.BigInt()
 						break
 					}
 				}
-				if txMsg.ToAddress == constants.PSTakeAddress.String() && amount != nil && validMemo {
+				if txMsg.ToAddress == config.GetAppConfiguration().PStakeAddress.String() && amount != nil && validMemo {
 					log.Printf("TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
 					ethTxMsg := ethereum.EthTxMsg{
 						Address: ethAddress,

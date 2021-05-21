@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/persistenceOne/persistenceCore/pStake/config"
 	"log"
 	"strings"
 	"time"
@@ -40,7 +41,6 @@ func GetCmd(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			constants.PSTakeDenom = denom
 
 			homePath, err := cmd.Flags().GetString(constants.FlagPStakeHome)
 			if err != nil {
@@ -84,11 +84,11 @@ func GetCmd(initClientCtx client.Context) *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			ethPrivateKey, err := cmd.Flags().GetString(constants.FlagEthPrivateKey)
+			ethPrivateKeyStr, err := cmd.Flags().GetString(constants.FlagEthPrivateKey)
 			if err != nil {
 				log.Fatalln(err)
 			}
-			constants.EthAccountPrivateKey, err = crypto.HexToECDSA(ethPrivateKey)
+			ethPrivateKey, err := crypto.HexToECDSA(ethPrivateKeyStr)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -97,7 +97,6 @@ func GetCmd(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			constants.EthGasLimit = ethGasLimit
 
 			db, err := data.InitializeDB(homePath+"/db", tmStart, ethStart)
 			if err != nil {
@@ -109,7 +108,8 @@ func GetCmd(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			constants.PSTakeAddress = chain.MustGetAddress()
+
+			config.SetAppConfiguration(denom, chain.MustGetAddress(), ethPrivateKey, ethGasLimit)
 
 			ethereumClient, err := ethclient.Dial(ethereumEndPoint)
 			if err != nil {

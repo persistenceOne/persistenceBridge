@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceCore/pStake/config"
 	abi2 "github.com/persistenceOne/persistenceCore/pStake/ethereum/abi"
 	"log"
 	"math/big"
@@ -25,7 +26,7 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 		return "", fmt.Errorf("number of txs to be send to ethereum is 0")
 	}
 	ctx := context.Background()
-	publicKey := constants.EthAccountPrivateKey.Public()
+	publicKey := config.GetAppConfiguration().EthAccountPrivateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
 		log.Fatalln("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
@@ -46,7 +47,7 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 	if err != nil {
 		return "", err
 	}
-	auth, err := bind.NewKeyedTransactorWithChainID(constants.EthAccountPrivateKey, chainID)
+	auth, err := bind.NewKeyedTransactorWithChainID(config.GetAppConfiguration().EthAccountPrivateKey, chainID)
 	if err != nil {
 		return "", err
 	}
