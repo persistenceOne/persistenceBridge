@@ -2,35 +2,45 @@ package queries
 
 import (
 	"fmt"
-	responses2 "github.com/persistenceOne/persistenceCore/pStake/rest/responses"
+	"github.com/persistenceOne/persistenceCore/pStake/rest/responses"
 )
 
-func GetABCI(rpcAddress string) (responses2.ABCIResponse, error) {
-	var abci responses2.ABCIResponse
+func GetABCI(rpcAddress string) (responses.ABCIResponse, error) {
+	var abci responses.ABCIResponse
 	url := rpcAddress + "/abci_info"
 	err := get(url, &abci)
 	if err != nil {
-		return responses2.ABCIResponse{}, err
+		return responses.ABCIResponse{}, err
 	}
 	return abci, err
 }
 
-func GetTxsByHeight(rpcAddress, height string) (responses2.TxByHeightResponse, error) {
-	var txByHeight responses2.TxByHeightResponse
+func GetTxsByHeight(rpcAddress, height string) (responses.TxByHeightResponse, error) {
+	var txByHeight responses.TxByHeightResponse
 	url := rpcAddress + fmt.Sprintf("/tx_search?query=\"tx.height=%s\"", height)
 	err := get(url, &txByHeight)
 	if err != nil {
-		return responses2.TxByHeightResponse{}, err
+		return responses.TxByHeightResponse{}, err
 	}
 	return txByHeight, err
 }
 
-func GetTxHash(restAddress, txHash string) (responses2.TxHashResponse, error) {
-	var txHashResponse responses2.TxHashResponse
+func GetTxHash(restAddress, txHash string) (responses.TxHashResponse, error) {
+	var txHashResponse responses.TxHashResponse
 	url := restAddress + "/cosmos/tx/v1beta1/txs/" + txHash
 	err := get(url, &txHashResponse)
 	if err != nil {
-		return responses2.TxHashResponse{}, err
+		return responses.TxHashResponse{}, err
 	}
 	return txHashResponse, err
+}
+
+func GetDelegations(restAddress, accAddress string) (responses.DelegationResponse, error) {
+	var response responses.DelegationResponse
+	url := restAddress + "/cosmos/staking/v1beta1/delegations/" + accAddress
+	err := get(url, &response)
+	if err != nil {
+		return responses.DelegationResponse{}, err
+	}
+	return response, err
 }
