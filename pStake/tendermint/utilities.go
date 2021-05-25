@@ -74,13 +74,15 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 	// What to do with this?
 	// leftOver := totalDelegation.Sub(allocateDelegationPerValidator.Mul(sdk.NewInt(int64(len(mpcValidators.Validators)))))
 
-	// This means number of validators removed is greater than added
+	// This means number of validators removed is greater than added. Here we have transfer to common and new validators subtracting from removed validators.
 	if allocateDelegationPerValidator.GT(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
 		for k, validator := range append(commonValidators, newValidators...) {
 			var transfer sdk.Int
 			if k < len(commonValidators) {
+				// transferring to common validator
 				transfer = allocateDelegationPerValidator.Sub(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses)))))
 			} else {
+				// transferring to new validator
 				transfer = allocateDelegationPerValidator
 			}
 			var srcAmounts []sdk.Int
@@ -111,7 +113,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 		}
 	}
 
-	// This means number of validators added is greater than removed
+	// This means number of validators added is greater than removed. Here we have transfer only to new validators subtracting from removed and common validators.
 	if allocateDelegationPerValidator.LT(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
 		for _, validator := range newValidators {
 			transfer := allocateDelegationPerValidator
