@@ -2,45 +2,45 @@ package queries
 
 import (
 	"fmt"
-	"github.com/persistenceOne/persistenceCore/pStake/rest/responses"
+	"github.com/persistenceOne/persistenceCore/pStake/rest/responses/tendermint"
 )
 
-func GetABCI(rpcAddress string) (responses.ABCIResponse, error) {
-	var abci responses.ABCIResponse
+func GetABCI(rpcAddress string) (tendermint.ABCIResponse, error) {
+	var abci tendermint.ABCIResponse
 	url := rpcAddress + "/abci_info"
 	err := get(url, &abci)
 	if err != nil {
-		return responses.ABCIResponse{}, err
+		return tendermint.ABCIResponse{}, err
 	}
 	return abci, err
 }
 
-func GetTxsByHeight(rpcAddress, height string) (responses.TxByHeightResponse, error) {
-	var txByHeight responses.TxByHeightResponse
+func GetTxsByHeight(rpcAddress, height string) (tendermint.TxByHeightResponse, error) {
+	var txByHeight tendermint.TxByHeightResponse
 	url := rpcAddress + fmt.Sprintf("/tx_search?query=\"tx.height=%s\"", height)
 	err := get(url, &txByHeight)
 	if err != nil {
-		return responses.TxByHeightResponse{}, err
+		return tendermint.TxByHeightResponse{}, err
 	}
 	return txByHeight, err
 }
 
-func GetTxHash(restAddress, txHash string) (responses.TxHashResponse, error) {
-	var txHashResponse responses.TxHashResponse
+func GetTxHash(restAddress, txHash string) (tendermint.TxHashResponse, error) {
+	var txHashResponse tendermint.TxHashResponse
 	url := restAddress + "/cosmos/tx/v1beta1/txs/" + txHash
 	err := get(url, &txHashResponse)
 	if err != nil {
-		return responses.TxHashResponse{}, err
+		return tendermint.TxHashResponse{}, err
 	}
 	return txHashResponse, err
 }
 
-func GetDelegations(restAddress, accAddress string) (responses.DelegationResponse, error) {
-	var response responses.DelegationResponse
+func GetDelegations(restAddress, accAddress string) (tendermint.DelegationResponse, error) {
+	var response tendermint.DelegationResponse
 	url := restAddress + "/cosmos/staking/v1beta1/delegations/" + accAddress
 	err := get(url, &response)
 	if err != nil {
-		return responses.DelegationResponse{}, err
+		return tendermint.DelegationResponse{}, err
 	}
 	return response, err
 }

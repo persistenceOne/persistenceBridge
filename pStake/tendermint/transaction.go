@@ -2,8 +2,6 @@ package tendermint
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceCore/kafka/utils"
 	"github.com/persistenceOne/persistenceCore/pStake/config"
 	"github.com/persistenceOne/persistenceCore/pStake/ethereum"
@@ -110,27 +108,4 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 	}
 
 	return nil
-}
-
-func GenerateUnsignedTx(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (signing.Tx, error) {
-	ctx := chain.CLIContext(0)
-
-	txf, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
-	if err != nil {
-		return nil, err
-	}
-
-	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txf, msgs...)
-	if err != nil {
-		return nil, err
-	}
-
-	txf = txf.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
-
-	txb, err := tx.BuildUnsignedTx(txf, msgs...)
-	if err != nil {
-		return nil, err
-	}
-
-	return txb.GetTx(), nil
 }
