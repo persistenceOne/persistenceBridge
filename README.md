@@ -1,8 +1,6 @@
-# persistenceCore
+# persistenceBridge
 
-[![LoC](https://tokei.rs/b1/github/persistenceOne/persistenceCore)](https://github.com/persistenceOne/persistenceCore)
-
-This project implements an application for the Persistence Core chain that all the other chains in the ecosystem connect to as a raised and open moderator for interoperability, shared security, and as a gateway to other ecosystems and chains.
+This project implements an application for the Persistence Bridge Orchestrator that listens to, verifies, transforms and relays transactions between a Cosmos-SDK chain and ethereum.
 
 ## Talk to us!
 *   [Twitter](https://twitter.com/PersistenceOne)
@@ -36,81 +34,30 @@ This project implements an application for the Persistence Core chain that all t
 
 * Clone git repository
 ```shell
-git clone https://github.com/persistenceOne/persistenceCore.git
+git clone https://github.com/persistenceOne/persistenceBridge.git
 ```
-* Checkout release tag
+
+> Note: If running go the latest version (tested on `1.16.3`), do `export CGO_ENABLED="0"` before make install
+
+* Make the binary
 ```shell
-git fetch --tags
-git checkout [vX.X.X]
-```
-* Install
-```shell
-cd persistenceCore
 make all
 ```
 
-### Generate keys
-
-`persistenceCore keys add [key_name]`
-
-or
-
-`persistenceCore keys add [key_name] --recover` to regenerate keys with your [BIP39](https://github.com/bitcoin/bips/tree/master/bip-0039) mnemonic
-
-### Connect to a chain and start node
-* [Install](#installation-steps) persistenceCore application
-* Initialize node
+* Start the bridge
 ```shell
-persistenceCore init [NODE_NAME]
-```
-* Replace `${HOME}/.persistenceCore/config/genesis.json` with the genesis file of the chain.
-* Add `persistent_peers` or `seeds` in `${HOME}/.persistenceCore/config/config.toml`
-* Start node
-```shell
-persistenceCore start
+./build/..../persistenceBridge start {arguments}
 ```
 
-### Initialize a new chain and start node 
-* Initialize: `persistenceCore init [node_name] --chain-id [chain_name]`
-* Add key for genesis account `persistenceCore keys add [genesis_key_name]`
-* Add genesis account `persistenceCore add-genesis-account [genesis_key_name] 10000000000000000000stake`
-* Create a validator at genesis `persistenceCore gentx [genesis_key_name] 10000000stake --chain-id [chain_name]`
-* Collect genesis transactions `persistenceCore collect-gentxs`
-* Start node `persistenceCore start`
-* To start rest server set `enable=true` in `config/app.toml` under `[api]` and restart the chain
+When starting for first time `--tmStart` `--ethStart ` needs to be always given,
+after that not adding it will start checking from last checked height + 1
 
-### Ledger Support( Experimental)
+`path_to_chain_json` json file for tendermint chain, same as the relayer format -
+`{"key":"acc_0","chain-id":"test","rpc-addr":"http://192.168.1.4:26657","account-prefix":"cosmos","gas-adjustment":1.5,"gas-prices":"0.025stake","trusting-period":"336h"`
 
-> NOTE: This is an experimental feature. Persistence uses coin-type 750; generating keys through this method below will create keys with coin-type 118(cosmos) and will only be supported by CLI and not by current or future wallets. Ledger support for the Persistence application is coming soon.  
+`--ethPrivateKey` private key of account which will do txs to eth
 
-* Install the Cosmos application on the Ledger device. [ref](https://hub.cosmos.network/main/resources/ledger.html#install-the-cosmos-ledger-application)
-* Connect the Ledger device to a system with persistenceCore binary and open the Cosmos application on it.
-* Add key
-```shell
-persistenceCore keys add [key_name] --ledger
-```
-* Sign transaction
-```shell
-persistenceCore tx [transaction parameters] --ledger
-```
+* First time start
+`persistenceBridge start chain.json "wage thunder live sense resemble foil apple course spin horse glass mansion midnight laundry acoustic rhythm loan scale talent push green direct brick please" --tmStart 1 --ethStart 4772131 --ethPrivateKey [ETH_ACC_PRIVATE_KEY]`
 
-### Reset chain
-```shell
-rm -rf ~/.persistenceCore
-```
-
-### Shutdown node
-```shell
-killall persistenceCore
-```
-
-### Check version
-```shell
-persistenceCore version
-```
-
-## Test-nets
-* [test-core-1](https://github.com/persistenceOne/genesisTransactions/tree/master/test-core-1)
-
-## Main-net
-* [core-1](https://github.com/persistenceOne/genesisTransactions/tree/master/core-1)
+>Note: Remove `--tmStart  --ethStart` when starting next time
