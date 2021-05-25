@@ -2,7 +2,7 @@ package utils
 
 import "github.com/Shopify/sarama"
 
-func Config() *sarama.Config {
+func SaramaConfig() *sarama.Config {
 	config := sarama.NewConfig()
 	config.Version = sarama.V2_7_0_0                 // hardcoded
 	config.Producer.RequiredAcks = sarama.WaitForAll // Wait for all in-sync replicas to ack the message

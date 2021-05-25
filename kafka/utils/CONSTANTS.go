@@ -1,5 +1,5 @@
 /*
- Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceSDK contributors
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
 */
 
@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// These are the config parameters for running kafka admins and producers and consumers. Declared very minimal
+// These are the configuration parameters for running kafka admins and producers and consumers. Declared very minimal
 var replicaAssignment = map[int32][]int32{}
 var configEntries = map[string]*string{}
 
@@ -28,6 +28,7 @@ var topicDetail = sarama.TopicDetail{
 }
 
 // Consumer groups
+
 const GroupToEth = "group-to-ethereum"
 const GroupToTendermint = "group-to-tendermint"
 const GroupEthUnbond = "group-ethereum-unbond"
@@ -40,6 +41,7 @@ var Groups = []string{GroupToEth, GroupToTendermint, GroupEthUnbond,
 }
 
 //Topics
+
 const ToEth = "to-ethereum"
 const ToTendermint = "to-tendermint"
 const MsgSend = "msg-send"          //priority3

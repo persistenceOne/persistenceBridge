@@ -11,11 +11,11 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceCore/kafka/runconfig"
-	"github.com/persistenceOne/persistenceCore/kafka/utils"
-	pStakeConfig "github.com/persistenceOne/persistenceCore/pStake/config"
-	"github.com/persistenceOne/persistenceCore/pStake/constants"
-	"github.com/persistenceOne/persistenceCore/pStake/ethereum"
+	"github.com/persistenceOne/persistenceBridge/application"
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
+	"github.com/persistenceOne/persistenceBridge/kafka/runconfig"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
 
@@ -81,8 +81,8 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 }
 
 func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	config := utils.Config()
-	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
+	saramaConfig := utils.SaramaConfig()
+	producer := utils.NewProducer(m.KafkaConfig.Brokers, saramaConfig)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -107,7 +107,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 		switch txMsg := msg.(type) {
 		case *bankTypes.MsgSend:
-			sum = sum.Add(txMsg.Amount.AmountOf(pStakeConfig.GetAppConfiguration().PStakeDenom))
+			sum = sum.Add(txMsg.Amount.AmountOf(application.GetAppConfiguration().PStakeDenom))
 		default:
 			log.Printf("Unexpected type found in topic: %v", utils.EthUnbond)
 		}
@@ -117,9 +117,9 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		// TODO consider multiple validators
 		unbondMsg := &stakingTypes.MsgUndelegate{
 			DelegatorAddress: m.Chain.MustGetAddress().String(),
-			ValidatorAddress: constants.Validator1.String(),
+			ValidatorAddress: constants2.Validator1.String(),
 			Amount: sdk.Coin{
-				Denom:  pStakeConfig.GetAppConfiguration().PStakeDenom,
+				Denom:  application.GetAppConfiguration().PStakeDenom,
 				Amount: sum,
 			},
 		}
@@ -137,7 +137,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 	return nil
 }
 
-// Handlers of message types
+// HandleTopicMsgs Handlers of message types
 func (m MsgHandler) HandleTopicMsgs(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim, batchSize int,
 	handle func([]sarama.ConsumerMessage, *codec.ProtoCodec, *relayer.Chain, *ethclient.Client) error) error {
 	msgs := make([]sarama.ConsumerMessage, 0, batchSize)
@@ -188,10 +188,10 @@ func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *co
 	return msgs, nil
 }
 
-func ConvertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]ethereum.EthTxMsg, error) {
-	var msgs []ethereum.EthTxMsg
+func ConvertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]ethereum2.EthTxMsg, error) {
+	var msgs []ethereum2.EthTxMsg
 	for _, kafkaMsg := range kafkaMsgs {
-		var msg ethereum.EthTxMsg
+		var msg ethereum2.EthTxMsg
 		err := json.Unmarshal(kafkaMsg.Value, &msg)
 		if err != nil {
 			return nil, err
@@ -209,7 +209,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, _ *codec.ProtoCodec, _ *
 	}
 	log.Printf("batched messages to send to ETH: %v", msgs)
 
-	hash, err := ethereum.SendTxToEth(ethClient, msgs, pStakeConfig.GetAppConfiguration().EthGasLimit)
+	hash, err := ethereum2.SendTxToEth(ethClient, msgs, application.GetAppConfiguration().EthGasLimit)
 	if err != nil {
 		log.Printf("error occuerd in eth transaction: %v", err)
 		return err
@@ -229,7 +229,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec
 	// TODO add msg withdraw rewards from multiple validators.
 	withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
 		DelegatorAddress: chain.MustGetAddress().String(),
-		ValidatorAddress: constants.Validator1.String(),
+		ValidatorAddress: constants2.Validator1.String(),
 	}
 	msgs = append(msgs, sdk.Msg(withdrawRewardsMsg))
 	response, ok, err := chain.SendMsgs(msgs)
@@ -242,7 +242,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec
 }
 
 func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	config := utils.Config()
+	config := utils.SaramaConfig()
 	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
 	defer func() {
 		err := producer.Close()
@@ -273,7 +273,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	return nil
 }
 func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	config := utils.Config()
+	config := utils.SaramaConfig()
 	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
 	defer func() {
 		err := producer.Close()
@@ -300,7 +300,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	return nil
 }
 func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	config := utils.Config()
+	config := utils.SaramaConfig()
 	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
 	defer func() {
 		err := producer.Close()

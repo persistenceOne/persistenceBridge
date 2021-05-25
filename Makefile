@@ -38,8 +38,8 @@ whitespace := $(subst ,, )
 comma := ,
 build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=persistenceCore \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=persistenceCore \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=persistenceBridge \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=persistenceBridge \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		   -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION) \
@@ -64,7 +64,7 @@ GOOS = $(shell go env GOOS)
 # Docker variables
 DOCKER := $(shell which docker)
 
-DOCKER_IMAGE_NAME = persistenceone/persistencecore
+DOCKER_IMAGE_NAME = persistenceone/persistenceBridge
 DOCKER_TAG_NAME = latest
 DOCKER_CONTAINER_NAME = persistence-core-container
 DOCKER_CMD ?= "/bin/sh"
@@ -75,19 +75,19 @@ all: verify build
 
 install:
 ifeq (${OS},Windows_NT)
-	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceCore.exe ./node
+	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceBridge.exe ./orchestrator
 
 else
-	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceCore ./node
+	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceBridge ./orchestrator
 
 endif
 
 build:
 ifeq (${OS},Windows_NT)
-	go build  ${BUILD_FLAGS} -o build/${GOOS}/${GOARCH}/persistenceCore.exe ./node
+	go build  ${BUILD_FLAGS} -o build/${GOOS}/${GOARCH}/persistenceBridge.exe ./orchestrator
 
 else
-	go build  ${BUILD_FLAGS} -o build/${GOOS}/${GOARCH}/persistenceCore ./node
+	go build  ${BUILD_FLAGS} -o build/${GOOS}/${GOARCH}/persistenceBridge ./orchestrator
 
 endif
 
@@ -98,9 +98,9 @@ verify:
 release: build
 	mkdir -p release
 ifeq (${OS},Windows_NT)
-	tar -czvf release/persistenceCore-${GOOS}-${GOARCH}.tar.gz --directory=build/${GOOS}/${GOARCH} persistenceCore.exe
+	tar -czvf release/persistenceBridge-${GOOS}-${GOARCH}.tar.gz --directory=build/${GOOS}/${GOARCH} persistenceBridge.exe
 else
-	tar -czvf release/persistenceCore-${GOOS}-${GOARCH}.tar.gz --directory=build/${GOOS}/${GOARCH} persistenceCore
+	tar -czvf release/persistenceBridge-${GOOS}-${GOARCH}.tar.gz --directory=build/${GOOS}/${GOARCH} persistenceBridge
 endif
 
 
@@ -118,12 +118,12 @@ proto-gen:
 
 # Commands for running docker
 #
-# Run persistenceCore on docker
+# Run persistenceBridge on docker
 # Example Usage:
-# 	make docker-build   ## Builds persistenceCore binary in 2 stages, 1st builder 2nd Runner
-# 						   Final image only has the compiled persistenceCore binary
+# 	make docker-build   ## Builds persistenceBridge binary in 2 stages, 1st builder 2nd Runner
+# 						   Final image only has the compiled persistenceBridge binary
 # 	make docker-interactive   ## Will start an shell session into the docker container
-# 								 Access to persistenceCore binary here
+# 								 Access to persistenceBridge binary here
 # 		NOTE: To be used for testing only, since the container will be removed after stopping
 # 	make docker-run DOCKER_CMD=sleep 10000000 DOCKER_OPTS=-d   ## Will run the container in the background
 # 		NOTE: Recommeded to use docker commands directly for long running processes
