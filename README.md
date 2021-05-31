@@ -39,7 +39,8 @@ git clone https://github.com/persistenceOne/persistenceBridge.git
 
 > Note: If running go the latest version (tested on `1.16.3`), do `export CGO_ENABLED="0"` before make install
 
-* Make the binary
+* Make the binary  
+Might require you to run `export CGO_ENABLED="0"` before make.
 ```shell
 make all
 ```

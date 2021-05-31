@@ -5,28 +5,6 @@
 
 package utils
 
-import (
-	"github.com/Shopify/sarama"
-	"os"
-)
-
-// These are the configuration parameters for running kafka admins and producers and consumers. Declared very minimal
-var replicaAssignment = map[int32][]int32{}
-var configEntries = map[string]*string{}
-
-// DefaultKafkaHome : is the home path
-var DefaultKafkaHome = os.ExpandEnv("$HOME/.kafka")
-
-var FlagKafkaHome = "kafka-home"
-
-// topicDetail : configs only required for admin to create topics if not present.
-var topicDetail = sarama.TopicDetail{
-	NumPartitions:     1,
-	ReplicationFactor: 1,
-	ReplicaAssignment: replicaAssignment,
-	ConfigEntries:     configEntries,
-}
-
 // Consumer groups
 
 const GroupToEth = "group-to-ethereum"

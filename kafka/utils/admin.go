@@ -20,7 +20,7 @@ func KafkaAdmin(kafkaPorts []string, config *sarama.Config) sarama.ClusterAdmin 
 }
 
 // TopicsInit : is needed to initialise topics
-func TopicsInit(admin sarama.ClusterAdmin, topic string) {
+func TopicsInit(admin sarama.ClusterAdmin, topic string, topicDetail sarama.TopicDetail) {
 	err := admin.CreateTopic(topic, &topicDetail, true)
 	if err != nil {
 		panic(err)
