@@ -109,8 +109,13 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState, kafkaConfig r
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
 	consumerGroup := state.ConsumerGroup[utils.GroupToEth]
 	for {
-		msgHandler := handler.MsgHandler{KafkaConfig: kafkaConfig, ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0}
+		msgHandler := handler.MsgHandler{
+			KafkaConfig: kafkaConfig,
+			ProtoCodec:  protoCodec,
+			Chain:       chain,
+			EthClient:   ethereumClient,
+			KafkaStake:  state,
+			Count:       0}
 		err := consumerGroup.Consume(ctx, []string{utils.ToEth}, msgHandler)
 		if err != nil {
 			log.Println("Error in consumer group.Consume", err)
@@ -126,8 +131,13 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState, ka
 	groupMsgSend := state.ConsumerGroup[utils.GroupMsgSend]
 	groupMsgToTendermint := state.ConsumerGroup[utils.GroupToTendermint]
 	for {
-		msgHandler := handler.MsgHandler{KafkaConfig: kafkaConfig, ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0}
+		msgHandler := handler.MsgHandler{
+			KafkaConfig: kafkaConfig,
+			ProtoCodec:  protoCodec,
+			Chain:       chain,
+			EthClient:   ethereumClient,
+			KafkaStake:  state,
+			Count:       0}
 		err := groupMsgUnbond.Consume(ctx, []string{utils.MsgUnbond}, msgHandler)
 		if err != nil {
 			log.Println("Error in consumer group.Consume for MsgUnbond", err)
@@ -152,8 +162,13 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState, kafkaConfig 
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
 	ethUnbondConsumerGroup := state.ConsumerGroup[utils.GroupEthUnbond]
 	for {
-		msgHandler := handler.MsgHandler{KafkaConfig: kafkaConfig, ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0}
+		msgHandler := handler.MsgHandler{
+			KafkaConfig: kafkaConfig,
+			ProtoCodec:  protoCodec,
+			Chain:       chain,
+			EthClient:   ethereumClient,
+			KafkaStake:  state,
+			Count:       0}
 		err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
 		if err != nil {
 			log.Println("Error in consumer group.Consume for EthUnbond ", err)
