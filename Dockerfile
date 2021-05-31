@@ -4,14 +4,14 @@ FROM golang:1.16-alpine AS build-env
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
 
 # Set working directory for the build
-WORKDIR /go/src/github.com/persistenceOne/persistenceCore
+WORKDIR /go/src/github.com/persistenceOne/persistenceBridge
 
 # Add source files
 COPY . .
 
 RUN go version
 
-# Install minimum necessary dependencies, build persistenceCore, remove packages
+# Install minimum necessary dependencies, build persistenceBridge, remove packages
 RUN apk add --no-cache $PACKAGES && make install
 
 # Final image
@@ -35,7 +35,7 @@ USER 10001
 WORKDIR /app
 
 # Copy over binaries from the build-env
-COPY --from=build-env /go/bin/persistenceCore /usr/bin/persistenceCore
+COPY --from=build-env /go/bin/persistenceBridge /usr/bin/persistenceBridge
 
-# Run persistenceCore by default, omit entrypoint to ease using container with cli
-CMD ["persistenceCore"]
+# Run persistenceBridge by default, omit entrypoint to ease using container with cli
+CMD ["persistenceBridge"]

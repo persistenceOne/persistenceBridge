@@ -1,4 +1,4 @@
-node/__debug_bin/
+orchestrator/__debug_bin/
 client/__debug_bin/
 vendor/
 .mocha/node_modules/

@@ -1,5 +1,5 @@
 /*
- Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceSDK contributors
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
 */
 
@@ -42,7 +42,7 @@ type KafkaState struct {
 
 // NewKafkaState : returns a kafka state
 func NewKafkaState(kafkaPorts []string, homeDir string) KafkaState {
-	config := Config()
+	config := SaramaConfig()
 	admin := KafkaAdmin(kafkaPorts, config)
 	adminTopics, err := admin.ListTopics()
 	if err != nil {
