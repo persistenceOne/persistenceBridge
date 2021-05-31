@@ -36,13 +36,13 @@ func ProducerDeliverMessage(msgBytes []byte, topic string, producer sarama.SyncP
 }
 
 func ProducerDeliverMessages(msgBytes [][]byte, topic string, producer sarama.SyncProducer) error {
-	var sendMsgs []*sarama.ProducerMessage
-	for _, msgByte := range msgBytes {
+	sendMsgs := make([]*sarama.ProducerMessage, len(msgBytes))
+	for i, msgByte := range msgBytes {
 		sendMsg := &sarama.ProducerMessage{
 			Topic: topic,
 			Value: sarama.ByteEncoder(msgByte),
 		}
-		sendMsgs = append(sendMsgs, sendMsg)
+		sendMsgs[i] = sendMsg
 	}
 	err := producer.SendMessages(sendMsgs)
 	if err != nil {

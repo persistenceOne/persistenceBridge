@@ -177,27 +177,27 @@ func BatchAndHandle(kafkaMsgs *[]sarama.ConsumerMessage, kafkaMsg sarama.Consume
 }
 
 func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec) ([]sdk.Msg, error) {
-	var msgs []sdk.Msg
-	for _, kafkaMsg := range kafkaMsgs {
+	msgs := make([]sdk.Msg, len(kafkaMsgs))
+	for i, kafkaMsg := range kafkaMsgs {
 		var msg sdk.Msg
 		err := protoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 		if err != nil {
 			return nil, err
 		}
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 	return msgs, nil
 }
 
 func ConvertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]ethereum2.EthTxMsg, error) {
-	var msgs []ethereum2.EthTxMsg
-	for _, kafkaMsg := range kafkaMsgs {
+	msgs := make([]ethereum2.EthTxMsg, len(kafkaMsgs))
+	for i, kafkaMsg := range kafkaMsgs {
 		var msg ethereum2.EthTxMsg
 		err := json.Unmarshal(kafkaMsg.Value, &msg)
 		if err != nil {
 			return nil, err
 		}
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 	return msgs, nil
 }
@@ -280,11 +280,11 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		loop = m.KafkaConfig.ToTendermint.BatchSize
 	}
 	if messagesLength > 0 {
-		var msgs [][]byte
+		msgs := make([][]byte, loop)
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < loop; i++ {
 			kafkaMsg := <-claim.Messages()
-			msgs = append(msgs, kafkaMsg.Value)
+			msgs[i] = kafkaMsg.Value
 		}
 		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
 		if err != nil {
@@ -307,11 +307,11 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	}()
 	messagesLength := len(claim.Messages())
 	if messagesLength > 0 {
-		var msgs [][]byte
+		msgs := make([][]byte, messagesLength)
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < messagesLength; i++ {
 			kafkaMsg := <-claim.Messages()
-			msgs = append(msgs, kafkaMsg.Value)
+			msgs[i] = kafkaMsg.Value
 		}
 		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
 		if err != nil {
@@ -334,11 +334,11 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 	}()
 	messagesLength := len(claim.Messages())
 	if messagesLength > 0 {
-		var msgs [][]byte
+		msgs := make([][]byte, messagesLength)
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < messagesLength; i++ {
 			kafkaMsg := <-claim.Messages()
-			msgs = append(msgs, kafkaMsg.Value)
+			msgs[i] = kafkaMsg.Value
 		}
 		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
 		if err != nil {
