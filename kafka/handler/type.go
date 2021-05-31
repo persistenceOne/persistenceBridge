@@ -42,13 +42,13 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 
 	switch claim.Topic() {
 	case utils.ToEth:
-		err := m.HandleTopicMsgs(session, claim, m.KafkaConfig.ToEth.BatchSize, m.KafkaStake, SendBatchToEth)
+		err := m.HandleTopicMsgs(session, claim, m.KafkaConfig.ToEth.BatchSize, SendBatchToEth)
 		if err != nil {
 			log.Printf("failed batch and handle for topic: %v with error %v", utils.ToEth, err)
 			return err
 		}
 	case utils.ToTendermint:
-		err := m.HandleTopicMsgs(session, claim, m.KafkaConfig.ToTendermint.BatchSize, m.KafkaStake, SendBatchToTendermint)
+		err := m.HandleTopicMsgs(session, claim, m.KafkaConfig.ToTendermint.BatchSize, SendBatchToTendermint)
 		if err != nil {
 			log.Printf("failed batch and handle for topic: %v with error %v", utils.ToTendermint, err)
 			return err
@@ -139,8 +139,8 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 }
 
 // HandleTopicMsgs Handlers of message types
-func (m MsgHandler) HandleTopicMsgs(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim, batchSize int, kafkaState utils.KafkaState,
-	handle func([]sarama.ConsumerMessage, *codec.ProtoCodec, *relayer.Chain, *ethclient.Client, utils.KafkaState) error) error {
+func (m MsgHandler) HandleTopicMsgs(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim, batchSize int,
+	handle func([]sarama.ConsumerMessage, *codec.ProtoCodec, *relayer.Chain, *ethclient.Client, []string) error) error {
 	msgs := make([]sarama.ConsumerMessage, 0, batchSize)
 	for {
 		kafkaMsg := <-claim.Messages()
@@ -149,7 +149,7 @@ func (m MsgHandler) HandleTopicMsgs(session sarama.ConsumerGroupSession, claim s
 		}
 		log.Printf("Message topic:%q partition:%d offset:%d\n", kafkaMsg.Topic, kafkaMsg.Partition, kafkaMsg.Offset)
 
-		ok, err := BatchAndHandle(&msgs, *kafkaMsg, m.ProtoCodec, m.Chain, m.EthClient, kafkaState, handle)
+		ok, err := BatchAndHandle(&msgs, *kafkaMsg, m.ProtoCodec, m.Chain, m.EthClient, m.KafkaConfig.Brokers, handle)
 		if ok && err == nil {
 			session.MarkMessage(kafkaMsg, "")
 			return nil
@@ -162,11 +162,11 @@ func (m MsgHandler) HandleTopicMsgs(session sarama.ConsumerGroupSession, claim s
 
 // BatchAndHandle :
 func BatchAndHandle(kafkaMsgs *[]sarama.ConsumerMessage, kafkaMsg sarama.ConsumerMessage,
-	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethClient *ethclient.Client, kafkaState utils.KafkaState,
-	handle func([]sarama.ConsumerMessage, *codec.ProtoCodec, *relayer.Chain, *ethclient.Client, utils.KafkaState) error) (bool, error) {
+	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethClient *ethclient.Client, brokers []string,
+	handle func([]sarama.ConsumerMessage, *codec.ProtoCodec, *relayer.Chain, *ethclient.Client, []string) error) (bool, error) {
 	*kafkaMsgs = append(*kafkaMsgs, kafkaMsg)
 	if len(*kafkaMsgs) == cap(*kafkaMsgs) {
-		err := handle(*kafkaMsgs, protoCodec, chain, ethClient, kafkaState)
+		err := handle(*kafkaMsgs, protoCodec, chain, ethClient, brokers)
 		if err != nil {
 			return false, err
 		}
@@ -203,7 +203,7 @@ func ConvertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]ethereum2.E
 }
 
 // SendBatchToEth : Handling of msgSend
-func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, _ *codec.ProtoCodec, _ *relayer.Chain, ethClient *ethclient.Client, kafkaState utils.KafkaState) error {
+func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, _ *codec.ProtoCodec, _ *relayer.Chain, ethClient *ethclient.Client, brokers []string) error {
 	msgs, err := ConvertKafkaMsgsToEthMsg(kafkaMsgs)
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, _ *codec.ProtoCodec, _ *
 }
 
 // SendBatchToTendermint :
-func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec, chain *relayer.Chain, _ *ethclient.Client, kafkaState utils.KafkaState) error {
+func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec, chain *relayer.Chain, _ *ethclient.Client, brokers []string) error {
 	msgs, err := ConvertKafkaMsgsToSDKMsg(kafkaMsgs, protoCodec)
 	if err != nil {
 		return err
@@ -238,13 +238,23 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec
 		log.Printf("error occured while send to Tendermint:%v: ", err)
 		return err
 	}
+
 	if !ok {
+		config := utils.SaramaConfig()
+		producer := utils.NewProducer(brokers, config)
+		defer func() {
+			err := producer.Close()
+			if err != nil {
+				log.Printf("failed to close producer in topic: %v", utils.MsgSend)
+			}
+		}()
+
 		for _, msg := range msgs {
 			msgBytes, err := protoCodec.MarshalInterface(sdk.Msg(msg))
 			if err != nil {
 				panic(err)
 			}
-			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
 			if err != nil {
 				log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 			}
