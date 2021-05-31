@@ -92,7 +92,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 				if removedValidatorDelegationAmt.GT(sdk.ZeroInt()) {
 					srcValidators = append(srcValidators, removedValidator)
 					if transfer.GT(removedValidatorDelegationAmt) {
-						srcAmounts = append(srcAmounts, transfer.Sub(removedValidatorDelegationAmt))
+						srcAmounts = append(srcAmounts, removedValidatorDelegationAmt)
 						oldDelegationsMap[removedValidator.String()] = sdk.ZeroInt()
 						transfer = transfer.Sub(removedValidatorDelegationAmt)
 					} else {
@@ -124,7 +124,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 				if removedValidatorDelegationAmt.GT(sdk.ZeroInt()) {
 					srcValidators = append(srcValidators, removedValidator)
 					if transfer.GT(removedValidatorDelegationAmt) {
-						srcAmounts = append(srcAmounts, transfer.Sub(removedValidatorDelegationAmt))
+						srcAmounts = append(srcAmounts, removedValidatorDelegationAmt)
 						oldDelegationsMap[removedValidator.String()] = sdk.ZeroInt()
 						transfer = transfer.Sub(removedValidatorDelegationAmt)
 					} else {
@@ -135,7 +135,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 					}
 				}
 			}
-			if transfer != sdk.ZeroInt() {
+			if !transfer.Equal(sdk.ZeroInt()) {
 				amount := transfer.Quo(sdk.NewInt(int64(len(commonValidators)))) // can lead to non zero leftover
 				for _, commonValidator := range commonValidators {
 					srcValidators = append(srcValidators, commonValidator)
