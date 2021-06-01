@@ -42,62 +42,6 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 
 			pstakeConfig = UpdateConfig(cmd, pstakeConfig)
 
-			//timeout, err := cmd.Flags().GetString(constants2.FlagTimeOut)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//
-			//coinType, err := cmd.Flags().GetUint32(constants2.FlagCoinType)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//
-			//denom, err := cmd.Flags().GetString(constants2.FlagDenom)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//
-			//tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//tmSleepDuration := time.Duration(tmSleepTime) * time.Millisecond
-			//
-			//ethereumEndPoint, err := cmd.Flags().GetString(constants2.FlagEthereumEndPoint)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//
-			//ethSleepTime, err := cmd.Flags().GetInt(constants2.FlagEthereumSleepTime)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//ethSleepDuration := time.Duration(ethSleepTime) * time.Millisecond
-			//
-			//tmStart, err := cmd.Flags().GetInt64(constants2.FlagTendermintStartHeight)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//
-			//ethStart, err := cmd.Flags().GetInt64(constants2.FlagEthereumStartHeight)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//
-			//ethPrivateKeyStr, err := cmd.Flags().GetString(constants2.FlagEthPrivateKey)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-			//ethPrivateKey, err := crypto.HexToECDSA(ethPrivateKeyStr)
-			//if err != nil {
-			//	log.Fatal(err)
-			//}
-			//
-			//ethGasLimit, err := cmd.Flags().GetUint64(constants2.FlagEthGasLimit)
-			//if err != nil {
-			//	log.Fatalln(err)
-			//}
-
 			db, err := application.InitializeDB(homePath+"/db", pstakeConfig.Tendermint.TendermintStartHeight,
 				pstakeConfig.Ethereum.EthereumStartHeight)
 			if err != nil {
@@ -118,12 +62,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", pstakeConfig.Ethereum.EthereumEndpoint, err.Error())
 			}
 
-			ports, err := cmd.Flags().GetString("ports")
-			if err != nil {
-				log.Fatalln(err)
-			}
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
-			pstakeConfig.Kafka.Brokers = strings.Split(ports, ",")
 			kafkaState := utils.NewKafkaState(pstakeConfig.Kafka.Brokers, homePath, pstakeConfig.Kafka.TopicDetail)
 			go kafka.KafkaRoutine(kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
 			server.TrapSignal(kafka.KafkaClose(kafkaState))
@@ -239,5 +178,12 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	if ethGasLimit != 0 {
 		pstakeConfig.Ethereum.EthGasLimit = ethGasLimit
 	}
+
+	ports, err := cmd.Flags().GetString("ports")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	pstakeConfig.Kafka.Brokers = strings.Split(ports, ",")
+
 	return pstakeConfig
 }
