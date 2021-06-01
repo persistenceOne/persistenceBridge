@@ -13,11 +13,10 @@ import (
 	"path/filepath"
 )
 
-func KafkaRootCommand() *cobra.Command {
+func InitCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                "init",
-		Short:              "init root command",
-		DisableFlagParsing: true,
+		Use:   "init",
+		Short: "init root command",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			config := configuration.NewConfig()
