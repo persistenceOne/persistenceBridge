@@ -12,19 +12,19 @@ import (
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
-	"github.com/persistenceOne/persistenceBridge/kafka/runconfig"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
 
 type MsgHandler struct {
-	KafkaConfig runconfig.KafkaConfig
-	ProtoCodec  *codec.ProtoCodec
-	Chain       *relayer.Chain
-	EthClient   *ethclient.Client
-	Count       int
+	PstakeConfig configuration.Config
+	ProtoCodec   *codec.ProtoCodec
+	Chain        *relayer.Chain
+	EthClient    *ethclient.Client
+	Count        int
 }
 
 var _ sarama.ConsumerGroupHandler = MsgHandler{}
@@ -41,13 +41,13 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 
 	switch claim.Topic() {
 	case utils.ToEth:
-		err := m.HandleTopicMsgs(session, claim, m.KafkaConfig.ToEth.BatchSize, SendBatchToEth)
+		err := m.HandleTopicMsgs(session, claim, m.PstakeConfig.Kafka.ToEth.BatchSize, SendBatchToEth)
 		if err != nil {
 			log.Printf("failed batch and handle for topic: %v with error %v", utils.ToEth, err)
 			return err
 		}
 	case utils.ToTendermint:
-		err := m.HandleTopicMsgs(session, claim, m.KafkaConfig.ToTendermint.BatchSize, SendBatchToTendermint)
+		err := m.HandleTopicMsgs(session, claim, m.PstakeConfig.Kafka.ToTendermint.BatchSize, SendBatchToTendermint)
 		if err != nil {
 			log.Printf("failed batch and handle for topic: %v with error %v", utils.ToTendermint, err)
 			return err
@@ -82,7 +82,7 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 
 func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	saramaConfig := utils.SaramaConfig()
-	producer := utils.NewProducer(m.KafkaConfig.Brokers, saramaConfig)
+	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, saramaConfig)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -243,7 +243,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec
 
 func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
+	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -252,8 +252,8 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	}()
 	messagesLength := len(claim.Messages())
 	loop := messagesLength
-	if messagesLength > m.KafkaConfig.ToTendermint.BatchSize-m.Count {
-		loop = m.KafkaConfig.ToTendermint.BatchSize
+	if messagesLength > m.PstakeConfig.Kafka.ToTendermint.BatchSize-m.Count {
+		loop = m.PstakeConfig.Kafka.ToTendermint.BatchSize
 	}
 	if messagesLength > 0 {
 		var msgs [][]byte
@@ -274,7 +274,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 }
 func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
+	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -301,7 +301,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 }
 func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.KafkaConfig.Brokers, config)
+	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {

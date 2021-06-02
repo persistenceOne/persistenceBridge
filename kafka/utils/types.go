@@ -41,7 +41,7 @@ type KafkaState struct {
 }
 
 // NewKafkaState : returns a kafka state
-func NewKafkaState(kafkaPorts []string, homeDir string) KafkaState {
+func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.TopicDetail) KafkaState {
 	config := SaramaConfig()
 	admin := KafkaAdmin(kafkaPorts, config)
 	adminTopics, err := admin.ListTopics()
@@ -51,7 +51,7 @@ func NewKafkaState(kafkaPorts []string, homeDir string) KafkaState {
 	//create topics if not present
 	for _, topic := range Topics {
 		if _, ok := adminTopics[topic]; !ok {
-			TopicsInit(admin, topic)
+			TopicsInit(admin, topic, topicDetail)
 		}
 	}
 	producer := NewProducer(kafkaPorts, config)
