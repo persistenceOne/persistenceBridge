@@ -1,10 +1,11 @@
-package tendermint
+package transaction
 
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
 	pStakeConfig "github.com/persistenceOne/persistenceBridge/application"
@@ -12,27 +13,105 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/rest/queries"
 )
 
-func GenerateUnsignedTx(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (signing.Tx, error) {
-	ctx := chain.CLIContext(0)
-
-	txf, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
+// BroadcastMsgs chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
+// Timeout height should be greater than current block height or set it 0 for none.
+func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
+	// TODO MPC Integration
+	publicKeyHex := "F37267AEB58F2BFE312E4C3F7D20EBBB3A3E3A17"
+	accountAddress, err := sdk.AccAddressFromHex(publicKeyHex)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txf, msgs...)
+	ctx := chain.CLIContext(0).WithFromAddress(accountAddress)
+
+	txFactory, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	txf = txf.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
-
-	txb, err := tx.BuildUnsignedTx(txf, msgs...)
+	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return txb.GetTx(), nil
+	txFactory = txFactory.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
+
+	txBuilder, err := tx.BuildUnsignedTx(txFactory, msgs...)
+	if err != nil {
+		return nil, false, err
+	}
+
+	signMode := txFactory.SignMode()
+	if signMode == signing.SignMode_SIGN_MODE_UNSPECIFIED {
+		signMode = ctx.TxConfig.SignModeHandler().DefaultMode()
+	}
+
+	account, err := txFactory.AccountRetriever().GetAccount(ctx, accountAddress)
+	if err != nil {
+		return nil, false, err
+	}
+
+	signerData := authSigning.SignerData{
+		ChainID:       txFactory.ChainID(),
+		AccountNumber: txFactory.AccountNumber(),
+		Sequence:      txFactory.Sequence(),
+	}
+	sigData := signing.SingleSignatureData{
+		SignMode:  signMode,
+		Signature: nil,
+	}
+	sig := signing.SignatureV2{
+		PubKey:   account.GetPubKey(),
+		Data:     &sigData,
+		Sequence: txFactory.Sequence(),
+	}
+	if err := txBuilder.SetSignatures(sig); err != nil {
+		return nil, false, err
+	}
+
+	bytesToSign, err := ctx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
+	if err != nil {
+		return nil, false, err
+	}
+
+	// TODO MPC Integration
+	sigBytes, _, err := txFactory.Keybase().Sign(chain.Key, bytesToSign)
+	if err != nil {
+		return nil, false, err
+	}
+
+	sigData = signing.SingleSignatureData{
+		SignMode:  signMode,
+		Signature: sigBytes,
+	}
+	sig = signing.SignatureV2{
+		PubKey:   account.GetPubKey(),
+		Data:     &sigData,
+		Sequence: txFactory.Sequence(),
+	}
+
+	if err = txBuilder.SetSignatures(sig); err != nil {
+		return nil, false, err
+	}
+
+	txBytes, err := ctx.TxConfig.TxEncoder()(txBuilder.GetTx())
+	if err != nil {
+		return nil, false, err
+	}
+
+	res, err := ctx.BroadcastTx(txBytes)
+	if err != nil {
+		return nil, false, err
+	}
+	if res.Code != 0 {
+		chain.LogFailedTx(res, err, msgs)
+		return res, false, nil
+	}
+
+	chain.LogSuccessTx(res, msgs)
+
+	return res, true, nil
 }
 
 // CheckAndGenerateRedelegateMsgs Three possible cases to handle
