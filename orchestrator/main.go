@@ -61,7 +61,7 @@ func main() {
 		"Assert registered invariants every N blocks",
 	)
 	rootCommand.AddCommand(commands.StartCommand(initClientCtx))
-	rootCommand.AddCommand(commands.KafkaRootCommand())
+	rootCommand.AddCommand(commands.InitCommand())
 
 	if err := serverCmd.Execute(rootCommand, constants.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
