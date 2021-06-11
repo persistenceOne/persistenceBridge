@@ -85,7 +85,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
 					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else {
+				} else if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount != nil {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
 						ToAddress:   txMsg.FromAddress,
