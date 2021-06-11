@@ -18,6 +18,10 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 			switch transaction.To().String() {
 			case contracts2.LiquidStaking.GetAddress():
 				contract = &contracts2.LiquidStaking
+			case contracts2.TokenWrapper.GetAddress():
+				contract = &contracts2.TokenWrapper
+			case contracts2.STokens.GetAddress():
+				contract = &contracts2.STokens
 			default:
 			}
 			if contract != nil {

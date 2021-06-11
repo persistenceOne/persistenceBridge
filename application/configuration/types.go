@@ -24,7 +24,7 @@ func NewConfig() Config {
 		Ethereum:    NewEthereumConfig(),
 		PStakeDenom: constants.DefaultDenom,
 		CoinType:    constants.DefaultCoinType,
-		PStakeHome:  constants.DefaultPStakeHome,
+		PStakeHome:  constants.DefaultPBridgeHome,
 	}
 }
 

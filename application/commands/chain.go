@@ -23,13 +23,13 @@ import (
 )
 
 func StartCommand(initClientCtx client.Context) *cobra.Command {
-	pStakeCommand := &cobra.Command{
+	pBridgeCommand := &cobra.Command{
 		Use:   "start [path_to_chain_json] [mnemonics]",
 		Short: "Start persistenceBridge",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			homePath, err := cmd.Flags().GetString(constants2.FlagPStakeHome)
+			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -77,19 +77,19 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			return nil
 		},
 	}
-	pStakeCommand.Flags().String(constants2.FlagTimeOut, "", "timeout time for connecting to rpc")
-	pStakeCommand.Flags().Uint32(constants2.FlagCoinType, 0, "coin type for wallet")
-	pStakeCommand.Flags().String(constants2.FlagPStakeHome, constants2.DefaultPStakeHome, "home for pStake")
-	pStakeCommand.Flags().String(constants2.FlagEthereumEndPoint, "", "ethereum orchestrator to connect")
-	pStakeCommand.Flags().String("ports", "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
-	pStakeCommand.Flags().Int(constants2.FlagTendermintSleepTime, -1, "sleep time between block checking for tendermint in ms")
-	pStakeCommand.Flags().Int(constants2.FlagEthereumSleepTime, -1, "sleep time between block checking for ethereum in ms")
-	pStakeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, -1, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
-	pStakeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, -1, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
-	pStakeCommand.Flags().String(constants2.FlagDenom, "", "denom name")
-	pStakeCommand.Flags().String(constants2.FlagEthPrivateKey, "", "private keys of ethereum account which does txs.")
-	pStakeCommand.Flags().Uint64(constants2.FlagEthGasLimit, 0, "Gas limit for eth txs")
-	return pStakeCommand
+	pBridgeCommand.Flags().String(constants2.FlagTimeOut, "", "timeout time for connecting to rpc")
+	pBridgeCommand.Flags().Uint32(constants2.FlagCoinType, 0, "coin type for wallet")
+	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, "", "ethereum orchestrator to connect")
+	pBridgeCommand.Flags().String("ports", "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
+	pBridgeCommand.Flags().Int(constants2.FlagTendermintSleepTime, -1, "sleep time between block checking for tendermint in ms")
+	pBridgeCommand.Flags().Int(constants2.FlagEthereumSleepTime, -1, "sleep time between block checking for ethereum in ms")
+	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, -1, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
+	pBridgeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, -1, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
+	pBridgeCommand.Flags().String(constants2.FlagDenom, "", "denom name")
+	pBridgeCommand.Flags().String(constants2.FlagEthPrivateKey, "", "private keys of ethereum account which does txs.")
+	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, 0, "Gas limit for eth txs")
+	return pBridgeCommand
 }
 
 func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configuration.Config {
