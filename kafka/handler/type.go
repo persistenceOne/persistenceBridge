@@ -16,6 +16,7 @@ import (
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"log"
 )
 
@@ -226,12 +227,6 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec
 	}
 	log.Printf("batched messages to send to Tendermint: %v", msgs)
 
-	// TODO add msg withdraw rewards from multiple validators.
-	withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-		DelegatorAddress: chain.MustGetAddress().String(),
-		ValidatorAddress: constants2.Validator1.String(),
-	}
-	msgs = append(msgs, sdk.Msg(withdrawRewardsMsg))
 	response, ok, err := chain.SendMsgs(msgs)
 	if err != nil {
 		log.Printf("error occured while send to Tendermint:%v: ", err)
@@ -250,16 +245,35 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 			log.Printf("failed to close producer in topic: %v", utils.MsgSend)
 		}
 	}()
+
 	messagesLength := len(claim.Messages())
 	loop := messagesLength
 	if messagesLength > m.PstakeConfig.Kafka.ToTendermint.BatchSize-m.Count {
-		loop = m.PstakeConfig.Kafka.ToTendermint.BatchSize
+		loop = m.PstakeConfig.Kafka.ToTendermint.BatchSize - m.Count
 	}
 	if messagesLength > 0 {
 		var msgs [][]byte
+		// TODO add msg withdraw rewards from multiple validators.
+		if tendermint.AddressIsDelegatorToValidator(m.Chain.MustGetAddress().String(), constants2.Validator1.String(), m.Chain) {
+			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
+				DelegatorAddress: m.Chain.MustGetAddress().String(),
+				ValidatorAddress: constants2.Validator1.String(),
+			}
+			withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
+			if err != nil {
+				log.Printf("Failed to Marshal WithdrawMessage: Error: %v", err)
+			} else {
+				msgs = append(msgs, withdrawRewardsMsgBytes)
+				loop = loop - 1
+			}
+		}
+
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < loop; i++ {
 			kafkaMsg := <-claim.Messages()
+			if kafkaMsg == nil {
+				return errors.New("kafka returned nil message")
+			}
 			msgs = append(msgs, kafkaMsg.Value)
 		}
 		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
@@ -287,6 +301,10 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < messagesLength; i++ {
 			kafkaMsg := <-claim.Messages()
+			if kafkaMsg == nil {
+				return errors.New("kafka returned nil message")
+			}
+
 			msgs = append(msgs, kafkaMsg.Value)
 		}
 		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
@@ -314,6 +332,9 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < messagesLength; i++ {
 			kafkaMsg := <-claim.Messages()
+			if kafkaMsg == nil {
+				return errors.New("kafka returned nil message")
+			}
 			msgs = append(msgs, kafkaMsg.Value)
 		}
 		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)

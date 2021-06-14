@@ -10,7 +10,6 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2011.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/gorilla/mux v1.8.0
-	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.3
 	github.com/tendermint/tendermint v0.34.10
 	github.com/tendermint/tm-db v0.6.4

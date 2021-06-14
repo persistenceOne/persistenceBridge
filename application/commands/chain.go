@@ -89,6 +89,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagDenom, "", "denom name")
 	pBridgeCommand.Flags().String(constants2.FlagEthPrivateKey, "", "private keys of ethereum account which does txs.")
 	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, 0, "Gas limit for eth txs")
+
 	return pBridgeCommand
 }
 
@@ -183,7 +184,9 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	if err != nil {
 		log.Fatalln(err)
 	}
-	pstakeConfig.Kafka.Brokers = strings.Split(ports, ",")
+	if ports != "" {
+		pstakeConfig.Kafka.Brokers = strings.Split(ports, ",")
+	}
 
 	return pstakeConfig
 }
