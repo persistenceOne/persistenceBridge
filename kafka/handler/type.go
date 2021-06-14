@@ -114,7 +114,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 	}
 
-	if sum != sdk.NewInt(0) {
+	if sum.GT(sdk.NewInt(0)) {
 		// TODO consider multiple validators
 		unbondMsg := &stakingTypes.MsgUndelegate{
 			DelegatorAddress: m.Chain.MustGetAddress().String(),

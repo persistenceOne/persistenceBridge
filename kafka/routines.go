@@ -94,12 +94,18 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState, pstakeConfig
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
 	ethUnbondConsumerGroup := state.ConsumerGroup[utils.GroupEthUnbond]
 	for {
-		msgHandler := handler.MsgHandler{PstakeConfig: pstakeConfig, ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0}
-		err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
-		if err != nil {
-			log.Println("Error in consumer group.Consume for EthUnbond ", err)
+		if time.Now().Unix()*1000 > pstakeConfig.Kafka.EthUnbondStartTime.Milliseconds() {
+			msgHandler := handler.MsgHandler{PstakeConfig: pstakeConfig, ProtoCodec: protoCodec,
+				Chain: chain, EthClient: ethereumClient, Count: 0}
+			err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
+			if err != nil {
+				log.Println("Error in consumer group.Consume for EthUnbond ", err)
+			}
+
+			time.Sleep(pstakeConfig.Kafka.EthUnbondCycleTime)
+		} else {
+			time.Sleep(1000000000) //1 second in nanoseconds
 		}
-		time.Sleep(pstakeConfig.Kafka.EthUnbondCycleTime)
+
 	}
 }
