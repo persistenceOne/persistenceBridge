@@ -270,18 +270,20 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < loop; i++ {
-			kafkaMsg := <-claim.Messages()
+			kafkaMsg = <-claim.Messages()
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
 			msgs = append(msgs, kafkaMsg.Value)
 		}
-		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
-		if err != nil {
-			log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgSend)
+		if len(msgs) > 0 {
+			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
+			if err != nil {
+				log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgSend)
+			}
+			session.MarkMessage(kafkaMsg, "")
+			return err
 		}
-		session.MarkMessage(kafkaMsg, "")
-		return err
 	}
 	m.Count += loop
 	return nil
@@ -300,19 +302,21 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 		var msgs [][]byte
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < messagesLength; i++ {
-			kafkaMsg := <-claim.Messages()
+			kafkaMsg = <-claim.Messages()
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
 
 			msgs = append(msgs, kafkaMsg.Value)
 		}
-		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
-		if err != nil {
-			log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgDelegate)
+		if len(msgs) > 0 {
+			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
+			if err != nil {
+				log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgDelegate)
+			}
+			session.MarkMessage(kafkaMsg, "")
+			return err
 		}
-		session.MarkMessage(kafkaMsg, "")
-		return err
 	}
 	m.Count += messagesLength
 	return nil
@@ -331,18 +335,20 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		var msgs [][]byte
 		var kafkaMsg *sarama.ConsumerMessage
 		for i := 0; i < messagesLength; i++ {
-			kafkaMsg := <-claim.Messages()
+			kafkaMsg = <-claim.Messages()
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
 			msgs = append(msgs, kafkaMsg.Value)
 		}
-		err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
-		if err != nil {
-			log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgUnbond)
+		if len(msgs) > 0 {
+			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
+			if err != nil {
+				log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgUnbond)
+			}
+			session.MarkMessage(kafkaMsg, "")
+			return err
 		}
-		session.MarkMessage(kafkaMsg, "")
-		return err
 	}
 	m.Count += messagesLength
 	return nil

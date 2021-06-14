@@ -32,7 +32,7 @@ func KafkaClose(kafkaState utils.KafkaState) func() {
 	}
 }
 
-// KafkaRoutine: starts kafka in a separate goRoutine, consumers will each start in different go routines
+// KafkaRoutine : starts kafka in a separate goRoutine, consumers will each start in different go routines
 // no need to store any db, producers and consumers are inside kafkaState struct.
 // use kafka.ProducerDeliverMessage() -> to produce message
 // use kafka.TopicConsumer -> to consume messages.
