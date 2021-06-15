@@ -6,7 +6,6 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
@@ -148,8 +147,8 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 			log.Printf("proto failed to unmarshal")
 		}
 		switch txMsg := msg.(type) {
-		case *bankTypes.MsgSend:
-			sum = sum.Add(txMsg.Amount.AmountOf(application.GetAppConfiguration().PStakeDenom))
+		case *stakingTypes.MsgUndelegate:
+			sum = sum.Add(txMsg.Amount.Amount)
 		default:
 			log.Printf("Unexpected type found in topic: %v", utils.EthUnbond)
 		}
