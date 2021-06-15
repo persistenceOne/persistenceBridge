@@ -71,7 +71,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					}
 				}
 				if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
-					log.Printf("TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
+					log.Printf("RECEIVED TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
 					ethTxMsg := ethereum2.EthTxMsg{
 						Address: ethAddress,
 						Amount:  amount.BigInt(),

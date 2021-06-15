@@ -44,7 +44,7 @@ func handleTransaction(client *ethclient.Client, ctx *context.Context, transacti
 	}
 
 	if receipt.Status == 1 {
-		log.Printf("ETH Tx: %s\n", transaction.Hash().String())
+		log.Printf("RECEIVED ETH Tx: %s\n", transaction.Hash().String())
 		method, arguments, err := contract.GetMethodAndArguments(transaction.Data())
 		if err != nil {
 			log.Fatalf("Error in getting method and arguments of %s,: %s\n", contract.GetName(), err.Error())
