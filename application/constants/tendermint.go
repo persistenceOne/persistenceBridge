@@ -3,7 +3,7 @@ package constants
 import sdkTypes "github.com/cosmos/cosmos-sdk/types"
 
 const (
-	validator1 = "cosmosvaloper1pkkayn066msg6kn33wnl5srhdt3tnu2v8fyhft"
+	validator1 = "cosmosvaloper1phzsnju4t0alc9r8rc9jfyzpwf22jsaup9dz4d"
 
 	TxEvents    = "tm.event='Tx'"
 	BlockEvents = "tm.event='NewBlock'"
