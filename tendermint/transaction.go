@@ -3,10 +3,10 @@ package tendermint
 import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
-	"math/big"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -63,18 +63,18 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				var amount *big.Int
+				amount := sdk.NewInt(0)
 				for _, coin := range txMsg.Amount {
 					if coin.Denom == application.GetAppConfiguration().PStakeDenom {
-						amount = coin.Amount.BigInt()
+						amount = coin.Amount
 						break
 					}
 				}
-				if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount != nil && validMemo {
+				if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
 					log.Printf("TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
 					ethTxMsg := ethereum2.EthTxMsg{
 						Address: ethAddress,
-						Amount:  amount,
+						Amount:  amount.BigInt(),
 					}
 					msgBytes, err := json.Marshal(ethTxMsg)
 					if err != nil {
@@ -85,7 +85,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
 					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount != nil {
+				} else if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
 						ToAddress:   txMsg.FromAddress,

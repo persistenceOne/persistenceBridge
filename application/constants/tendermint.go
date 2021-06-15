@@ -12,4 +12,5 @@ const (
 
 var (
 	Validator1, _ = sdkTypes.ValAddressFromBech32(validator1)
+	MinimumAmount = sdkTypes.NewInt(int64(2000000))
 )

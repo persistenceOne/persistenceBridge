@@ -31,7 +31,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 
 		if abciInfo.Response.LastBlockHeight > cosmosStatus.LastCheckHeight {
 			processHeight := cosmosStatus.LastCheckHeight + 1
-			fmt.Printf("TM: %d\n", processHeight)
+			log.Printf("TM: %d\n", processHeight)
 
 			txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", processHeight), true, nil, nil, "asc")
 			if err != nil {
