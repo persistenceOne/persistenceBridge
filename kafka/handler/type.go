@@ -104,7 +104,7 @@ func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, clai
 	if lenMsgs < batchSize {
 		batchSize = lenMsgs
 	}
-	if lenMsgs < 1 {
+	if lenMsgs > 0 {
 		msgs := make([]sarama.ConsumerMessage, 0, batchSize)
 		for {
 			kafkaMsg := <-claim.Messages()
