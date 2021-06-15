@@ -191,6 +191,9 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 
 	messagesLength := len(claim.Messages())
 	loop := messagesLength
+	if m.PstakeConfig.Kafka.ToTendermint.BatchSize-m.Count <= 0 {
+		return nil
+	}
 	if messagesLength > m.PstakeConfig.Kafka.ToTendermint.BatchSize-m.Count {
 		loop = m.PstakeConfig.Kafka.ToTendermint.BatchSize - m.Count
 	}
@@ -221,11 +224,11 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		}
 		if len(msgs) > 0 {
 			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
+			session.MarkMessage(kafkaMsg, "")
 			if err != nil {
 				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
+				return err
 			}
-			session.MarkMessage(kafkaMsg, "")
-			return err
 		}
 	}
 	m.Count += loop
@@ -254,11 +257,11 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 		}
 		if len(msgs) > 0 {
 			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
+			session.MarkMessage(kafkaMsg, "")
 			if err != nil {
 				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgDelegate)
+				return err
 			}
-			session.MarkMessage(kafkaMsg, "")
-			return err
 		}
 	}
 	m.Count += messagesLength
@@ -286,11 +289,11 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 		if len(msgs) > 0 {
 			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
+			session.MarkMessage(kafkaMsg, "")
 			if err != nil {
 				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgUnbond)
+				return err
 			}
-			session.MarkMessage(kafkaMsg, "")
-			return err
 		}
 	}
 	m.Count += messagesLength
@@ -379,7 +382,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		}()
 
 		for _, msg := range msgs {
-			msgBytes, err := handler.ProtoCodec.MarshalInterface(sdk.Msg(msg))
+			msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
 			if err != nil {
 				panic(err)
 			}
