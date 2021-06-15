@@ -137,10 +137,14 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 	}()
 	var sum = sdk.NewInt(0)
-	for kafkaMsg := range claim.Messages() {
+	messagesLength := len(claim.Messages())
+
+	for i := 0; i < messagesLength; i++ {
+		kafkaMsg = <-claim.Messages()
 		if kafkaMsg == nil {
 			return errors.New("kafka returned nil message")
 		}
+
 		var msg sdk.Msg
 		err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 		if err != nil {
@@ -152,6 +156,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		default:
 			log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
 		}
+
 	}
 
 	if sum.GT(sdk.NewInt(0)) {
@@ -168,13 +173,13 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		if err != nil {
 			return err
 		}
+
 		err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
 		if err != nil {
-			log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.ToTendermint)
+			log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.MsgUnbond)
 			return err
 		}
 	}
-
 	return nil
 }
 
