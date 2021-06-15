@@ -22,7 +22,7 @@ func QueryValidatorDelegator(delegatorAddress, validatorAddress string, chain *r
 		ValidatorAddr: validatorAddress,
 	})
 	if err != nil {
-		log.Printf("Delegator delegations not found, Error: %v", err)
+		log.Printf("Delegator delegations not found, Error: %v\n", err)
 		return stakingTypes.Validator{}, err
 	}
 	return stakingRes.GetValidator(), err

@@ -43,37 +43,37 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	case utils.ToEth:
 		err := m.HandleToEth(session, claim, m.PstakeConfig.Kafka.ToEth.BatchSize)
 		if err != nil {
-			log.Printf("failed batch and handle for topic: %v with error %v", utils.ToEth, err)
+			log.Printf("failed batch and handle for topic: %v with error %v\n", utils.ToEth, err)
 			return err
 		}
 	case utils.ToTendermint:
 		err := m.HandleToTendermint(session, claim, m.PstakeConfig.Kafka.ToTendermint.BatchSize)
 		if err != nil {
-			log.Printf("failed batch and handle for topic: %v with error %v", utils.ToTendermint, err)
+			log.Printf("failed batch and handle for topic: %v with error %v\n", utils.ToTendermint, err)
 			return err
 		}
 	case utils.EthUnbond:
 		err := m.HandleEthUnbond(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v", utils.EthUnbond)
+			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.EthUnbond)
 			return err
 		}
 	case utils.MsgSend:
 		err := m.HandleMsgSend(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v", utils.MsgSend)
+			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.MsgSend)
 			return err
 		}
 	case utils.MsgDelegate:
 		err := m.HandleMsgDelegate(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v", utils.MsgDelegate)
+			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.MsgDelegate)
 			return err
 		}
 	case utils.MsgUnbond:
 		err := m.HandleMsgUnbond(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v", utils.MsgUnbond)
+			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.MsgUnbond)
 			return err
 		}
 	}
@@ -128,7 +128,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v", utils.EthUnbond)
+			log.Printf("failed to close producer in topic: %v\n", utils.EthUnbond)
 		}
 	}()
 	var kafkaMsg *sarama.ConsumerMessage
@@ -145,13 +145,13 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		var msg sdk.Msg
 		err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 		if err != nil {
-			log.Printf("proto failed to unmarshal")
+			log.Printf("proto failed to unmarshal\n")
 		}
 		switch txMsg := msg.(type) {
 		case *stakingTypes.MsgUndelegate:
 			sum = sum.Add(txMsg.Amount.Amount)
 		default:
-			log.Printf("Unexpected type found in topic: %v", utils.EthUnbond)
+			log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
 		}
 	}
 
@@ -171,7 +171,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 		err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
 		if err != nil {
-			log.Printf("failed to produce message from topic %v to %v", utils.EthUnbond, utils.ToTendermint)
+			log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.ToTendermint)
 			return err
 		}
 	}
@@ -185,7 +185,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v", utils.MsgSend)
+			log.Printf("failed to close producer in topic: %v\n", utils.MsgSend)
 		}
 	}()
 
@@ -204,7 +204,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 			}
 			withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
 			if err != nil {
-				log.Printf("Failed to Marshal WithdrawMessage: Error: %v", err)
+				log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
 			} else {
 				msgs = append(msgs, withdrawRewardsMsgBytes)
 				loop = loop - 1
@@ -222,7 +222,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		if len(msgs) > 0 {
 			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
 			if err != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgSend)
+				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
 			}
 			session.MarkMessage(kafkaMsg, "")
 			return err
@@ -237,7 +237,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v", utils.MsgDelegate)
+			log.Printf("failed to close producer in topic: %v\n", utils.MsgDelegate)
 		}
 	}()
 	messagesLength := len(claim.Messages())
@@ -255,7 +255,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 		if len(msgs) > 0 {
 			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
 			if err != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgDelegate)
+				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgDelegate)
 			}
 			session.MarkMessage(kafkaMsg, "")
 			return err
@@ -270,7 +270,7 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v", utils.MsgUnbond)
+			log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
 		}
 	}()
 	messagesLength := len(claim.Messages())
@@ -287,7 +287,7 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		if len(msgs) > 0 {
 			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
 			if err != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue", utils.MsgUnbond)
+				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgUnbond)
 			}
 			session.MarkMessage(kafkaMsg, "")
 			return err
@@ -344,14 +344,14 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	if err != nil {
 		return err
 	}
-	log.Printf("batched messages to send to ETH: %v", msgs)
+	log.Printf("batched messages to send to ETH: %v\n", msgs)
 
 	hash, err := ethereum2.SendTxToEth(handler.EthClient, msgs, application.GetAppConfiguration().EthGasLimit)
 	if err != nil {
-		log.Printf("error occuerd in eth transaction: %v", err)
+		log.Printf("error occuerd in sending eth transaction: %v\n", err)
 		return err
 	}
-	log.Printf("sent message to eth with hash: %v ", hash)
+	log.Printf("Broadcasted Eth Tx hash: %s\n", hash)
 	return nil
 }
 
@@ -361,13 +361,35 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 	if err != nil {
 		return err
 	}
-	log.Printf("batched messages to send to Tendermint: %v", msgs)
+	log.Printf("batched messages to send to Tendermint: %v\n", msgs)
 
 	response, ok, err := handler.Chain.SendMsgs(msgs)
 	if err != nil {
-		log.Printf("error occured while send to Tendermint:%v: ", err)
+		log.Printf("error occured while send to Tendermint:%v\n", err)
 		return err
 	}
-	log.Printf("response: %v, ok: %v", response, ok)
+	if !ok {
+		config := utils.SaramaConfig()
+		producer := utils.NewProducer(handler.PstakeConfig.Kafka.Brokers, config)
+		defer func() {
+			err := producer.Close()
+			if err != nil {
+				log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
+			}
+		}()
+
+		for _, msg := range msgs {
+			msgBytes, err := handler.ProtoCodec.MarshalInterface(sdk.Msg(msg))
+			if err != nil {
+				panic(err)
+			}
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+			if err != nil {
+				log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+			}
+			log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.ToTendermint)
+		}
+	}
+	log.Printf("Broadcasted Tendermint TX HASH: %s, ok: %v\n", response.TxHash, ok)
 	return nil
 }
