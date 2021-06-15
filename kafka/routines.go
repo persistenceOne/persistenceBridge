@@ -42,6 +42,8 @@ func KafkaRoutine(kafkaState utils.KafkaState, pstakeConfig configuration.Config
 	go consumeToEthMsgs(ctx, kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
 	go consumeUnbondings(ctx, kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
 	go consumeToTendermintMessages(ctx, kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
+	go consumeTendermintMessages(ctx, kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
+
 	// go consume other messages
 
 	fmt.Println("started consumers")
@@ -66,7 +68,6 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState, ps
 	groupMsgUnbond := state.ConsumerGroup[utils.GroupMsgUnbond]
 	groupMsgDelegate := state.ConsumerGroup[utils.GroupMsgDelegate]
 	groupMsgSend := state.ConsumerGroup[utils.GroupMsgSend]
-	groupMsgToTendermint := state.ConsumerGroup[utils.GroupToTendermint]
 	for {
 		msgHandler := handler.MsgHandler{PstakeConfig: pstakeConfig, ProtoCodec: protoCodec,
 			Chain: chain, EthClient: ethereumClient, Count: 0}
@@ -82,7 +83,19 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState, ps
 		if err != nil {
 			log.Println("Error in consumer group.Consume", err)
 		}
-		err = groupMsgToTendermint.Consume(ctx, []string{utils.ToTendermint}, msgHandler)
+		time.Sleep(time.Duration(1000000000))
+	}
+}
+
+func consumeTendermintMessages(ctx context.Context, state utils.KafkaState, pstakeConfig configuration.Config,
+	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
+
+	groupMsgToTendermint := state.ConsumerGroup[utils.GroupToTendermint]
+	for {
+		msgHandler := handler.MsgHandler{PstakeConfig: pstakeConfig, ProtoCodec: protoCodec,
+			Chain: chain, EthClient: ethereumClient, Count: 0}
+
+		err := groupMsgToTendermint.Consume(ctx, []string{utils.ToTendermint}, msgHandler)
 		if err != nil {
 			log.Println("Error in consumer group.Consume", err)
 		}

@@ -100,29 +100,24 @@ func (m MsgHandler) HandleToEth(session sarama.ConsumerGroupSession, claim saram
 	}
 }
 func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim, batchSize int) error {
-	lenMsgs := len(claim.Messages())
-	if lenMsgs < batchSize {
-		batchSize = lenMsgs
-	}
-	if lenMsgs > 0 {
-		msgs := make([]sarama.ConsumerMessage, 0, batchSize)
-		for {
-			kafkaMsg := <-claim.Messages()
-			if kafkaMsg == nil {
-				return errors.New("kafka returned nil message")
-			}
-			log.Printf("Message topic:%q partition:%d offset:%d\n", kafkaMsg.Topic, kafkaMsg.Partition, kafkaMsg.Offset)
+	msgs := make([]sarama.ConsumerMessage, 0, batchSize)
+	for {
+		kafkaMsg := <-claim.Messages()
+		if kafkaMsg == nil {
+			return errors.New("kafka returned nil message")
+		}
+		log.Printf("Message topic:%q partition:%d offset:%d\n", kafkaMsg.Topic, kafkaMsg.Partition, kafkaMsg.Offset)
 
-			ok, err := BatchAndHandle(&msgs, *kafkaMsg, m, SendBatchToTendermint)
-			if ok && err == nil {
-				session.MarkMessage(kafkaMsg, "")
-				return nil
-			}
-			if err != nil {
-				return err
-			}
+		ok, err := BatchAndHandle(&msgs, *kafkaMsg, m, SendBatchToTendermint)
+		if ok && err == nil {
+			session.MarkMessage(kafkaMsg, "")
+			return nil
+		}
+		if err != nil {
+			return err
 		}
 	}
+
 	return nil
 }
 
