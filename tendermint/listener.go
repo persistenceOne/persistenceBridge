@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"time"
 
@@ -49,6 +50,11 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			if err != nil {
 				panic(err)
 			}
+		}
+		if shutdown.GetBridgeStopSignal() {
+			log.Println("Stopping Tendermint Listener!!!")
+			shutdown.SetTMStopped(true)
+			return
 		}
 		time.Sleep(sleepDuration)
 	}

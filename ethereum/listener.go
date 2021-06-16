@@ -3,6 +3,7 @@ package ethereum
 import (
 	"context"
 	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"math/big"
 	"time"
@@ -48,6 +49,11 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			if err != nil {
 				panic(err)
 			}
+		}
+		if shutdown.GetBridgeStopSignal() {
+			log.Println("Stopping Ethereum Listener!!!")
+			shutdown.SetETHStopped(true)
+			return
 		}
 		time.Sleep(sleepDuration)
 	}

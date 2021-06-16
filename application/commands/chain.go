@@ -5,20 +5,24 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -47,7 +51,12 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			defer db.Close()
+			defer func(db *badger.DB) {
+				err := db.Close()
+				if err != nil {
+					log.Println("Error while closing DB: ", err.Error())
+				}
+			}(db)
 
 			chain, err := tendermint2.InitializeAndStartChain(args[0], pstakeConfig.Tendermint.RelayerTimeout, homePath, pstakeConfig.CoinType, args[1])
 			if err != nil {
@@ -65,14 +74,31 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pstakeConfig.Kafka.Brokers, homePath, pstakeConfig.Kafka.TopicDetail)
 			go kafka.KafkaRoutine(kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
-			server.TrapSignal(kafka.KafkaClose(kafkaState))
 
 			log.Println("Starting to listen ethereum....")
 			go ethereum2.StartListening(ethereumClient, time.Duration(pstakeConfig.Ethereum.EthereumSleepTime)*time.Millisecond, kafkaState, protoCodec)
 
 			log.Println("Starting to listen tendermint....")
-			tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, kafkaState, protoCodec,
+			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, kafkaState, protoCodec,
 				time.Duration(pstakeConfig.Tendermint.TendermintSleepTime)*time.Millisecond)
+
+			signalChan := make(chan os.Signal, 1)
+			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+			for sig := range signalChan {
+				log.Println("signal received to close: " + sig.String())
+				shutdown.SetBridgeStopSignal(true)
+				kafkaClosed := false
+				for {
+					if !kafkaClosed {
+						log.Println("Stopping Kafka Routine!!!")
+						kafka.KafkaClose(kafkaState)
+						kafkaClosed = true
+					}
+					if shutdown.GetTMStopped() && shutdown.GetETHStopped() {
+						return nil
+					}
+				}
+			}
 
 			return nil
 		},
