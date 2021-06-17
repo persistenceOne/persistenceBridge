@@ -123,23 +123,21 @@ func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, clai
 			session.MarkMessage(kafkaMsg, "")
 			return nil
 		case <-ticker:
-			if len(kafkaMsgs) == 0 {
-				ticker = time.Tick(1 * time.Second)
-			} else {
-				closeChan <- true
+			if len(kafkaMsgs) != 0 {
+				AddToBufferedChannelIfCapacityPermits(closeChan, true)
 			}
 		case kafkaMsg, ok = <-claimMsgChan:
 			if ok {
 				kafkaMsgs = append(kafkaMsgs, *kafkaMsg)
 				if len(kafkaMsgs) == batchSize {
-					closeChan <- true
+					AddToBufferedChannelIfCapacityPermits(closeChan, true)
 				} else if len(kafkaMsgs) > batchSize {
 					log.Printf("Select tried to batch more messages in handler: %v ,not "+
 						"comitting offset, %v", utils.ToTendermint, kafkaMsg.Offset)
 					return nil
 				}
 			} else {
-				closeChan <- true
+				AddToBufferedChannelIfCapacityPermits(closeChan, true)
 			}
 		}
 	}
@@ -436,4 +434,10 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 	}
 	log.Printf("Broadcasted Tendermint TX HASH: %s, ok: %v\n", response.TxHash, ok)
 	return nil
+}
+
+func AddToBufferedChannelIfCapacityPermits(channel chan bool, data bool) {
+	if len(channel) < cap(channel) {
+		channel <- data
+	}
 }
