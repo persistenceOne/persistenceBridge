@@ -17,6 +17,12 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 	ctx := context.Background()
 
 	for {
+		if shutdown.GetBridgeStopSignal() {
+			log.Println("Stopping Ethereum Listener!!!")
+			shutdown.SetETHStopped(true)
+			return
+		}
+
 		latestEthHeight, err := client.BlockNumber(ctx)
 		if err != nil {
 			log.Printf("Error while fetching latest block height: %s\n", err.Error())
@@ -49,11 +55,6 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			if err != nil {
 				panic(err)
 			}
-		}
-		if shutdown.GetBridgeStopSignal() {
-			log.Println("Stopping Ethereum Listener!!!")
-			shutdown.SetETHStopped(true)
-			return
 		}
 		time.Sleep(sleepDuration)
 	}
