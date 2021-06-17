@@ -14,8 +14,9 @@ const GroupMsgSend = "group-msg-send"
 const GroupMsgDelegate = "group-msg-delegate"
 const GroupMsgUnbond = "group-msg-unbond"
 
-var Groups = []string{GroupToEth, GroupToTendermint, GroupEthUnbond,
+var Groups = []string{GroupEthUnbond,
 	GroupMsgSend, GroupMsgDelegate, GroupMsgUnbond,
+	GroupToEth, GroupToTendermint,
 }
 
 //Topics
@@ -29,6 +30,6 @@ const EthUnbond = "ethereum-unbond" //flushes every 3 days
 
 // Topics : is list of topics
 var Topics = []string{
-	ToEth, ToTendermint, EthUnbond,
-	MsgSend, MsgDelegate, MsgUnbond,
+	EthUnbond, MsgSend, MsgDelegate, MsgUnbond,
+	ToEth, ToTendermint,
 }
