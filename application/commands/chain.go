@@ -11,6 +11,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	db2 "github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka"
@@ -46,7 +47,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 
 			pstakeConfig = UpdateConfig(cmd, pstakeConfig)
 
-			db, err := application.InitializeDB(homePath+"/db", pstakeConfig.Tendermint.TendermintStartHeight,
+			db, err := db2.InitializeDB(homePath+"/db", pstakeConfig.Tendermint.TendermintStartHeight,
 				pstakeConfig.Ethereum.EthereumStartHeight)
 			if err != nil {
 				log.Fatalln(err)

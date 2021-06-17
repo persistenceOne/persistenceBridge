@@ -2,7 +2,7 @@ package ethereum
 
 import (
 	"context"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"math/big"
@@ -24,7 +24,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			continue
 		}
 
-		ethStatus, err := application.GetEthereumStatus()
+		ethStatus, err := db.GetEthereumStatus()
 		if err != nil {
 			panic(err)
 		}
@@ -45,7 +45,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 				panic(err)
 			}
 
-			err = application.SetEthereumStatus(processHeight.Int64())
+			err = db.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
 				panic(err)
 			}

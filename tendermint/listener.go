@@ -3,7 +3,7 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"time"
@@ -25,7 +25,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			continue
 		}
 
-		cosmosStatus, err := application.GetCosmosStatus()
+		cosmosStatus, err := db.GetCosmosStatus()
 		if err != nil {
 			panic(err)
 		}
@@ -46,11 +46,17 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 				panic(err)
 			}
 
-			err = application.SetCosmosStatus(processHeight)
+			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
 				panic(err)
 			}
 		}
+
+		err = onNewBlock(ctx, chain, kafkaState, protoCodec)
+		if err != nil {
+			panic(err)
+		}
+
 		if shutdown.GetBridgeStopSignal() {
 			log.Println("Stopping Tendermint Listener!!!")
 			shutdown.SetTMStopped(true)
