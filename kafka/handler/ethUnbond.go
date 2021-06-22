@@ -21,32 +21,35 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 	}()
 	var kafkaMsg *sarama.ConsumerMessage
-	defer func() {
-		if kafkaMsg != nil {
-			session.MarkMessage(kafkaMsg, "")
-		}
-	}()
+
+	claimMsgChan := claim.Messages()
+	var ok bool
 	var sum = sdk.NewInt(0)
-	messagesLength := len(claim.Messages())
+ConsumerLoop:
+	for {
+		select {
+		case kafkaMsg, ok = <-claimMsgChan:
+			if !ok {
+				break ConsumerLoop
+			}
+			if kafkaMsg == nil {
+				return errors.New("kafka returned nil message")
+			}
 
-	for i := 0; i < messagesLength; i++ {
-		kafkaMsg = <-claim.Messages()
-		if kafkaMsg == nil {
-			return errors.New("kafka returned nil message")
-		}
-
-		var msg sdk.Msg
-		err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
-		if err != nil {
-			log.Printf("proto failed to unmarshal\n")
-		}
-		switch txMsg := msg.(type) {
-		case *stakingTypes.MsgUndelegate:
-			sum = sum.Add(txMsg.Amount.Amount)
+			var msg sdk.Msg
+			err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
+			if err != nil {
+				log.Printf("proto failed to unmarshal\n")
+			}
+			switch txMsg := msg.(type) {
+			case *stakingTypes.MsgUndelegate:
+				sum = sum.Add(txMsg.Amount.Amount)
+			default:
+				log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
+			}
 		default:
-			log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
+			break ConsumerLoop
 		}
-
 	}
 
 	if sum.GT(sdk.NewInt(0)) {
@@ -69,6 +72,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 			log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.MsgUnbond)
 			return err
 		}
+		session.MarkMessage(kafkaMsg, "")
 	}
 	return nil
 }

@@ -10,47 +10,43 @@ import (
 	"time"
 )
 
-func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim, batchSize int) error {
+func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var kafkaMsgs []sarama.ConsumerMessage
 	claimMsgChan := claim.Messages()
-	closeChan := make(chan bool, 1)
-	ticker := time.Tick(1 * time.Second)
+	ticker := time.Tick(m.PstakeConfig.Kafka.ToTendermint.Ticker)
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
+ConsumerLoop:
 	for {
 		select {
-		case <-closeChan:
-			if len(kafkaMsgs) == 0 {
-				return nil
-			}
-			if kafkaMsg == nil {
-				return errors.New("kafka returned nil message")
-			}
-			err := SendBatchToTendermint(kafkaMsgs, m)
-			if err != nil {
-				return err
-			}
-			session.MarkMessage(kafkaMsg, "")
-			return nil
 		case <-ticker:
-			if len(kafkaMsgs) != 0 {
-				AddToBufferedChannelIfCapacityPermits(closeChan, true)
+			if len(kafkaMsgs) >= m.PstakeConfig.Kafka.ToTendermint.MinBatchSize {
+				break ConsumerLoop
 			}
 		case kafkaMsg, ok = <-claimMsgChan:
 			if ok {
 				kafkaMsgs = append(kafkaMsgs, *kafkaMsg)
-				if len(kafkaMsgs) == batchSize {
-					AddToBufferedChannelIfCapacityPermits(closeChan, true)
-				} else if len(kafkaMsgs) > batchSize {
-					log.Printf("Select tried to batch more messages in handler: %v ,not "+
-						"comitting offset, %v", utils.ToTendermint, kafkaMsg.Offset)
-					return nil
+				if len(kafkaMsgs) == m.PstakeConfig.Kafka.ToTendermint.MaxBatchSize {
+					break ConsumerLoop
 				}
 			} else {
-				AddToBufferedChannelIfCapacityPermits(closeChan, true)
+				break ConsumerLoop
 			}
 		}
 	}
+
+	if len(kafkaMsgs) == 0 {
+		return nil
+	}
+	if kafkaMsg == nil {
+		return errors.New("kafka returned nil message")
+	}
+	err := SendBatchToTendermint(kafkaMsgs, m)
+	if err != nil {
+		return err
+	}
+	session.MarkMessage(kafkaMsg, "")
+	return nil
 }
 
 func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec) ([]sdk.Msg, error) {

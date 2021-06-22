@@ -20,49 +20,59 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgSend)
 		}
 	}()
-
-	messagesLength := len(claim.Messages())
-	loop := messagesLength
-	if m.PstakeConfig.Kafka.ToTendermint.BatchSize-m.Count <= 0 {
+	loop := m.PstakeConfig.Kafka.ToTendermint.MaxBatchSize - m.Count
+	if loop <= 0 {
 		return nil
 	}
-	if messagesLength > m.PstakeConfig.Kafka.ToTendermint.BatchSize-m.Count {
-		loop = m.PstakeConfig.Kafka.ToTendermint.BatchSize - m.Count
-	}
-	if messagesLength > 0 {
-		var msgs [][]byte
-		// TODO add msg withdraw rewards from multiple validators.
-		if tendermint.AddressIsDelegatorToValidator(m.Chain.MustGetAddress().String(), constants2.Validator1.String(), m.Chain) {
-			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-				DelegatorAddress: m.Chain.MustGetAddress().String(),
-				ValidatorAddress: constants2.Validator1.String(),
-			}
-			withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
-			if err != nil {
-				log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
-			} else {
-				msgs = append(msgs, withdrawRewardsMsgBytes)
-				loop = loop - 1
-			}
-		}
 
-		var kafkaMsg *sarama.ConsumerMessage
-		for i := 0; i < loop; i++ {
-			kafkaMsg = <-claim.Messages()
-			if kafkaMsg == nil {
-				return errors.New("kafka returned nil message")
-			}
-			msgs = append(msgs, kafkaMsg.Value)
+	// TODO add msg withdraw rewards from multiple validators.
+	if tendermint.AddressIsDelegatorToValidator(m.Chain.MustGetAddress().String(), constants2.Validator1.String(), m.Chain) {
+		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
+			DelegatorAddress: m.Chain.MustGetAddress().String(),
+			ValidatorAddress: constants2.Validator1.String(),
 		}
-		if len(msgs) > 0 {
-			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
-			session.MarkMessage(kafkaMsg, "")
-			if err != nil {
+		withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
+		if err != nil {
+			log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
+			return err
+		} else {
+			err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
+			if err2 != nil {
 				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
-				return err
+				return err2
+			}
+			loop = loop - 1
+		}
+	}
+
+	if loop > 0 {
+		claimMsgChan := claim.Messages()
+		var kafkaMsg *sarama.ConsumerMessage
+		var ok bool
+	ConsumerLoop:
+		for {
+			select {
+			case kafkaMsg, ok = <-claimMsgChan:
+				if !ok {
+					break ConsumerLoop
+				}
+				if kafkaMsg == nil {
+					return errors.New("kafka returned nil message")
+				}
+				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
+				if err != nil {
+					log.Printf("failed to produce from %v to :%v", utils.MsgSend, utils.ToTendermint)
+					break ConsumerLoop
+				}
+				session.MarkMessage(kafkaMsg, "")
+				loop--
+				if loop == 0 {
+					break ConsumerLoop
+				}
+			default:
+				break ConsumerLoop
 			}
 		}
 	}
-	m.Count += loop
 	return nil
 }

@@ -3,6 +3,10 @@ package handler
 import (
 	"errors"
 	"github.com/Shopify/sarama"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/persistenceBridge/application"
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
@@ -16,28 +20,60 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgDelegate)
 		}
 	}()
-	messagesLength := len(claim.Messages())
-	if messagesLength > 0 {
-		var msgs [][]byte
-		var kafkaMsg *sarama.ConsumerMessage
-		for i := 0; i < messagesLength; i++ {
-			kafkaMsg = <-claim.Messages()
+
+	claimMsgChan := claim.Messages()
+	var kafkaMsg *sarama.ConsumerMessage
+	var ok bool
+	var sum = sdk.NewInt(0)
+ConsumerLoop:
+	for {
+		select {
+		case kafkaMsg, ok = <-claimMsgChan:
+			if !ok {
+				break ConsumerLoop
+			}
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
 
-			msgs = append(msgs, kafkaMsg.Value)
-		}
-		if len(msgs) > 0 {
-			//TODO send as one msgDelegate
-			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
-			session.MarkMessage(kafkaMsg, "")
+			var msg sdk.Msg
+			err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 			if err != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgDelegate)
-				return err
+				log.Printf("proto failed to unmarshal\n")
 			}
+			switch txMsg := msg.(type) {
+			case *stakingTypes.MsgDelegate:
+				sum = sum.Add(txMsg.Amount.Amount)
+			default:
+				log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
+			}
+		default:
+			break ConsumerLoop
 		}
 	}
-	m.Count += messagesLength
+
+	if sum.GT(sdk.NewInt(0)) {
+		// TODO consider multiple validators
+		delegateMsg := &stakingTypes.MsgDelegate{
+			DelegatorAddress: m.Chain.MustGetAddress().String(),
+			ValidatorAddress: constants2.Validator1.String(),
+			Amount: sdk.Coin{
+				Denom:  application.GetAppConfiguration().PStakeDenom,
+				Amount: sum,
+			},
+		}
+		msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(delegateMsg))
+		if err != nil {
+			return err
+		}
+
+		err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+		if err != nil {
+			log.Printf("failed to produce message from topic %v to %v\n", utils.MsgDelegate, utils.ToTendermint)
+			return err
+		}
+		session.MarkMessage(kafkaMsg, "")
+		m.Count++
+	}
 	return nil
 }

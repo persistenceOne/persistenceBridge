@@ -32,13 +32,13 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 
 	switch claim.Topic() {
 	case utils.ToEth:
-		err := m.HandleToEth(session, claim, m.PstakeConfig.Kafka.ToEth.BatchSize)
+		err := m.HandleToEth(session, claim)
 		if err != nil {
 			log.Printf("failed batch and handle for topic: %v with error %v\n", utils.ToEth, err)
 			return err
 		}
 	case utils.ToTendermint:
-		err := m.HandleToTendermint(session, claim, m.PstakeConfig.Kafka.ToTendermint.BatchSize)
+		err := m.HandleToTendermint(session, claim)
 		if err != nil {
 			log.Printf("failed to handle for topic: %v with error %v\n", utils.ToTendermint, err)
 			return err

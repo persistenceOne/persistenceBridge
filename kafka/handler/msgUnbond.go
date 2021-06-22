@@ -16,26 +16,31 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
 		}
 	}()
-	messagesLength := len(claim.Messages())
-	if messagesLength > 0 {
-		var msgs [][]byte
-		var kafkaMsg *sarama.ConsumerMessage
-		for i := 0; i < messagesLength; i++ {
-			kafkaMsg = <-claim.Messages()
+
+	claimMsgChan := claim.Messages()
+	var kafkaMsg *sarama.ConsumerMessage
+	var ok bool
+ConsumerLoop:
+	for {
+		select {
+		case kafkaMsg, ok = <-claimMsgChan:
+			if !ok {
+				break ConsumerLoop
+			}
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
-			msgs = append(msgs, kafkaMsg.Value)
-		}
-		if len(msgs) > 0 {
-			err := utils.ProducerDeliverMessages(msgs, utils.ToTendermint, producer)
-			session.MarkMessage(kafkaMsg, "")
+			err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgUnbond)
-				return err
+				log.Printf("failed to produce from %v to :%v", utils.MsgUnbond, utils.ToTendermint)
+				break ConsumerLoop
 			}
+			session.MarkMessage(kafkaMsg, "")
+			m.Count++
+		default:
+			break ConsumerLoop
 		}
 	}
-	m.Count += messagesLength
+
 	return nil
 }
