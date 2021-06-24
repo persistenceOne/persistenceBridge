@@ -49,7 +49,7 @@ func Test(chain *relayer.Chain) {
 		log.Fatalln(err)
 	}
 	if !ok {
-		log.Fatalf("TX HASH: %s, CODE: %d, Log: %s\n", txRes.TxHash, txRes.Code, txRes.RawLog)
+		log.Fatalf("TX HASH: %s CODE: %d Log: %s\n", txRes.TxHash, txRes.Code, txRes.RawLog)
 	}
 	log.Println("TX HASH: " + txRes.TxHash)
 }
