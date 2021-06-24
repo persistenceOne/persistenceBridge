@@ -10,6 +10,7 @@ import (
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/application/transaction"
 	"log"
+	"time"
 )
 
 func Test(chain *relayer.Chain) {
@@ -35,6 +36,9 @@ func Test(chain *relayer.Chain) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Println("Sleeping 5s for bot to sign")
+	time.Sleep(5 * time.Second)
+	log.Println("Awake now")
 	signOperationRes, err := caspQueries.GetSignOperation(signDataRes.OperationID)
 	if err != nil {
 		log.Fatalln(err)
