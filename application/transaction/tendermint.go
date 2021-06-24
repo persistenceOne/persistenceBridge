@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -11,38 +10,37 @@ import (
 	"github.com/cosmos/relayer/relayer"
 	pStakeConfig "github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/rest/queries"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/application/rest/blockchain"
+	"github.com/persistenceOne/persistenceBridge/application/rest/casp"
 )
 
 // BroadcastMsgs chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
 // Timeout height should be greater than current block height or set it 0 for none.
-func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
+func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
 	// TODO MPC Integration
 	publicKeyHex := "F37267AEB58F2BFE312E4C3F7D20EBBB3A3E3A17"
 	accountAddress, err := sdk.AccAddressFromHex(publicKeyHex)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	ctx := chain.CLIContext(0).WithFromAddress(accountAddress).WithBroadcastMode(flags.BroadcastSync)
+	ctx := chain.CLIContext(0).WithFromAddress(accountAddress)
 
 	txFactory, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	txFactory = txFactory.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
 
 	txBuilder, err := tx.BuildUnsignedTx(txFactory, msgs...)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	signMode := txFactory.SignMode()
@@ -52,7 +50,7 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 
 	account, err := txFactory.AccountRetriever().GetAccount(ctx, accountAddress)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	signerData := authSigning.SignerData{
@@ -70,18 +68,18 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 		Sequence: txFactory.Sequence(),
 	}
 	if err := txBuilder.SetSignatures(sig); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	bytesToSign, err := ctx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// TODO MPC Integration
 	sigBytes, _, err := txFactory.Keybase().Sign(chain.Key, bytesToSign)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	sigData = signing.SingleSignatureData{
@@ -95,33 +93,26 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 	}
 
 	if err = txBuilder.SetSignatures(sig); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	txBytes, err := ctx.TxConfig.TxEncoder()(txBuilder.GetTx())
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	res, err := ctx.BroadcastTx(txBytes)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	log.Printf("Broadcasted TM Tx: %s, code: %d\n", res.TxHash, res.Code)
-
-	err = db.SetTendermintTx(db.NewTMTransaction(res.TxHash, msgs))
-	if err != nil {
-		return nil, err
+	if res.Code != 0 {
+		chain.LogFailedTx(res, err, msgs)
+		return res, false, nil
 	}
 
-	//if res.Code != 0 {
-	//	chain.LogFailedTx(res, err, msgs)
-	//	return res, false, err
-	//}
-	//
-	//chain.LogSuccessTx(res, msgs)
+	chain.LogSuccessTx(res, msgs)
 
-	return res, nil
+	return res, true, nil
 }
 
 // CheckAndGenerateRedelegateMsgs Three possible cases to handle
@@ -132,12 +123,12 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 	var stakingMsgs []sdk.Msg
 	config := pStakeConfig.GetAppConfiguration()
 
-	mpcValidators, err := queries.GetMPCValidatos(constants.MPCValidatorsURL)
+	mpcValidators, err := casp.GetMPCValidatos(constants.CASP_URL)
 	if err != nil {
 		return stakingMsgs, err
 	}
 
-	delegations, err := queries.GetDelegations("", config.PStakeAddress.String())
+	delegations, err := blockchain.GetDelegations("", config.PStakeAddress.String())
 	if err != nil {
 		return stakingMsgs, err
 	}

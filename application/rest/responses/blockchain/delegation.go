@@ -1,4 +1,4 @@
-package tendermint
+package blockchain
 
 type DelegationResponse struct {
 	DelegationResponses []struct {

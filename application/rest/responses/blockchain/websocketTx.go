@@ -1,4 +1,4 @@
-package tendermint
+package blockchain
 
 type WebSocketTx struct {
 	Jsonrpc string `json:"jsonrpc"`
