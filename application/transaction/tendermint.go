@@ -2,45 +2,42 @@ package transaction
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
-	pStakeConfig "github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/rest/blockchain"
 	"github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"log"
 )
 
-// BroadcastMsgs chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
 // Timeout height should be greater than current block height or set it 0 for none.
-func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
-	// TODO MPC Integration
-	publicKeyHex := "F37267AEB58F2BFE312E4C3F7D20EBBB3A3E3A17"
-	accountAddress, err := sdk.AccAddressFromHex(publicKeyHex)
-	if err != nil {
-		return nil, false, err
-	}
+func GetBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
 
-	ctx := chain.CLIContext(0).WithFromAddress(accountAddress)
+	from := sdk.AccAddress(fromPublicKey.Address())
+	ctx := chain.CLIContext(0).WithFromAddress(from)
 
 	txFactory, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
 	if err != nil {
-		return nil, false, err
+		return []byte{}, nil, txFactory, err
 	}
 
 	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
 	if err != nil {
-		return nil, false, err
+		return []byte{}, nil, txFactory, err
 	}
 
 	txFactory = txFactory.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
 
 	txBuilder, err := tx.BuildUnsignedTx(txFactory, msgs...)
 	if err != nil {
-		return nil, false, err
+		return []byte{}, nil, txFactory, err
 	}
 
 	signMode := txFactory.SignMode()
@@ -48,9 +45,9 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 		signMode = ctx.TxConfig.SignModeHandler().DefaultMode()
 	}
 
-	account, err := txFactory.AccountRetriever().GetAccount(ctx, accountAddress)
+	account, err := txFactory.AccountRetriever().GetAccount(ctx, from)
 	if err != nil {
-		return nil, false, err
+		return []byte{}, txBuilder, txFactory, err
 	}
 
 	signerData := authSigning.SignerData{
@@ -68,31 +65,39 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 		Sequence: txFactory.Sequence(),
 	}
 	if err := txBuilder.SetSignatures(sig); err != nil {
-		return nil, false, err
+		return []byte{}, txBuilder, txFactory, err
 	}
 
 	bytesToSign, err := ctx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
 	if err != nil {
-		return nil, false, err
+		return []byte{}, txBuilder, txFactory, err
 	}
 
-	// TODO MPC Integration
-	sigBytes, _, err := txFactory.Keybase().Sign(chain.Key, bytesToSign)
-	if err != nil {
-		return nil, false, err
+	return bytesToSign, txBuilder, txFactory, nil
+}
+
+// BroadcastMsgs chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
+func BroadcastMsgs(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, bool, error) {
+
+	from := sdk.AccAddress(fromPublicKey.Address())
+	ctx := chain.CLIContext(0).WithFromAddress(from)
+
+	signMode := txFactory.SignMode()
+	if signMode == signing.SignMode_SIGN_MODE_UNSPECIFIED {
+		signMode = ctx.TxConfig.SignModeHandler().DefaultMode()
 	}
 
-	sigData = signing.SingleSignatureData{
+	sigData := signing.SingleSignatureData{
 		SignMode:  signMode,
 		Signature: sigBytes,
 	}
-	sig = signing.SignatureV2{
-		PubKey:   account.GetPubKey(),
+	sig := signing.SignatureV2{
+		PubKey:   fromPublicKey,
 		Data:     &sigData,
 		Sequence: txFactory.Sequence(),
 	}
 
-	if err = txBuilder.SetSignatures(sig); err != nil {
+	if err := txBuilder.SetSignatures(sig); err != nil {
 		return nil, false, err
 	}
 
@@ -106,11 +111,10 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 		return nil, false, err
 	}
 	if res.Code != 0 {
-		chain.LogFailedTx(res, err, msgs)
 		return res, false, nil
 	}
 
-	chain.LogSuccessTx(res, msgs)
+	log.Printf("TX HASH: %s, CODE: %d\n", res.TxHash, res.Code)
 
 	return res, true, nil
 }
@@ -121,7 +125,7 @@ func BroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHei
 // 3. Adding n validators and removing m validators, where m < n
 func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 	var stakingMsgs []sdk.Msg
-	config := pStakeConfig.GetAppConfiguration()
+	config := configuration.GetAppConfiguration()
 
 	mpcValidators, err := casp.GetMPCValidatos(constants.CASP_URL)
 	if err != nil {

@@ -10,7 +10,6 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
@@ -165,7 +164,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 			DelegatorAddress: m.Chain.MustGetAddress().String(),
 			ValidatorAddress: constants2.Validator1.String(),
 			Amount: sdk.Coin{
-				Denom:  application.GetAppConfiguration().PStakeDenom,
+				Denom:  configuration.GetAppConfiguration().PStakeDenom,
 				Amount: sum,
 			},
 		}
@@ -353,7 +352,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	}
 	log.Printf("batched messages to send to ETH: %v\n", msgs)
 
-	hash, err := ethereum2.SendTxToEth(handler.EthClient, msgs, application.GetAppConfiguration().EthGasLimit)
+	hash, err := ethereum2.SendTxToEth(handler.EthClient, msgs, configuration.GetAppConfiguration().EthGasLimit)
 	if err != nil {
 		log.Printf("error occuerd in sending eth transaction: %v\n", err)
 		return err

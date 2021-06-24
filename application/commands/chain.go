@@ -64,7 +64,9 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			application.SetAppConfiguration(pstakeConfig.PStakeDenom, chain.MustGetAddress(), pstakeConfig.Ethereum.EthAccountPrivateKey,
+			application.Test(chain)
+
+			configuration.SetAppConfiguration(pstakeConfig.PStakeDenom, chain.MustGetAddress(), pstakeConfig.Ethereum.EthAccountPrivateKey,
 				pstakeConfig.Ethereum.EthGasLimit)
 
 			ethereumClient, err := ethclient.Dial(pstakeConfig.Ethereum.EthereumEndpoint)
