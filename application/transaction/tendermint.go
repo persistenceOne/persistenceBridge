@@ -45,11 +45,6 @@ func GetBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs
 		signMode = ctx.TxConfig.SignModeHandler().DefaultMode()
 	}
 
-	account, err := txFactory.AccountRetriever().GetAccount(ctx, from)
-	if err != nil {
-		return []byte{}, txBuilder, txFactory, err
-	}
-
 	signerData := authSigning.SignerData{
 		ChainID:       txFactory.ChainID(),
 		AccountNumber: txFactory.AccountNumber(),
@@ -60,7 +55,7 @@ func GetBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs
 		Signature: nil,
 	}
 	sig := signing.SignatureV2{
-		PubKey:   account.GetPubKey(),
+		PubKey:   fromPublicKey,
 		Data:     &sigData,
 		Sequence: txFactory.Sequence(),
 	}
