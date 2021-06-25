@@ -48,7 +48,7 @@ func NewEthereumConfig() EthereumConfig {
 
 type TendermintConfig struct {
 	PStakeAddress         sdkTypes.AccAddress
-	Validators            []sdkTypes.ValAddress
+	Validators            []string
 	RelayerTimeout        string
 	TendermintSleepTime   int //seconds
 	TendermintStartHeight int64
@@ -57,7 +57,7 @@ type TendermintConfig struct {
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
 		PStakeAddress:         nil,
-		Validators:            []sdkTypes.ValAddress{constants.Validator1},
+		Validators:            []string{constants.Validator1.String()},
 		RelayerTimeout:        constants.DefaultTimeout,
 		TendermintSleepTime:   constants.DefaultTendermintSleepTime,
 		TendermintStartHeight: constants.DefaultTendermintStartHeight,
