@@ -48,7 +48,7 @@ func NewEthereumConfig() EthereumConfig {
 
 type TendermintConfig struct {
 	PStakeAddress         sdkTypes.AccAddress
-	Validators            []sdkTypes.ValAddress
+	Validators            []string
 	RelayerTimeout        string
 	TendermintSleepTime   int //seconds
 	TendermintStartHeight int64
@@ -57,7 +57,7 @@ type TendermintConfig struct {
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
 		PStakeAddress:         nil,
-		Validators:            []sdkTypes.ValAddress{constants.Validator1},
+		Validators:            []string{constants.Validator1.String()},
 		RelayerTimeout:        constants.DefaultTimeout,
 		TendermintSleepTime:   constants.DefaultTendermintSleepTime,
 		TendermintStartHeight: constants.DefaultTendermintStartHeight,
@@ -77,7 +77,9 @@ type KafkaConfig struct {
 }
 
 type TopicConsumer struct {
-	BatchSize int
+	MinBatchSize int
+	MaxBatchSize int
+	Ticker       time.Duration
 }
 
 func NewKafkaConfig() KafkaConfig {
@@ -85,10 +87,14 @@ func NewKafkaConfig() KafkaConfig {
 		Brokers:     constants.DefaultBrokers,
 		TopicDetail: constants.TopicDetail,
 		ToEth: TopicConsumer{
-			BatchSize: constants.EthBatchSize,
+			MinBatchSize: constants.MinEthBatchSize,
+			MaxBatchSize: constants.MaxEthBatchSize,
+			Ticker:       constants.EthTicker,
 		},
 		ToTendermint: TopicConsumer{
-			BatchSize: constants.TendermintBatchSize,
+			MinBatchSize: constants.MinTendermintBatchSize,
+			MaxBatchSize: constants.MaxTendermintBatchSize,
+			Ticker:       constants.TendermintTicker,
 		},
 		EthUnbondStartTime: time.Duration(time.Now().Unix()),
 		EthUnbondCycleTime: constants.DefaultEthUnbondCycleTime,
