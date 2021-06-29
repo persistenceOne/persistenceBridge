@@ -66,20 +66,3 @@ func GetValidators() ([]sdk.ValAddress, error) {
 	}
 	return validators, nil
 }
-
-func SetValidators(validators []string) error {
-	for _, v := range validators {
-		validatorAddress, err := sdk.ValAddressFromBech32(v)
-		if err != nil {
-			return err
-		}
-		err = SetValidator(Validator{
-			Address: validatorAddress,
-			Active:  true,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
