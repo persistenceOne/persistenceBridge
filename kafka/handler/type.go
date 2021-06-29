@@ -387,7 +387,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	}
 	log.Printf("batched messages to send to ETH: %v\n", msgs)
 
-	hash, err := ethereum2.SendTxToEth(handler.EthClient, msgs, configuration.GetAppConfiguration().EthGasLimit)
+	hash, err := ethereum2.SendTxToEth(handler.EthClient, msgs, configuration.GetAppConfiguration().Ethereum.EthGasLimit)
 	if err != nil {
 		log.Printf("error occuerd in sending eth transaction: %v\n", err)
 		return err

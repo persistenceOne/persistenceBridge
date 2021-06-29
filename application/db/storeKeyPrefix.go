@@ -7,6 +7,7 @@ type storeKeyPrefix int16
 const (
 	statusPrefix storeKeyPrefix = iota + 1
 	tmTransactionPrefix
+	validator
 )
 
 func (storeKeyPrefix storeKeyPrefix) GenerateStoreKey(key []byte) []byte {

@@ -8,7 +8,6 @@ import (
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
@@ -44,8 +43,8 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pstakeConfig file: %v\n", err.Error())
 			}
-
 			pstakeConfig = UpdateConfig(cmd, pstakeConfig)
+			configuration.SetAppConfiguration(pstakeConfig)
 
 			db, err := db2.InitializeDB(homePath+"/db", pstakeConfig.Tendermint.TendermintStartHeight,
 				pstakeConfig.Ethereum.EthereumStartHeight)
@@ -63,11 +62,6 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-
-			application.Test(chain)
-
-			configuration.SetAppConfiguration(pstakeConfig.PStakeDenom, chain.MustGetAddress(), pstakeConfig.Ethereum.EthAccountPrivateKey,
-				pstakeConfig.Ethereum.EthGasLimit)
 
 			ethereumClient, err := ethclient.Dial(pstakeConfig.Ethereum.EthereumEndpoint)
 			if err != nil {

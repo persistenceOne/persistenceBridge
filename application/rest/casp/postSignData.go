@@ -52,7 +52,7 @@ func SignData(dataToSign []string, publicKeys []string) (casp.PostSignDataRespon
 	}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("unmarshalling error for casp signing %s", err)
 	}
 	return response, nil
 }

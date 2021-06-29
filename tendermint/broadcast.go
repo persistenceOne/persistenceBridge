@@ -13,7 +13,6 @@ import (
 
 func onNewBlock(ctx context.Context, chain *relayer.Chain, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) error {
 	return db.IterateTmTx(func(key []byte, value []byte) error {
-		fmt.Println("GOT KEY: " + string(key))
 		var tmTx db.TMTransaction
 		err := json.Unmarshal(value, &tmTx)
 		if err != nil {
@@ -44,7 +43,6 @@ func onNewBlock(ctx context.Context, chain *relayer.Chain, kafkaState utils.Kafk
 		} else {
 			log.Printf("tx hash search failed: %s\n", err)
 		}
-
 		return nil
 	})
 }

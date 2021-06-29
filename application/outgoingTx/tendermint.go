@@ -1,6 +1,7 @@
-package transaction
+package outgoingTx
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -14,11 +15,14 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/rest/blockchain"
 	"github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"github.com/tendermint/tendermint/crypto"
 	"log"
+	"time"
 )
 
 // Timeout height should be greater than current block height or set it 0 for none.
-func GetBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
+func GetTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
@@ -71,11 +75,11 @@ func GetBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs
 	return bytesToSign, txBuilder, txFactory, nil
 }
 
-// BroadcastMsgs chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
-func BroadcastMsgs(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, bool, error) {
+// BroadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
+func BroadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, bool, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
-	ctx := chain.CLIContext(0).WithFromAddress(from)
+	ctx := chain.CLIContext(0).WithFromAddress(from).WithBroadcastMode("async")
 
 	signMode := txFactory.SignMode()
 	if signMode == signing.SignMode_SIGN_MODE_UNSPECIFIED {
@@ -114,6 +118,23 @@ func BroadcastMsgs(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 	return res, true, nil
 }
 
+func GetTMSignature(bytesToSign []byte, signatureWaitTime time.Duration) ([]byte, error) {
+	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(crypto.Sha256(bytesToSign))}, []string{constants.CASP_PUBLIC_KEY})
+	if err != nil {
+		return nil, err
+	}
+	time.Sleep(signatureWaitTime)
+	signOperationResponse, err := caspQueries.GetSignOperation(signDataResponse.OperationID)
+	if err != nil {
+		return nil, err
+	}
+	signature, err := hex.DecodeString(signOperationResponse.Signatures[0])
+	if err != nil {
+		return nil, err
+	}
+	return signature, nil
+}
+
 // CheckAndGenerateRedelegateMsgs Three possible cases to handle
 // 1. Adding n validators and removing m validators, where m = n
 // 2. Adding n validators and removing m validators, where m > n
@@ -127,7 +148,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 		return stakingMsgs, err
 	}
 
-	delegations, err := blockchain.GetDelegations("", config.PStakeAddress.String())
+	delegations, err := blockchain.GetDelegations("", config.Tendermint.PStakeAddress.String())
 	if err != nil {
 		return stakingMsgs, err
 	}
@@ -186,7 +207,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 				panic("invalid code")
 			}
 			for i, srcValidator := range srcValidators {
-				msg := stakingTypes.NewMsgBeginRedelegate(config.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.PStakeDenom, srcAmounts[i]))
+				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.PStakeDenom, srcAmounts[i]))
 				stakingMsgs = append(stakingMsgs, msg)
 			}
 		}
@@ -225,7 +246,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 				panic("invalid code")
 			}
 			for i, srcValidator := range srcValidators {
-				msg := stakingTypes.NewMsgBeginRedelegate(config.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.PStakeDenom, srcAmounts[i]))
+				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.PStakeDenom, srcAmounts[i]))
 				stakingMsgs = append(stakingMsgs, msg)
 			}
 		}
@@ -234,7 +255,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 	// If number of mpc validator is same as delegations to validators, it means same numbers of validators has been added and removed.
 	if allocateDelegationPerValidator.Equal(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
 		for i, newValidator := range newValidators {
-			msg := stakingTypes.NewMsgBeginRedelegate(config.PStakeAddress, removedValidators[i], newValidator, sdk.NewCoin(config.PStakeDenom, oldDelegationsMap[removedValidators[i].String()]))
+			msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, removedValidators[i], newValidator, sdk.NewCoin(config.PStakeDenom, oldDelegationsMap[removedValidators[i].String()]))
 			stakingMsgs = append(stakingMsgs, msg)
 		}
 	}
