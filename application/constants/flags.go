@@ -24,7 +24,7 @@ var (
 	DefaultEthereumSleepTime     = 4500     //ms
 	DefaultTendermintStartHeight = int64(0) // 0 will not change the db at start
 	DefaultEthereumStartHeight   = int64(0) // 0 will not change the db at start
-	DefaultPBridgeHome           = os.ExpandEnv("$HOME/.pBridge")
+	DefaultPBridgeHome           = os.ExpandEnv("$HOME/.persistenceBridge")
 	DefaultDenom                 = "uatom"
 	DefaultEthGasLimit           = uint64(3000000)
 )

@@ -3,7 +3,7 @@ package contracts
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
@@ -25,7 +25,7 @@ var LiquidStaking = Contract{
 
 func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := arguments[1].(*big.Int)
-	stakeMsg := stakingTypes.NewMsgDelegate(application.GetAppConfiguration().PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(application.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64())))
+	stakeMsg := stakingTypes.NewMsgDelegate(configuration.GetAppConfiguration().PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64())))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(stakeMsg))
 	if err != nil {
 		log.Print("Failed to generate msgBytes: ", err)
@@ -42,7 +42,7 @@ func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, argument
 
 func onUnStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := arguments[1].(*big.Int)
-	unStakeMsg := stakingTypes.NewMsgUndelegate(application.GetAppConfiguration().PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(application.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64())))
+	unStakeMsg := stakingTypes.NewMsgUndelegate(configuration.GetAppConfiguration().PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64())))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(unStakeMsg))
 	if err != nil {
 		log.Print("Failed to generate msgBytes: ", err)

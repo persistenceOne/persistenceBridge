@@ -1,7 +1,7 @@
 package contracts
 
 import (
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"log"
 	"math/big"
@@ -29,7 +29,7 @@ func onWithdrawUTokens(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec
 	if err != nil {
 		return err
 	}
-	sendCoinMsg := bankTypes.NewMsgSend(application.GetAppConfiguration().PStakeAddress, atomAddress, sdkTypes.NewCoins(sdkTypes.NewCoin(application.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64()))))
+	sendCoinMsg := bankTypes.NewMsgSend(configuration.GetAppConfiguration().PStakeAddress, atomAddress, sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64()))))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(sendCoinMsg))
 	if err != nil {
 		log.Print("Failed to generate msgBytes: ", err)

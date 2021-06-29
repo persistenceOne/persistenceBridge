@@ -1,4 +1,4 @@
-package queries
+package rest
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 
 var httpClient = &http.Client{Timeout: 10 * time.Second}
 
-func get(url string, target interface{}) error {
+func Get(url string, target interface{}) error {
 	r, err := httpClient.Get(url)
 	if err != nil {
 		return err

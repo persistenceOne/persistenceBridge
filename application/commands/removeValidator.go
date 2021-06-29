@@ -3,8 +3,8 @@ package commands
 import (
 	"errors"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/persistenceOne/persistenceBridge/application"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/spf13/cobra"
 	"log"
 )
@@ -20,15 +20,15 @@ func RemoveCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			db, err := application.OpenDB(homePath + "/db")
-			validators, err := application.GetValidators()
+			database, err := db.OpenDB(homePath + "/db")
+			validators, err := db.GetValidators()
 			if err != nil {
-				err2 := application.SetValidators([]string{})
+				err2 := db.SetValidators([]string{})
 				if err2 != nil {
 					return err2
 				}
 			}
-			defer db.Close()
+			defer database.Close()
 
 			// TODO validate if validator is correct and already present
 			//
@@ -43,7 +43,7 @@ func RemoveCommand(initClientCtx client.Context) *cobra.Command {
 			if len(newValidators) == 0 {
 				return errors.New("cannot remove all validators, need atleast one")
 			}
-			err = application.SetValidators(newValidators)
+			err = db.SetValidators(newValidators)
 			if err != nil {
 				return err
 			}

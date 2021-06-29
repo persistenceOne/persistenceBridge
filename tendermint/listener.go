@@ -3,7 +3,7 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"time"
@@ -18,6 +18,12 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 	ctx := context.Background()
 
 	for {
+		if shutdown.GetBridgeStopSignal() {
+			log.Println("Stopping Tendermint Listener!!!")
+			shutdown.SetTMStopped(true)
+			return
+		}
+
 		abciInfo, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
 			log.Printf("Error while fetching tendermint abci info: %s\n", err.Error())
@@ -25,7 +31,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			continue
 		}
 
-		cosmosStatus, err := application.GetCosmosStatus()
+		cosmosStatus, err := db.GetCosmosStatus()
 		if err != nil {
 			panic(err)
 		}
@@ -46,15 +52,15 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 				panic(err)
 			}
 
-			err = application.SetCosmosStatus(processHeight)
+			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
 				panic(err)
 			}
 		}
-		if shutdown.GetBridgeStopSignal() {
-			log.Println("Stopping Tendermint Listener!!!")
-			shutdown.SetTMStopped(true)
-			return
+
+		err = onNewBlock(ctx, chain, kafkaState, protoCodec)
+		if err != nil {
+			panic(err)
 		}
 		time.Sleep(sleepDuration)
 	}

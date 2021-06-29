@@ -1,4 +1,4 @@
-package tendermint
+package blockchain
 
 type TxForTxByHeight struct {
 	Hash     string `json:"hash"`

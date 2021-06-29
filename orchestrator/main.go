@@ -35,7 +35,7 @@ func main() {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authTypes.AccountRetriever{}).
 		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(constants.DefaultNodeHome)
+		WithHomeDir(constants.DefaultPBridgeHome)
 
 	cobra.EnableCommandSorting = false
 
@@ -65,7 +65,7 @@ func main() {
 	rootCommand.AddCommand(commands.RemoveCommand(initClientCtx))
 	rootCommand.AddCommand(commands.InitCommand())
 
-	if err := serverCmd.Execute(rootCommand, constants.DefaultNodeHome); err != nil {
+	if err := serverCmd.Execute(rootCommand, constants.DefaultPBridgeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
 			os.Exit(e.Code)
