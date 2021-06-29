@@ -5,7 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
@@ -58,7 +58,7 @@ ConsumerLoop:
 			DelegatorAddress: m.Chain.MustGetAddress().String(),
 			ValidatorAddress: constants2.Validator1.String(),
 			Amount: sdk.Coin{
-				Denom:  application.GetAppConfiguration().PStakeDenom,
+				Denom:  configuration.GetAppConfiguration().PStakeDenom,
 				Amount: sum,
 			},
 		}

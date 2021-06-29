@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Shopify/sarama"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/ethereum"
 	"log"
 	"time"
@@ -70,7 +70,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	}
 	log.Printf("batched messages to send to ETH: %v\n", msgs)
 
-	hash, err := ethereum.SendTxToEth(handler.EthClient, msgs, application.GetAppConfiguration().EthGasLimit)
+	hash, err := ethereum.SendTxToEth(handler.EthClient, msgs, configuration.GetAppConfiguration().EthGasLimit)
 	if err != nil {
 		log.Printf("error occuerd in sending eth transaction: %v\n", err)
 		return err

@@ -47,7 +47,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			configuration.SetAppConfiguration(pstakeConfig)
 
 			db, err := db2.InitializeDB(homePath+"/db", pstakeConfig.Tendermint.TendermintStartHeight,
-				pstakeConfig.Ethereum.EthereumStartHeight)
+				pstakeConfig.Ethereum.EthereumStartHeight, pstakeConfig.Tendermint.Validators)
 			if err != nil {
 				log.Fatalln(err)
 			}
