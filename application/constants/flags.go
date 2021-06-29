@@ -14,6 +14,7 @@ const (
 	FlagDenom                 = "denom"
 	FlagEthPrivateKey         = "ethPrivateKey"
 	FlagEthGasLimit           = "ethGasLimit"
+	FlagKafkaPorts            = "kafkaPorts"
 )
 
 var (

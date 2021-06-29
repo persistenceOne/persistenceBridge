@@ -137,7 +137,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Uint32(constants2.FlagCoinType, constants2.DefaultCoinType, "coin type for wallet")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
-	pBridgeCommand.Flags().String("ports", "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
+	pBridgeCommand.Flags().String(constants2.FlagKafkaPorts, "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	pBridgeCommand.Flags().Int(constants2.FlagTendermintSleepTime, constants2.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
 	pBridgeCommand.Flags().Int(constants2.FlagEthereumSleepTime, constants2.DefaultEthereumSleepTime, "sleep time between block checking for ethereum in ms")
 	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, constants2.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
