@@ -58,7 +58,7 @@ ConsumerLoop:
 			DelegatorAddress: m.Chain.MustGetAddress().String(),
 			ValidatorAddress: constants2.Validator1.String(),
 			Amount: sdk.Coin{
-				Denom:  configuration.GetAppConfiguration().PStakeDenom,
+				Denom:  configuration.GetAppConfiguration().Tendermint.PStakeDenom,
 				Amount: sum,
 			},
 		}

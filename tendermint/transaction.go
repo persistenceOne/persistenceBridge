@@ -65,7 +65,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 			case *banktypes.MsgSend:
 				amount := sdk.NewInt(0)
 				for _, coin := range txMsg.Amount {
-					if coin.Denom == configuration.GetAppConfiguration().PStakeDenom {
+					if coin.Denom == configuration.GetAppConfiguration().Tendermint.PStakeDenom {
 						amount = coin.Amount
 						break
 					}

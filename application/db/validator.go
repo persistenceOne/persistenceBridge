@@ -7,6 +7,7 @@ import (
 
 type Validator struct {
 	Address sdk.ValAddress
+	Name    string
 	Active  bool
 }
 

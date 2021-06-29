@@ -7,7 +7,7 @@ import (
 
 var db *badger.DB
 
-func InitializeDB(dbPath string, tendermintStart, ethereumStart int64, validators []string) (*badger.DB, error) {
+func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.DB, error) {
 	dbTemp, err := badger.Open(badger.DefaultOptions(dbPath))
 	if err != nil {
 		log.Fatalln(err)

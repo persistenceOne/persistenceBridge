@@ -9,58 +9,42 @@ import (
 )
 
 type Config struct {
-	Kafka       KafkaConfig
-	Tendermint  TendermintConfig
-	Ethereum    EthereumConfig
-	PStakeDenom string
-	CoinType    uint32
-	PStakeHome  string
+	Kafka      KafkaConfig
+	Tendermint TendermintConfig
+	Ethereum   EthereumConfig
+	PStakeHome string
 }
 
 func NewConfig() Config {
 	return Config{
-		Kafka:       NewKafkaConfig(),
-		Tendermint:  NewTendermintConfig(),
-		Ethereum:    NewEthereumConfig(),
-		PStakeDenom: constants.DefaultDenom,
-		CoinType:    constants.DefaultCoinType,
-		PStakeHome:  constants.DefaultPBridgeHome,
+		Kafka:      NewKafkaConfig(),
+		Tendermint: NewTendermintConfig(),
+		Ethereum:   NewEthereumConfig(),
+		PStakeHome: constants.DefaultPBridgeHome,
 	}
 }
 
 type EthereumConfig struct {
 	EthAccountPrivateKey *ecdsa.PrivateKey
 	EthGasLimit          uint64
-	EthereumEndpoint     string
-	EthereumSleepTime    int // seconds
-	EthereumStartHeight  int64
 }
 
 func NewEthereumConfig() EthereumConfig {
 	return EthereumConfig{
 		EthAccountPrivateKey: nil,
 		EthGasLimit:          constants.DefaultEthGasLimit,
-		EthereumEndpoint:     constants.DefaultEthereumEndPoint,
-		EthereumSleepTime:    constants.DefaultEthereumSleepTime,
-		EthereumStartHeight:  constants.DefaultEthereumStartHeight,
 	}
 }
 
 type TendermintConfig struct {
-	PStakeAddress         sdkTypes.AccAddress
-	Validators            []string
-	RelayerTimeout        string
-	TendermintSleepTime   int //seconds
-	TendermintStartHeight int64
+	PStakeAddress sdkTypes.AccAddress
+	PStakeDenom   string
 }
 
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
-		PStakeAddress:         nil,
-		Validators:            []string{constants.Validator1.String()},
-		RelayerTimeout:        constants.DefaultTimeout,
-		TendermintSleepTime:   constants.DefaultTendermintSleepTime,
-		TendermintStartHeight: constants.DefaultTendermintStartHeight,
+		PStakeAddress: nil,
+		PStakeDenom:   constants.DefaultDenom,
 	}
 }
 

@@ -207,7 +207,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 				panic("invalid code")
 			}
 			for i, srcValidator := range srcValidators {
-				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.PStakeDenom, srcAmounts[i]))
+				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.Tendermint.PStakeDenom, srcAmounts[i]))
 				stakingMsgs = append(stakingMsgs, msg)
 			}
 		}
@@ -246,7 +246,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 				panic("invalid code")
 			}
 			for i, srcValidator := range srcValidators {
-				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.PStakeDenom, srcAmounts[i]))
+				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.Tendermint.PStakeDenom, srcAmounts[i]))
 				stakingMsgs = append(stakingMsgs, msg)
 			}
 		}
@@ -255,7 +255,7 @@ func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
 	// If number of mpc validator is same as delegations to validators, it means same numbers of validators has been added and removed.
 	if allocateDelegationPerValidator.Equal(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
 		for i, newValidator := range newValidators {
-			msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, removedValidators[i], newValidator, sdk.NewCoin(config.PStakeDenom, oldDelegationsMap[removedValidators[i].String()]))
+			msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, removedValidators[i], newValidator, sdk.NewCoin(config.Tendermint.PStakeDenom, oldDelegationsMap[removedValidators[i].String()]))
 			stakingMsgs = append(stakingMsgs, msg)
 		}
 	}
