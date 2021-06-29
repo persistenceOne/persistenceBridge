@@ -2,7 +2,6 @@ package db
 
 import (
 	"encoding/json"
-	"github.com/dgraph-io/badger/v3"
 )
 
 const (
@@ -68,37 +67,4 @@ func GetEthereumStatus() (Status, error) {
 
 func SetEthereumStatus(height int64) error {
 	return setStatus(ETHEREUM, height)
-}
-
-func GetValidators() ([]string, error) {
-	var status []string
-	err := db.Update(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(VALIDATORS))
-		if err != nil {
-			return err
-		}
-		err = item.Value(func(val []byte) error {
-			err = json.Unmarshal(val, &status)
-			return err
-		})
-		return err
-	})
-	if err != nil {
-		return status, err
-	}
-	return status, nil
-}
-
-func SetValidators(validators []string) error {
-	b, err := json.Marshal(validators)
-	if err != nil {
-		return err
-	}
-	err = db.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(VALIDATORS), b)
-	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
