@@ -65,12 +65,12 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 			case *banktypes.MsgSend:
 				amount := sdk.NewInt(0)
 				for _, coin := range txMsg.Amount {
-					if coin.Denom == configuration.GetAppConfiguration().Tendermint.PStakeDenom {
+					if coin.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom {
 						amount = coin.Amount
 						break
 					}
 				}
-				if txMsg.ToAddress == configuration.GetAppConfiguration().Tendermint.PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
 					log.Printf("RECEIVED TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
 					ethTxMsg := ethereum2.EthTxMsg{
 						Address: ethAddress,
@@ -85,7 +85,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
 					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else if txMsg.ToAddress == configuration.GetAppConfiguration().Tendermint.PStakeAddress.String() {
+				} else if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
 						ToAddress:   txMsg.FromAddress,

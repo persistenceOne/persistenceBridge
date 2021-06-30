@@ -2,27 +2,49 @@ package outgoingTx
 
 import (
 	"encoding/hex"
-	"fmt"
+	"log"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/rest/blockchain"
-	"github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/tendermint/tendermint/crypto"
-	"log"
-	"time"
 )
 
 // Timeout height should be greater than current block height or set it 0 for none.
-func GetTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
+func SignAndBroadcastTM(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedPublicKeys()
+	if err != nil {
+		return nil, false, err
+	}
+	publicKey := casp.GetPubKey(uncompressedPublicKeys.PublicKeys[0])
+
+	bytesToSign, txB, txF, err := getTMBytesToSign(chain, publicKey, msgs, memo, timeoutHeight)
+	if err != nil {
+		return nil, false, err
+	}
+
+	signature, err := getTMSignature(bytesToSign, 8*time.Second)
+	if err != nil {
+		return nil, false, err
+	}
+
+	txRes, ok, err := broadcastTMTx(chain, publicKey, signature, txB, txF)
+	if err != nil {
+		return nil, false, err
+	}
+	return txRes, ok, err
+}
+
+// Timeout height should be greater than current block height or set it 0 for none.
+func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
@@ -75,8 +97,8 @@ func GetTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	return bytesToSign, txBuilder, txFactory, nil
 }
 
-// BroadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
-func BroadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, bool, error) {
+// broadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
+func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, bool, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from).WithBroadcastMode("async")
@@ -118,8 +140,8 @@ func BroadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 	return res, true, nil
 }
 
-func GetTMSignature(bytesToSign []byte, signatureWaitTime time.Duration) ([]byte, error) {
-	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(crypto.Sha256(bytesToSign))}, []string{constants.CASP_PUBLIC_KEY})
+func getTMSignature(bytesToSign []byte, signatureWaitTime time.Duration) ([]byte, error) {
+	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(crypto.Sha256(bytesToSign))}, []string{configuration.GetAppConfig().CASP.PublicKey})
 	if err != nil {
 		return nil, err
 	}
@@ -133,170 +155,4 @@ func GetTMSignature(bytesToSign []byte, signatureWaitTime time.Duration) ([]byte
 		return nil, err
 	}
 	return signature, nil
-}
-
-// CheckAndGenerateRedelegateMsgs Three possible cases to handle
-// 1. Adding n validators and removing m validators, where m = n
-// 2. Adding n validators and removing m validators, where m > n
-// 3. Adding n validators and removing m validators, where m < n
-func CheckAndGenerateRedelegateMsgs() ([]sdk.Msg, error) {
-	var stakingMsgs []sdk.Msg
-	config := configuration.GetAppConfiguration()
-
-	mpcValidators, err := casp.GetMPCValidatos(constants.CASP_URL)
-	if err != nil {
-		return stakingMsgs, err
-	}
-
-	delegations, err := blockchain.GetDelegations("", config.Tendermint.PStakeAddress.String())
-	if err != nil {
-		return stakingMsgs, err
-	}
-	delegationValidators := make([]string, len(delegations.DelegationResponses))
-	oldDelegationsMap := map[string]sdk.Int{}
-	totalDelegation := sdk.NewInt(0)
-
-	for i, delegationValidator := range delegations.DelegationResponses {
-		delegationValidators[i] = delegationValidator.Delegation.ValidatorAddress
-		balance, ok := sdk.NewIntFromString(delegationValidator.Balance.Amount)
-		if !ok {
-			return stakingMsgs, fmt.Errorf("parsing amount from string failed %s", delegationValidator.Balance.Amount)
-		}
-		totalDelegation = totalDelegation.Add(balance)
-		oldDelegationsMap[delegationValidator.Delegation.ValidatorAddress] = balance
-	}
-	newValidators := difference(mpcValidators.Validators, delegationValidators)
-	commonValidators := intersection(mpcValidators.Validators, delegationValidators)
-	removedValidators := difference(delegationValidators, mpcValidators.Validators)
-
-	allocateDelegationPerValidator := totalDelegation.Quo(sdk.NewInt(int64(len(mpcValidators.Validators))))
-
-	// What to do with this?
-	// leftOver := totalDelegation.Sub(allocateDelegationPerValidator.Mul(sdk.NewInt(int64(len(mpcValidators.Validators)))))
-
-	// This means number of validators removed is greater than added. Here we have transfer to common and new validators subtracting from removed validators.
-	if allocateDelegationPerValidator.GT(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
-		for k, validator := range append(commonValidators, newValidators...) {
-			var transfer sdk.Int
-			if k < len(commonValidators) {
-				// transferring to common validator
-				transfer = allocateDelegationPerValidator.Sub(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses)))))
-			} else {
-				// transferring to new validator
-				transfer = allocateDelegationPerValidator
-			}
-			var srcAmounts []sdk.Int
-			var srcValidators []sdk.ValAddress
-			for _, removedValidator := range removedValidators {
-				removedValidatorDelegationAmt := oldDelegationsMap[removedValidator.String()]
-				if removedValidatorDelegationAmt.GT(sdk.ZeroInt()) {
-					srcValidators = append(srcValidators, removedValidator)
-					if transfer.GT(removedValidatorDelegationAmt) {
-						srcAmounts = append(srcAmounts, removedValidatorDelegationAmt)
-						oldDelegationsMap[removedValidator.String()] = sdk.ZeroInt()
-						transfer = transfer.Sub(removedValidatorDelegationAmt)
-					} else {
-						srcAmounts = append(srcAmounts, transfer)
-						oldDelegationsMap[removedValidator.String()] = removedValidatorDelegationAmt.Sub(transfer)
-						transfer = sdk.ZeroInt()
-						break
-					}
-				}
-			}
-			if len(srcAmounts) != len(srcValidators) {
-				panic("invalid code")
-			}
-			for i, srcValidator := range srcValidators {
-				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.Tendermint.PStakeDenom, srcAmounts[i]))
-				stakingMsgs = append(stakingMsgs, msg)
-			}
-		}
-	}
-
-	// This means number of validators added is greater than removed. Here we have transfer only to new validators subtracting from removed and common validators.
-	if allocateDelegationPerValidator.LT(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
-		for _, validator := range newValidators {
-			transfer := allocateDelegationPerValidator
-			var srcAmounts []sdk.Int
-			var srcValidators []sdk.ValAddress
-			for _, removedValidator := range removedValidators {
-				removedValidatorDelegationAmt := oldDelegationsMap[removedValidator.String()]
-				if removedValidatorDelegationAmt.GT(sdk.ZeroInt()) {
-					srcValidators = append(srcValidators, removedValidator)
-					if transfer.GT(removedValidatorDelegationAmt) {
-						srcAmounts = append(srcAmounts, removedValidatorDelegationAmt)
-						oldDelegationsMap[removedValidator.String()] = sdk.ZeroInt()
-						transfer = transfer.Sub(removedValidatorDelegationAmt)
-					} else {
-						srcAmounts = append(srcAmounts, transfer)
-						oldDelegationsMap[removedValidator.String()] = removedValidatorDelegationAmt.Sub(transfer)
-						transfer = sdk.ZeroInt()
-						break
-					}
-				}
-			}
-			if !transfer.Equal(sdk.ZeroInt()) {
-				amount := transfer.Quo(sdk.NewInt(int64(len(commonValidators)))) // can lead to non zero leftover
-				for _, commonValidator := range commonValidators {
-					srcValidators = append(srcValidators, commonValidator)
-					srcAmounts = append(srcAmounts, amount)
-				}
-			}
-			if len(srcAmounts) != len(srcValidators) {
-				panic("invalid code")
-			}
-			for i, srcValidator := range srcValidators {
-				msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, srcValidator, validator, sdk.NewCoin(config.Tendermint.PStakeDenom, srcAmounts[i]))
-				stakingMsgs = append(stakingMsgs, msg)
-			}
-		}
-	}
-
-	// If number of mpc validator is same as delegations to validators, it means same numbers of validators has been added and removed.
-	if allocateDelegationPerValidator.Equal(totalDelegation.Quo(sdk.NewInt(int64(len(delegations.DelegationResponses))))) {
-		for i, newValidator := range newValidators {
-			msg := stakingTypes.NewMsgBeginRedelegate(config.Tendermint.PStakeAddress, removedValidators[i], newValidator, sdk.NewCoin(config.Tendermint.PStakeDenom, oldDelegationsMap[removedValidators[i].String()]))
-			stakingMsgs = append(stakingMsgs, msg)
-		}
-	}
-
-	return stakingMsgs, nil
-}
-
-// difference returns the elements in `a` that aren't in `b`.
-func difference(a, b []string) []sdk.ValAddress {
-	mb := make(map[string]struct{}, len(b))
-	for _, x := range b {
-		mb[x] = struct{}{}
-	}
-	var diff []sdk.ValAddress
-	for _, x := range a {
-		if _, found := mb[x]; !found {
-			validator, err := sdk.ValAddressFromBech32(x)
-			if err != nil {
-				panic(err)
-			}
-			diff = append(diff, validator)
-		}
-	}
-	return diff
-}
-
-func intersection(a, b []string) (c []sdk.ValAddress) {
-	m := make(map[string]bool)
-
-	for _, item := range a {
-		m[item] = true
-	}
-
-	for _, item := range b {
-		if _, ok := m[item]; ok {
-			validator, err := sdk.ValAddressFromBech32(item)
-			if err != nil {
-				panic(err)
-			}
-			c = append(c, validator)
-		}
-	}
-	return
 }

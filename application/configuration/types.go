@@ -9,18 +9,20 @@ import (
 )
 
 type Config struct {
-	Kafka      KafkaConfig
-	Tendermint TendermintConfig
-	Ethereum   EthereumConfig
-	PStakeHome string
+	Kafka       KafkaConfig
+	Tendermint  TendermintConfig
+	Ethereum    EthereumConfig
+	CASP        CASPConfig
+	PBridgeHome string
 }
 
 func NewConfig() Config {
 	return Config{
-		Kafka:      NewKafkaConfig(),
-		Tendermint: NewTendermintConfig(),
-		Ethereum:   NewEthereumConfig(),
-		PStakeHome: constants.DefaultPBridgeHome,
+		Kafka:       NewKafkaConfig(),
+		Tendermint:  NewTendermintConfig(),
+		Ethereum:    NewEthereumConfig(),
+		CASP:        NewCASPConfig(),
+		PBridgeHome: constants.DefaultPBridgeHome,
 	}
 }
 
@@ -39,12 +41,34 @@ func NewEthereumConfig() EthereumConfig {
 type TendermintConfig struct {
 	PStakeAddress sdkTypes.AccAddress
 	PStakeDenom   string
+	BroadcastMode string
 }
 
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
 		PStakeAddress: nil,
 		PStakeDenom:   constants.DefaultDenom,
+		BroadcastMode: constants.DefaultBroadcastMode,
+	}
+}
+
+type CASPConfig struct {
+	URL               string
+	VaultID           string
+	PublicKey         string
+	SignatureWaitTime time.Duration
+	APIToken          string
+	Coin              uint32
+}
+
+func NewCASPConfig() CASPConfig {
+	return CASPConfig{
+		URL:               constants.DefaultCASPUrl,
+		VaultID:           constants.DefaultCASPVaultID,
+		PublicKey:         constants.DefaultCASPPublicKey,
+		SignatureWaitTime: constants.DefaultCASPSignatureWaitTime,
+		APIToken:          constants.DefaultCASPAPI,
+		Coin:              constants.DefaultCASPCoin,
 	}
 }
 

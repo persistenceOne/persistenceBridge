@@ -42,9 +42,16 @@ func InitCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
-	cmd.Flags().String("ports", "localhost:9092", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
+	cmd.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	cmd.Flags().String(constants2.FlagEthPrivateKey, "", "private keys of ethereum account which does txs.")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
+	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
+	cmd.Flags().String(constants2.FlagCASPURL, constants2.DefaultCASPUrl, "broadcast mode for tendermint")
+	cmd.Flags().String(constants2.FlagCASPVaultID, constants2.DefaultCASPVaultID, "broadcast mode for tendermint")
+	cmd.Flags().String(constants2.FlagCASPApiToken, constants2.DefaultCASPAPI, "broadcast mode for tendermint")
+	cmd.Flags().String(constants2.FlagCASPPublicKey, constants2.DefaultCASPPublicKey, "broadcast mode for tendermint")
+	cmd.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "broadcast mode for tendermint")
+	cmd.Flags().Uint32(constants2.FlagCASPCoin, constants2.DefaultCASPCoin, "broadcast mode for tendermint")
 
 	return cmd
 }

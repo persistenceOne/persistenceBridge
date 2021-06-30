@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"io/ioutil"
 	"net/http"
@@ -17,13 +17,13 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 			InsecureSkipVerify: true,
 		},
 	}}
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s", constants.CASP_URL, operationID), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s", configuration.GetAppConfig().CASP.URL, operationID), nil)
 
 	if err != nil {
 		return response, err
 	}
 
-	request.Header.Set("authorization", constants.CASP_API_TOKEN)
+	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
 	resp, err := client.Do(request)
 	if err != nil {
 		return response, err

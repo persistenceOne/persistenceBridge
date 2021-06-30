@@ -25,7 +25,7 @@ var LiquidStaking = Contract{
 
 func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := arguments[1].(*big.Int)
-	stakeMsg := stakingTypes.NewMsgDelegate(configuration.GetAppConfiguration().Tendermint.PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfiguration().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())))
+	stakeMsg := stakingTypes.NewMsgDelegate(configuration.GetAppConfig().Tendermint.PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(stakeMsg))
 	if err != nil {
 		log.Print("Failed to generate msgBytes: ", err)
@@ -42,7 +42,7 @@ func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, argument
 
 func onUnStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := arguments[1].(*big.Int)
-	unStakeMsg := stakingTypes.NewMsgUndelegate(configuration.GetAppConfiguration().Tendermint.PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfiguration().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())))
+	unStakeMsg := stakingTypes.NewMsgUndelegate(configuration.GetAppConfig().Tendermint.PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(unStakeMsg))
 	if err != nil {
 		log.Print("Failed to generate msgBytes: ", err)

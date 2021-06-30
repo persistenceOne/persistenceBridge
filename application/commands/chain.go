@@ -44,7 +44,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalf("Error decoding pstakeConfig file: %v\n", err.Error())
 			}
 			pstakeConfig = UpdateConfig(cmd, pstakeConfig)
-			configuration.SetAppConfiguration(pstakeConfig)
+			configuration.SetAppConfig(pstakeConfig)
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
 			if err != nil {
@@ -133,11 +133,11 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			return nil
 		},
 	}
-	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.FlagTimeOut, "timeout time for connecting to rpc")
+	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
 	pBridgeCommand.Flags().Uint32(constants2.FlagCoinType, constants2.DefaultCoinType, "coin type for wallet")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
-	pBridgeCommand.Flags().String(constants2.FlagKafkaPorts, "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
+	pBridgeCommand.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	pBridgeCommand.Flags().Int(constants2.FlagTendermintSleepTime, constants2.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
 	pBridgeCommand.Flags().Int(constants2.FlagEthereumSleepTime, constants2.DefaultEthereumSleepTime, "sleep time between block checking for ethereum in ms")
 	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, constants2.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
@@ -145,6 +145,13 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagDenom, constants2.DefaultDenom, "denom name")
 	pBridgeCommand.Flags().String(constants2.FlagEthPrivateKey, "", "private keys of ethereum account which does txs.")
 	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
+	pBridgeCommand.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().String(constants2.FlagCASPURL, constants2.DefaultCASPUrl, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().String(constants2.FlagCASPVaultID, constants2.DefaultCASPVaultID, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().String(constants2.FlagCASPApiToken, constants2.DefaultCASPAPI, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().String(constants2.FlagCASPPublicKey, constants2.DefaultCASPPublicKey, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "broadcast mode for tendermint")
+	pBridgeCommand.Flags().Uint32(constants2.FlagCASPCoin, constants2.DefaultCASPCoin, "broadcast mode for tendermint")
 
 	return pBridgeCommand
 }
@@ -178,13 +185,71 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		pstakeConfig.Ethereum.EthGasLimit = ethGasLimit
 	}
 
-	ports, err := cmd.Flags().GetString("ports")
+	ports, err := cmd.Flags().GetString(constants2.FlagKafkaPorts)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	if ports != "" {
 		pstakeConfig.Kafka.Brokers = strings.Split(ports, ",")
 	}
+
+	broadcastMode, err := cmd.Flags().GetString(constants2.FlagBroadcastMode)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if broadcastMode == "sync" || broadcastMode == "async" || broadcastMode == "block" {
+		pstakeConfig.Tendermint.BroadcastMode = broadcastMode
+	} else {
+		log.Fatalln(fmt.Errorf("invalid broadcast mode"))
+	}
+
+	caspURL, err := cmd.Flags().GetString(constants2.FlagCASPURL)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if caspURL != "" {
+		pstakeConfig.CASP.URL = caspURL
+	}
+
+	caspVaultID, err := cmd.Flags().GetString(constants2.FlagCASPVaultID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if caspVaultID != "" {
+		pstakeConfig.CASP.VaultID = caspVaultID
+	}
+
+	csapApiToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if csapApiToken != "" {
+		pstakeConfig.CASP.APIToken = csapApiToken
+	}
+
+	csapPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPPublicKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if csapPublicKey != "" {
+		pstakeConfig.CASP.APIToken = csapPublicKey
+	}
+
+	caspSignatureWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPSignatureWaitTime)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if caspSignatureWaitTime >= 0 {
+		pstakeConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
+	} else {
+		log.Fatalln("invalid casp signature wait time")
+	}
+
+	csapCoin, err := cmd.Flags().GetUint32(constants2.FlagCASPCoin)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	pstakeConfig.CASP.Coin = csapCoin
 
 	return pstakeConfig
 }

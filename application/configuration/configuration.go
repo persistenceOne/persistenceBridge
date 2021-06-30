@@ -2,10 +2,10 @@ package configuration
 
 var appConfig *Config
 
-func SetAppConfiguration(config Config) {
+func SetAppConfig(config Config) {
 	appConfig = &config
 }
 
-func GetAppConfiguration() *Config {
+func GetAppConfig() *Config {
 	return appConfig
 }

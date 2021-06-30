@@ -26,7 +26,7 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 		return "", fmt.Errorf("number of txs to be send to ethereum is 0")
 	}
 	ctx := context.Background()
-	publicKey := configuration.GetAppConfiguration().Ethereum.EthAccountPrivateKey.Public()
+	publicKey := configuration.GetAppConfig().Ethereum.EthAccountPrivateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
 		log.Fatalln("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
@@ -47,7 +47,7 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 	if err != nil {
 		return "", err
 	}
-	auth, err := bind.NewKeyedTransactorWithChainID(configuration.GetAppConfiguration().Ethereum.EthAccountPrivateKey, chainID)
+	auth, err := bind.NewKeyedTransactorWithChainID(configuration.GetAppConfig().Ethereum.EthAccountPrivateKey, chainID)
 	if err != nil {
 		return "", err
 	}

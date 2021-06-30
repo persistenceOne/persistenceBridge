@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"io/ioutil"
 	"net/http"
@@ -35,11 +35,11 @@ func SignData(dataToSign []string, publicKeys []string) (casp.PostSignDataRespon
 			InsecureSkipVerify: true,
 		},
 	}}
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", constants.CASP_URL, constants.CASP_VAULT_ID), responseBody)
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID), responseBody)
 	if err != nil {
 		return response, err
 	}
-	request.Header.Set("authorization", constants.CASP_API_TOKEN)
+	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(request)
 	if err != nil {
