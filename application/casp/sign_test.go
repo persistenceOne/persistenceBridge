@@ -68,7 +68,8 @@ func TestGet(t *testing.T) {
 		},
 	}}
 	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/auth/users", nil)
-	request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/operations/sign/ac98452f-b6ed-424f-bcdd-5dd9c7be0fb8", nil)
+	request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/vaults/509fd89a-762a-40ec-bd4b-0745b06e2d3d/coins/118/accounts/0/chains/all/addresses?encoding=uncompressed", nil)
+	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/operations/sign/ac98452f-b6ed-424f-bcdd-5dd9c7be0fb8", nil)
 	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/accounts/bd4c618e-8046-4fef-bdaa-9716ade77553/participants", nil)
 
 	if err != nil {

@@ -10,7 +10,15 @@ import (
 	"net/http"
 )
 
-func GetUncompressedPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
+func GetUncompressedTMPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
+	return getUncompressedPublicKeys(configuration.GetAppConfig().CASP.Coin)
+}
+
+func GetUncompressedEthPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
+	return getUncompressedPublicKeys(60)
+}
+
+func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResponse, error) {
 	var response casp.UncompressedPublicKeysResponse
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -18,12 +26,10 @@ func GetUncompressedPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
 		},
 	}}
 
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/coins/%d/accounts/0/chains/all/addresses?encoding=uncompressed", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID, configuration.GetAppConfig().CASP.Coin), nil)
-
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/coins/%d/accounts/0/chains/all/addresses?encoding=uncompressed", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID, coinType), nil)
 	if err != nil {
 		return response, err
 	}
-
 	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
 	resp, err := client.Do(request)
 	if err != nil {

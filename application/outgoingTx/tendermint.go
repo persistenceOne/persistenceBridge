@@ -20,18 +20,18 @@ import (
 
 // Timeout height should be greater than current block height or set it 0 for none.
 func SignAndBroadcastTM(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedPublicKeys()
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {
 		return nil, false, err
 	}
-	publicKey := casp.GetPubKey(uncompressedPublicKeys.PublicKeys[0])
-
+	//TODO index check
+	publicKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, publicKey, msgs, memo, timeoutHeight)
 	if err != nil {
 		return nil, false, err
 	}
 
-	signature, err := getTMSignature(bytesToSign, 8*time.Second)
+	signature, err := getTMSignature(bytesToSign, configuration.GetAppConfig().CASP.SignatureWaitTime)
 	if err != nil {
 		return nil, false, err
 	}
