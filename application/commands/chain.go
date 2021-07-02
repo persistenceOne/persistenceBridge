@@ -11,7 +11,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka"
@@ -117,14 +116,14 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			//	fmt.Println("Tx Tx hash: " + res.TxHash)
 			//}
 
-			fmt.Println("Doing tx on eth....")
-			ethRes, err := outgoingTx.SendTxToEth(ethereumClient, pstakeConfig.Ethereum.EthGasLimit)
-			if err != nil {
-				log.Fatalf("Error while doing ETH TEST TX %s: %s\n", ethereumEndPoint, err.Error())
-			} else {
-				fmt.Println("ETH RES: " + ethRes)
-			}
-			return nil
+			//fmt.Println("Doing tx on eth....")
+			//ethRes, err := outgoingTx.SendTxToEth(ethereumClient, pstakeConfig.Ethereum.EthGasLimit)
+			//if err != nil {
+			//	log.Fatalf("Error while doing ETH TEST TX %s: %s\n", ethereumEndPoint, err.Error())
+			//} else {
+			//	fmt.Println("ETH RES: " + ethRes)
+			//}
+			//return nil
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pstakeConfig.Kafka.Brokers, homePath, pstakeConfig.Kafka.TopicDetail)

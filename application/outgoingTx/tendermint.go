@@ -19,7 +19,7 @@ import (
 )
 
 // Timeout height should be greater than current block height or set it 0 for none.
-func SignAndBroadcastTM(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
+func TendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {
 		return nil, false, err
