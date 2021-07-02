@@ -58,10 +58,11 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0) // in wei
-	//auth.GasLimit = gasLimit   // in units
-	//auth.GasPrice = gasPrice.Add(gasPrice, big.NewInt(20000000000))
-	auth.GasTipCap = gasTipCap
-	auth.GasFeeCap = gasPrice.Add(gasPrice, big.NewInt(20000000000))
+	auth.GasLimit = gasLimit   // in units
+	auth.GasPrice = gasPrice.Add(gasPrice, big.NewInt(20000000000))
+	//auth.GasTipCap = gasTipCap
+	//auth.GasFeeCap = gasPrice.Add(gasPrice, big.NewInt(20000000000))
+	auth.Context = ctx
 
 	contractAddress := common.HexToAddress(constants2.TokenWrapperAddress)
 	instance, err := tokenWrapper.NewTokenWrapper(contractAddress, client)
