@@ -59,6 +59,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		if validMemo {
 			ethAddress = goEthCommon.HexToAddress(memo)
 		}
+		refund := memo != "DO_NOT_REFUND"
 
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
@@ -85,7 +86,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
 					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() {
+				} else if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && refund {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
 						ToAddress:   txMsg.FromAddress,
