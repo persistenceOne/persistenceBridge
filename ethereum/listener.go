@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
@@ -42,6 +43,13 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
 				log.Println(err)
+				if err == types.ErrTxTypeNotSupported {
+					log.Println("skipping current eth block :(")
+					err = application.SetEthereumStatus(processHeight.Int64())
+					if err != nil {
+						panic(err)
+					}
+				}
 				time.Sleep(sleepDuration)
 				continue
 			}
