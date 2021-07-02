@@ -43,10 +43,10 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 		return "", err
 	}
 
-	gasTipCap, err := client.SuggestGasTipCap(context.Background())
-	if err != nil {
-		return "", err
-	}
+	//gasTipCap, err := client.SuggestGasTipCap(context.Background())
+	//if err != nil {
+	//	return "", err
+	//}
 
 	chainID, err := client.ChainID(ctx)
 	if err != nil {
