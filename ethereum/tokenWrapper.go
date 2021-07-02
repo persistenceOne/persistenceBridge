@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/ethereum/abi"
+	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	"log"
 	"math/big"
 
@@ -57,7 +57,7 @@ func SendTxToEth(client *ethclient.Client, ethTxMsgs []EthTxMsg, gasLimit uint64
 	auth.GasPrice = gasPrice.Add(gasPrice, big.NewInt(20000000000))
 
 	contractAddress := common.HexToAddress(constants2.TokenWrapperAddress)
-	instance, err := abi.NewAbi(contractAddress, client)
+	instance, err := tokenWrapper.NewTokenWrapper(contractAddress, client)
 	if err != nil {
 		return "", err
 	}
