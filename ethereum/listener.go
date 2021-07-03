@@ -2,15 +2,14 @@ package ethereum
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/persistenceOne/persistenceBridge/application"
-	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"math/big"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 )
 
@@ -42,14 +41,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
-				log.Println(err)
-				if err == types.ErrTxTypeNotSupported {
-					log.Println("skipping current eth block :(")
-					err = application.SetEthereumStatus(processHeight.Int64())
-					if err != nil {
-						panic(err)
-					}
-				}
+				log.Printf("ERROR getting ETH height %d: %s\n", processHeight, err.Error())
 				time.Sleep(sleepDuration)
 				continue
 			}
