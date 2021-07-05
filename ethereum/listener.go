@@ -56,6 +56,10 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 				panic(err)
 			}
 		}
+		err = onNewBlock(ctx, client, kafkaState)
+		if err != nil {
+			panic(err)
+		}
 		time.Sleep(sleepDuration)
 	}
 }

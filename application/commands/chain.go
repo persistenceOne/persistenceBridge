@@ -38,13 +38,13 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			pstakeConfig := configuration.Config{}
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pstakeConfig)
+			pStakeConfig := configuration.Config{}
+			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
 			if err != nil {
-				log.Fatalf("Error decoding pstakeConfig file: %v\n", err.Error())
+				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
-			pstakeConfig = UpdateConfig(cmd, pstakeConfig)
-			configuration.SetAppConfig(pstakeConfig)
+			pStakeConfig = UpdateConfig(cmd, pStakeConfig)
+			configuration.SetAppConfig(pStakeConfig)
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
 			if err != nil {
@@ -117,7 +117,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			//}
 
 			//fmt.Println("Doing tx on eth....")
-			//ethRes, err := outgoingTx.SendTxToEth(ethereumClient, pstakeConfig.Ethereum.EthGasLimit)
+			//ethRes, err := outgoingTx.SendTxToEth(ethereumClient, pStakeConfig.Ethereum.EthGasLimit)
 			//if err != nil {
 			//	log.Fatalf("Error while doing ETH TEST TX %s: %s\n", ethereumEndPoint, err.Error())
 			//} else {
@@ -126,8 +126,8 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			//return nil
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
-			kafkaState := utils.NewKafkaState(pstakeConfig.Kafka.Brokers, homePath, pstakeConfig.Kafka.TopicDetail)
-			go kafka.KafkaRoutine(kafkaState, pstakeConfig, protoCodec, chain, ethereumClient)
+			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
+			go kafka.KafkaRoutine(kafkaState, pStakeConfig, protoCodec, chain, ethereumClient)
 
 			log.Println("Starting to listen ethereum....")
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, kafkaState, protoCodec)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
@@ -90,6 +91,11 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			}
 		}
 		return err
+	} else {
+		err = db.SetEthereumTx(db.NewETHTransaction(hash, msgs))
+		if err != nil {
+			panic(err)
+		}
 	}
 	log.Printf("Broadcasted Eth Tx hash: %s\n", hash.String())
 	return nil

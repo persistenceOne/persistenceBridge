@@ -33,7 +33,6 @@ func onNewBlock(ctx context.Context, chain *relayer.Chain, kafkaState utils.Kafk
 						if err != nil {
 							log.Fatalf("Failed to add msg to kafka topic %s queue: %s\n", utils.ToTendermint, err.Error())
 						}
-
 					}
 					return db.Delete(key)
 				}
@@ -41,7 +40,7 @@ func onNewBlock(ctx context.Context, chain *relayer.Chain, kafkaState utils.Kafk
 				log.Fatalf("unknown txSearchResult: %v\n", txSearchResult)
 			}
 		} else {
-			log.Printf("tx hash search failed: %s\n", err)
+			log.Printf("tm tx hash search failed: %s\n", err)
 		}
 		return nil
 	})

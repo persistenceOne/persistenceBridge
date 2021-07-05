@@ -3,15 +3,16 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 )
 
 type ETHTransaction struct {
-	TxHash   string
+	TxHash   common.Hash
 	Messages []outgoingTx.WrapTokenMsg
 }
 
-func NewETHTransaction(txHash string, msgs []outgoingTx.WrapTokenMsg) ETHTransaction {
+func NewETHTransaction(txHash common.Hash, msgs []outgoingTx.WrapTokenMsg) ETHTransaction {
 	return ETHTransaction{TxHash: txHash, Messages: msgs}
 }
 
@@ -22,7 +23,7 @@ func (ethTx *ETHTransaction) prefix() storeKeyPrefix {
 }
 
 func (ethTx *ETHTransaction) Key() []byte {
-	return ethTx.prefix().GenerateStoreKey([]byte(ethTx.TxHash))
+	return ethTx.prefix().GenerateStoreKey(ethTx.TxHash.Bytes())
 }
 
 func (ethTx *ETHTransaction) Value() ([]byte, error) {
