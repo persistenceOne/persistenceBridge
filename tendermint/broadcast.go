@@ -28,10 +28,9 @@ func onNewBlock(ctx context.Context, chain *relayer.Chain, kafkaState utils.Kafk
 						if err != nil {
 							log.Fatalln("Failed to generate msgBytes: ", err)
 						}
-						log.Printf("Adding failed tx %s to kafka producer %s: %s\n", tmTx.TxHash, utils.ToTendermint, msg.String())
 						err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
 						if err != nil {
-							log.Fatalf("Failed to add msg to kafka topic %s queue: %s\n", utils.ToTendermint, err.Error())
+							log.Fatalf("Failed to add msg %s to kafka topic %s queue: %s\n", msg.String(), utils.ToTendermint, err.Error())
 						}
 					}
 					return db.Delete(key)
