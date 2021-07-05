@@ -11,7 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/ethereum/magicTx"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
+	//"github.com/persistenceOne/persistenceBridge/ethereum/magicTx"
 	"log"
 	"math/big"
 	"strings"
@@ -20,24 +22,45 @@ import (
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 )
 
-type WrapToken struct {
+type WrapTokenMsg struct {
 	Address common.Address `json:"address"`
 	Amount  *big.Int       `json:"amount"`
 }
 
-func EthereumWrapTokens(client *ethclient.Client) (common.Hash, error) {
-
-	contractAddress := common.HexToAddress("0xFe0011F1055dFc307C534142bE4610157Aa42eBD")
-
-	magicTxABI, err := abi.JSON(strings.NewReader(magicTx.MagicTxABI))
-	bytesData, err := magicTxABI.Pack("MagicTx", fmt.Sprintf("Abhinav"))
+func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Hash, error) {
+	if len(msgs) == 0 {
+		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
+	}
+	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
+	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
 	if err != nil {
 		return common.Hash{}, err
 	}
-
+	addresses := make([]common.Address, len(msgs))
+	amounts := make([]*big.Int, len(msgs))
+	for i, msg := range msgs {
+		addresses[i] = msg.Address
+		amounts[i] = msg.Amount
+	}
+	bytesData, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
-
 }
+
+//// EthereumMagicTx
+////TODO Delete
+//func EthereumMagicTx(client *ethclient.Client) (common.Hash, error) {
+//
+//	contractAddress := common.HexToAddress("0xFe0011F1055dFc307C534142bE4610157Aa42eBD")
+//
+//	magicTxABI, err := abi.JSON(strings.NewReader(magicTx.MagicTxABI))
+//	bytesData, err := magicTxABI.Pack("MagicTx", fmt.Sprintf("Abhinav"))
+//	if err != nil {
+//		return common.Hash{}, err
+//	}
+//
+//	return sendTxToEth(client, &contractAddress, nil, bytesData)
+//
+//}
 
 func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()

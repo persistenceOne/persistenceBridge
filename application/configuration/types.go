@@ -14,6 +14,7 @@ type Config struct {
 	Ethereum    EthereumConfig
 	CASP        CASPConfig
 	PBridgeHome string
+	set         bool
 }
 
 func NewConfig() Config {
@@ -23,6 +24,7 @@ func NewConfig() Config {
 		Ethereum:    NewEthereumConfig(),
 		CASP:        NewCASPConfig(),
 		PBridgeHome: constants.DefaultPBridgeHome,
+		set:         false,
 	}
 }
 

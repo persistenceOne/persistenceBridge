@@ -5,6 +5,8 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 	"time"
@@ -13,20 +15,20 @@ import (
 func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var kafkaMsgs []sarama.ConsumerMessage
 	claimMsgChan := claim.Messages()
-	ticker := time.Tick(m.PstakeConfig.Kafka.ToTendermint.Ticker)
+	ticker := time.Tick(configuration.GetAppConfig().Kafka.ToTendermint.Ticker)
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
 ConsumerLoop:
 	for {
 		select {
 		case <-ticker:
-			if len(kafkaMsgs) >= m.PstakeConfig.Kafka.ToTendermint.MinBatchSize {
+			if len(kafkaMsgs) >= configuration.GetAppConfig().Kafka.ToTendermint.MinBatchSize {
 				break ConsumerLoop
 			}
 		case kafkaMsg, ok = <-claimMsgChan:
 			if ok {
 				kafkaMsgs = append(kafkaMsgs, *kafkaMsg)
-				if len(kafkaMsgs) == m.PstakeConfig.Kafka.ToTendermint.MaxBatchSize {
+				if len(kafkaMsgs) == configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize {
 					break ConsumerLoop
 				}
 			} else {
@@ -70,18 +72,19 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 	}
 	log.Printf("batched messages to send to Tendermint: %v\n", msgs)
 
-	response, ok, err := handler.Chain.SendMsgs(msgs)
+	// TODO set memo and timeout height
+	response, ok, err := outgoingTx.TendermintSignAndBroadcastMsgs(handler.Chain, msgs, "", 0)
 	if err != nil {
 		log.Printf("error occured while send to Tendermint:%v\n", err)
 		return err
 	}
 	if !ok {
 		config := utils.SaramaConfig()
-		producer := utils.NewProducer(handler.PstakeConfig.Kafka.Brokers, config)
+		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 		defer func() {
 			err := producer.Close()
 			if err != nil {
-				log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
+				log.Printf("failed to close producer in topic: SendBatchToTendermint\n")
 			}
 		}()
 

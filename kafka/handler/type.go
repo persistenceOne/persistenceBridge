@@ -5,17 +5,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
 
 type MsgHandler struct {
-	PstakeConfig configuration.Config
-	ProtoCodec   *codec.ProtoCodec
-	Chain        *relayer.Chain
-	EthClient    *ethclient.Client
-	Count        int
+	ProtoCodec *codec.ProtoCodec
+	Chain      *relayer.Chain
+	EthClient  *ethclient.Client
+	Count      int
 }
 
 var _ sarama.ConsumerGroupHandler = MsgHandler{}

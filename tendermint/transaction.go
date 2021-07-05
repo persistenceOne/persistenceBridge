@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 	"strings"
@@ -73,7 +73,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 				}
 				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
 					log.Printf("RECEIVED TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
-					ethTxMsg := ethereum2.EthTxMsg{
+					ethTxMsg := outgoingTx.WrapTokenMsg{
 						Address: ethAddress,
 						Amount:  amount.BigInt(),
 					}

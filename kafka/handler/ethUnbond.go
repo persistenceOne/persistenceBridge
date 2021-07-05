@@ -13,7 +13,7 @@ import (
 
 func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	saramaConfig := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, saramaConfig)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, saramaConfig)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
