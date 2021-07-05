@@ -57,7 +57,8 @@ func NewTendermintConfig() TendermintConfig {
 type CASPConfig struct {
 	URL               string
 	VaultID           string
-	PublicKey         string
+	TMPublicKey       string
+	EthPublicKey      string
 	SignatureWaitTime time.Duration
 	APIToken          string
 	Coin              uint32
@@ -67,7 +68,8 @@ func NewCASPConfig() CASPConfig {
 	return CASPConfig{
 		URL:               constants.DefaultCASPUrl,
 		VaultID:           constants.DefaultCASPVaultID,
-		PublicKey:         constants.DefaultCASPPublicKey,
+		TMPublicKey:       constants.DefaultCASPTendermintPublicKey,
+		EthPublicKey:      constants.DefaultCASPEthereumPublicKey,
 		SignatureWaitTime: constants.DefaultCASPSignatureWaitTime,
 		APIToken:          constants.DefaultCASPAPI,
 		Coin:              constants.DefaultCASPCoin,

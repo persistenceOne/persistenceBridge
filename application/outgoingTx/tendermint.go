@@ -141,7 +141,7 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 }
 
 func getTMSignature(bytesToSign []byte, signatureWaitTime time.Duration) ([]byte, error) {
-	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(crypto.Sha256(bytesToSign))}, []string{configuration.GetAppConfig().CASP.PublicKey})
+	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(crypto.Sha256(bytesToSign))}, []string{configuration.GetAppConfig().CASP.TMPublicKey})
 	if err != nil {
 		return nil, err
 	}

@@ -43,6 +43,9 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 		amounts[i] = msg.Amount
 	}
 	bytesData, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
+	if err != nil {
+		return common.Hash{}, err
+	}
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
 }
 
@@ -122,15 +125,13 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	return signedTx.Hash(), err
 }
 
+//getEthSignature returns R and S in byte array and V value as int
 func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
-	publicKey := []string{"3056301006072A8648CE3D020106052B8104000A03420004B40777F842A9F8BB7ECB94785926D725EB1F96611DC2B2C424EBC8BD1A9B7651302DC7A55301D560D599B3F72D630353325FAED84514C4ECD58330B965A1946A"}
-	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(signer.Hash(tx).Bytes())}, publicKey)
+	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(signer.Hash(tx).Bytes())}, []string{configuration.GetAppConfig().CASP.EthPublicKey})
 	if err != nil {
 		return nil, -1, err
 	}
-	fmt.Println("Sleeping for signing ETH tx...")
 	time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
-	fmt.Println("Awake Now...")
 	signOperationResponse, err := caspQueries.GetSignOperation(signDataResponse.OperationID)
 	if err != nil {
 		return nil, -1, err
