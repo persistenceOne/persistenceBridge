@@ -117,7 +117,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState, pstakeConfig
 
 			time.Sleep(pstakeConfig.Kafka.EthUnbondCycleTime)
 		} else {
-			time.Sleep(1000000000) //1 second in nanoseconds
+			time.Sleep(5500000000) //1 second in nanoseconds
 		}
 
 	}
