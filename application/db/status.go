@@ -5,9 +5,8 @@ import (
 )
 
 const (
-	COSMOS     = "COSMOS"
-	ETHEREUM   = "ETHEREUM"
-	VALIDATORS = "VALIDATORS"
+	COSMOS   = "COSMOS"
+	ETHEREUM = "ETHEREUM"
 )
 
 type Status struct {

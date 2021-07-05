@@ -172,7 +172,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPURL, constants2.DefaultCASPUrl, "broadcast mode for tendermint")
 	pBridgeCommand.Flags().String(constants2.FlagCASPVaultID, constants2.DefaultCASPVaultID, "broadcast mode for tendermint")
 	pBridgeCommand.Flags().String(constants2.FlagCASPApiToken, constants2.DefaultCASPAPI, "broadcast mode for tendermint")
-	pBridgeCommand.Flags().String(constants2.FlagCASPPublicKey, constants2.DefaultCASPTendermintPublicKey, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, constants2.DefaultCASPTendermintPublicKey, "broadcast mode for tendermint")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "broadcast mode for tendermint")
 	pBridgeCommand.Flags().Uint32(constants2.FlagCASPCoin, constants2.DefaultCASPCoin, "broadcast mode for tendermint")
 
@@ -250,12 +250,20 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		pstakeConfig.CASP.APIToken = csapApiToken
 	}
 
-	csapPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPPublicKey)
+	caspTMPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPTMPublicKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if csapPublicKey != "" {
-		pstakeConfig.CASP.TMPublicKey = csapPublicKey
+	if caspTMPublicKey != "" {
+		pstakeConfig.CASP.TMPublicKey = caspTMPublicKey
+	}
+
+	caspEthPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPEthPublicKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if caspTMPublicKey != "" {
+		pstakeConfig.CASP.EthPublicKey = caspEthPublicKey
 	}
 
 	caspSignatureWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPSignatureWaitTime)
