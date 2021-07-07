@@ -104,7 +104,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
-			go kafka.KafkaRoutine(kafkaState, pStakeConfig, protoCodec, chain, ethereumClient)
+			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient)
 
 			log.Println("Starting to listen ethereum....")
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, kafkaState, protoCodec)
