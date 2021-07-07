@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
@@ -53,27 +53,38 @@ ConsumerLoop:
 	}
 
 	if sum.GT(sdk.NewInt(0)) {
-		// TODO consider multiple validators
-		delegateMsg := &stakingTypes.MsgDelegate{
-			DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
-			ValidatorAddress: constants2.Validator1.String(),
-			Amount: sdk.Coin{
-				Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
-				Amount: sum,
-			},
-		}
-		msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(delegateMsg))
+		validators, err := db.GetValidators()
 		if err != nil {
 			return err
 		}
+		delegationAmount := sum.QuoRaw(int64(len(validators)))
+		delegationChange := sum.ModRaw(int64(len(validators)))
 
-		err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
-		if err != nil {
-			log.Printf("failed to produce message from topic %v to %v\n", utils.MsgDelegate, utils.ToTendermint)
-			return err
+		for i, validator := range validators {
+			delegateMsg := &stakingTypes.MsgDelegate{
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
+				ValidatorAddress: validator.String(),
+				Amount: sdk.Coin{
+					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
+					Amount: delegationAmount,
+				},
+			}
+			if i == len(validators)-1 {
+				delegateMsg.Amount.Amount = delegateMsg.Amount.Amount.Add(delegationChange)
+			}
+			msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(delegateMsg))
+			if err != nil {
+				return err
+			}
+
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+			if err != nil {
+				log.Printf("failed to produce message from topic %v to %v\n", utils.MsgDelegate, utils.ToTendermint)
+				return err
+			}
+			m.Count++
 		}
 		session.MarkMessage(kafkaMsg, "")
-		m.Count++
 	}
 	return nil
 }

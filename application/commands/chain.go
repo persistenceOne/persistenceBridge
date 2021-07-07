@@ -11,6 +11,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka"
@@ -112,6 +113,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			log.Println("Starting to listen tendermint....")
 			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, kafkaState, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
+			go rpc.StartServer()
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
@@ -152,6 +154,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, constants2.DefaultCASPEthereumPublicKey, "casp ethereum public key")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "csap siganture wait time")
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
+	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
 
 	return pBridgeCommand
 }
