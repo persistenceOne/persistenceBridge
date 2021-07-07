@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"log"
@@ -25,23 +26,36 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		return nil
 	}
 
-	// TODO add msg withdraw rewards from multiple validators.
-	if tendermint.AddressIsDelegatorToValidator(m.Chain.MustGetAddress().String(), constants2.Validator1.String(), m.Chain) {
-		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-			DelegatorAddress: m.Chain.MustGetAddress().String(),
-			ValidatorAddress: constants2.Validator1.String(),
-		}
-		withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
-		if err != nil {
-			log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
-			return err
-		} else {
-			err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
-			if err2 != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
-				return err2
+	validators, err := db.GetValidators()
+	if err != nil {
+		return err
+	}
+	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(m.Chain.MustGetAddress().String(), m.Chain)
+	if err != nil {
+		return err
+	}
+	delegatorValidators := ValidatorsInDelegations(delegatorDelegations)
+	for _, validator := range validators {
+		if contains(delegatorValidators, validator) {
+			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
+				DelegatorAddress: m.Chain.MustGetAddress().String(),
+				ValidatorAddress: constants2.Validator1.String(),
 			}
-			loop = loop - 1
+			withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
+			if err != nil {
+				log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
+				return err
+			} else {
+				err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
+				if err2 != nil {
+					log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
+					return err2
+				}
+				loop = loop - 1
+				if loop == 0 {
+					return nil
+				}
+			}
 		}
 	}
 

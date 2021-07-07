@@ -25,6 +25,7 @@ const (
 	FlagCASPSignatureWaitTime = "caspSignatureWaitTime"
 	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPCoin              = "caspCoin"
+	FlagRPCEndpoint           = "rpc"
 )
 
 var (
@@ -46,4 +47,5 @@ var (
 	DefaultCASPCoin              = DefaultCoinType
 	DefaultKafkaPorts            = "localhost:9092"
 	DefaultCASPSignatureWaitTime = 8 * time.Second
+	DefaultRPCEndpoint           = "localhost:4040"
 )
