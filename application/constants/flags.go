@@ -29,7 +29,6 @@ const (
 	FlagCASPSignatureWaitTime = "caspSignatureWaitTime"
 	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
-	FlagRPCEndpoint           = "rpc"
 )
 
 var (
@@ -53,5 +52,4 @@ var (
 	DefaultCASPEthereumPublicKey   = "3056301006072A8648CE3D020106052B8104000A03420004B40777F842A9F8BB7ECB94785926D725EB1F96611DC2B2C424EBC8BD1A9B7651302DC7A55301D560D599B3F72D630353325FAED84514C4ECD58330B965A1946A"
 	DefaultKafkaPorts              = "localhost:9092"
 	DefaultCASPSignatureWaitTime   = 8 * time.Second
-	DefaultRPCEndpoint             = "localhost:4040"
 )

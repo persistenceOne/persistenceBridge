@@ -15,7 +15,6 @@ type Config struct {
 	CASP        CASPConfig
 	PBridgeHome string
 	set         bool
-	RPCEndpoint string
 }
 
 func NewConfig() Config {
@@ -26,7 +25,6 @@ func NewConfig() Config {
 		CASP:        NewCASPConfig(),
 		PBridgeHome: constants.DefaultPBridgeHome,
 		set:         false,
-		RPCEndpoint: constants.DefaultRPCEndpoint,
 	}
 }
 

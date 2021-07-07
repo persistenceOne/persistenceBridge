@@ -27,7 +27,6 @@ const MsgSend = "msg-send"          //priority3
 const MsgDelegate = "msg-delegate"  //priority2
 const MsgUnbond = "msg-unbond"      //priority1
 const EthUnbond = "ethereum-unbond" //flushes every 3 days
-const Redelegate = "redelegate"
 
 // Topics : is list of topics
 var Topics = []string{

@@ -27,6 +27,7 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 			return db, err
 		}
 	}
+	// TODO add validator logic
 
 	return db, nil
 }
@@ -34,7 +35,7 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 func OpenDB(dbPath string) (*badger.DB, error) {
 	dbTemp, err := badger.Open(badger.DefaultOptions(dbPath))
 	if err != nil {
-		return nil, err
+		log.Fatalln(err)
 	}
 	db = dbTemp
 
