@@ -154,7 +154,7 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 
 func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	dataToSign := []string{hex.EncodeToString(crypto.Sha256(bytesToSign))}
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey})
+	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, "tm")
 	if err != nil {
 		return nil, err
 	}

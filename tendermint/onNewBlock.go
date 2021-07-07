@@ -35,7 +35,7 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 			return err
 		} else {
 			if txResult.TxResult.GetCode() != 0 {
-				log.Printf("Broadcasted tendermint tx %s failed, code: %d, log: %s\n", txResult.TxResult.GetCode(), txResult.TxResult.Log)
+				log.Printf("Broadcasted tendermint tx %s failed, code: %d, log: %s\n", tmTx.TxHash, txResult.TxResult.GetCode(), txResult.TxResult.Log)
 				txInterface, err := clientCtx.TxConfig.TxDecoder()(txResult.Tx)
 				if err != nil {
 					log.Fatalln(err.Error())
@@ -55,8 +55,9 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 						log.Fatalf("Failed to add msg %s to kafka topic %s queue: %s\n", msg.String(), utils.ToTendermint, err.Error())
 					}
 				}
+			} else {
+				log.Printf("Broadcasted tendermint tx %s success\n", tmTx.TxHash)
 			}
-			log.Printf("Broadcasted tendermint tx %s success\n", tmTx.TxHash)
 			return db.DeleteTendermintTx(tmTx.TxHash)
 		}
 

@@ -105,7 +105,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 //getEthSignature returns R and S in byte array and V value as int
 func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
 	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey})
+	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
 	if err != nil {
 		return nil, -1, err
 	}

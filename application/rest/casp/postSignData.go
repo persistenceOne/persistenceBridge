@@ -21,12 +21,12 @@ type SignDataRequest struct {
 	PublicKeys   []string `json:"publicKeys"`
 }
 
-func SignData(dataToSign []string, publicKeys []string) (casp.PostSignDataResponse, bool, error) {
+func SignData(dataToSign []string, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
 	var response casp.PostSignDataResponse
 	//Encode the data
 	postBody, _ := json.Marshal(SignDataRequest{
 		DataToSign:   dataToSign,
-		Description:  "",
+		Description:  description,
 		ProviderData: "",
 		Details:      "",
 		PublicKeys:   publicKeys,

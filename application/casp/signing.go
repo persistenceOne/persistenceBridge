@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
-func GetCASPSigningOperationID(dataToSign []string, publicKeys []string) (string, error) {
+// GetCASPSigningOperationID description should be small
+func GetCASPSigningOperationID(dataToSign []string, publicKeys []string, description string) (string, error) {
 	for {
-		signDataResponse, busy, err := caspQueries.SignData(dataToSign, publicKeys)
+		signDataResponse, busy, err := caspQueries.SignData(dataToSign, publicKeys, description)
 		if busy {
 			time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
 		}
@@ -38,6 +39,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 			continue
 		}
 		if signOperationResponse.Status == "PENDING" {
+			log.Printf("CASP signing operation pending for %s\n", operationID)
 			time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
 			continue
 		}

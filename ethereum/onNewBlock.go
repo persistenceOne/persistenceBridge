@@ -32,8 +32,9 @@ func onNewBlock(ctx context.Context, client *ethclient.Client, kafkaState utils.
 							log.Fatalf("Failed to add msg to kafka topic %s queue: %s\n", utils.ToEth, err.Error())
 						}
 					}
+				} else {
+					log.Printf("Broadcasted ethereum tx %s success\n", ethTx.TxHash.String())
 				}
-				log.Printf("Broadcasted ethereum tx %s success\n", ethTx.TxHash.String())
 				return db.DeleteEthereumTx(ethTx.TxHash)
 			} else {
 				log.Printf("ETH TX %s is in pending transactions\n", ethTx.TxHash)
