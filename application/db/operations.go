@@ -6,7 +6,7 @@ import (
 
 func get(key []byte) ([]byte, error) {
 	var dbi []byte
-	err := db.Update(func(txn *badger.Txn) error {
+	err := db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(key)
 		if err != nil {
 			return err
@@ -73,8 +73,8 @@ func iterateKeys(prefix []byte, operation func(key []byte, item *badger.Item) er
 	})
 }
 
-func Delete(key []byte) error {
-	return db.View(func(txn *badger.Txn) error {
+func deleteKV(key []byte) error {
+	return db.Update(func(txn *badger.Txn) error {
 		return txn.Delete(key)
 	})
 }

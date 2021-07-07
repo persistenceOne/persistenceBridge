@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -14,14 +15,14 @@ import (
 
 func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgSend)
 		}
 	}()
-	loop := m.PstakeConfig.Kafka.ToTendermint.MaxBatchSize - m.Count
+	loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - m.Count
 	if loop <= 0 {
 		return nil
 	}
@@ -30,7 +31,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	if err != nil {
 		return err
 	}
-	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(m.Chain.MustGetAddress().String(), m.Chain)
+	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress.String(), m.Chain)
 	if err != nil {
 		return err
 	}
@@ -38,7 +39,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	for _, validator := range validators {
 		if contains(delegatorValidators, validator) {
 			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-				DelegatorAddress: m.Chain.MustGetAddress().String(),
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
 				ValidatorAddress: constants2.Validator1.String(),
 			}
 			withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))

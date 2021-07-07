@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 	"strings"
@@ -59,6 +59,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		if validMemo {
 			ethAddress = goEthCommon.HexToAddress(memo)
 		}
+		refund := memo != "DO_NOT_REFUND"
 
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
@@ -72,7 +73,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 				}
 				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
 					log.Printf("RECEIVED TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
-					ethTxMsg := ethereum2.EthTxMsg{
+					ethTxMsg := outgoingTx.WrapTokenMsg{
 						Address: ethAddress,
 						Amount:  amount.BigInt(),
 					}
@@ -85,7 +86,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
 					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() {
+				} else if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && refund {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
 						ToAddress:   txMsg.FromAddress,

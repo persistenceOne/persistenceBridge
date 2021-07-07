@@ -14,7 +14,7 @@ type Validator struct {
 var _ DBI = &Validator{}
 
 func (v *Validator) prefix() storeKeyPrefix {
-	return validator
+	return validatorPrefix
 }
 
 func (v *Validator) Key() []byte {
@@ -48,12 +48,12 @@ func SetValidator(validator Validator) error {
 func DeleteValidator(address sdk.ValAddress) error {
 	var validator Validator
 	validator.Address = address
-	return Delete(validator.Key())
+	return deleteKV(validator.Key())
 }
 
 func GetValidators() ([]sdk.ValAddress, error) {
 	var validators []sdk.ValAddress
-	err := iterateKeyValues(validator.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
+	err := iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
 		err := json.Unmarshal(value, &v)
 		if err != nil {

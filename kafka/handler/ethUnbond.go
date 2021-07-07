@@ -13,7 +13,7 @@ import (
 
 func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	saramaConfig := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, saramaConfig)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, saramaConfig)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -72,7 +72,7 @@ ConsumerLoop:
 				log.Printf("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
 			}
 			unbondMsg := &stakingTypes.MsgUndelegate{
-				DelegatorAddress: m.Chain.MustGetAddress().String(),
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
 				ValidatorAddress: delegation.Delegation.ValidatorAddress,
 				Amount: sdk.Coin{
 					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,

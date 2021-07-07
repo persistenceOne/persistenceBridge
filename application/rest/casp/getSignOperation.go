@@ -7,6 +7,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -35,5 +36,14 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 		return response, err
 	}
 	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("error getting casp sign operation %s\n error %v\n", string(body), err)
+		var errResponse casp.ErrorResponse
+		err = json.Unmarshal(body, &errResponse)
+		if err != nil {
+			log.Fatalf("CASP SignOperation ERROR (Unknown response struct type): %v\n", err)
+		}
+		return response, fmt.Errorf(errResponse.Title)
+	}
 	return response, err
 }

@@ -6,21 +6,14 @@ import (
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"log"
 	"math/big"
 )
 
 // Should include prefix "04"
-func GetPubKey(caspPubKey string) cryptotypes.PubKey {
-
-	pubKeyBytes, err := hex.DecodeString(string([]rune(caspPubKey)[2:])) // uncompressed pubkey
-	if err != nil {
-		log.Fatalln(err)
-	}
-	var x big.Int
-	x.SetBytes(pubKeyBytes[0:32])
-	var y big.Int
-	y.SetBytes(pubKeyBytes[32:])
+func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
+	x, y := getXY(caspPubKey)
 
 	pubKey := ecdsa.PublicKey{
 		Curve: btcec.S256(),
@@ -30,4 +23,28 @@ func GetPubKey(caspPubKey string) cryptotypes.PubKey {
 	pubkeyObject := (*btcec.PublicKey)(&pubKey)
 	pk := pubkeyObject.SerializeCompressed()
 	return &secp256k1.PubKey{Key: pk}
+}
+
+// Should include prefix "04"
+func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
+	x, y := getXY(caspPubKey)
+	publicKey := ecdsa.PublicKey{
+		Curve: crypto.S256(),
+		X:     &x,
+		Y:     &y,
+	}
+	return publicKey
+}
+
+// Should include prefix "04"
+func getXY(caspPubKey string) (big.Int, big.Int) {
+	pubKeyBytes, err := hex.DecodeString(string([]rune(caspPubKey)[2:])) // uncompressed pubkey
+	if err != nil {
+		log.Fatalln(err)
+	}
+	var x big.Int
+	x.SetBytes(pubKeyBytes[0:32])
+	var y big.Int
+	y.SetBytes(pubKeyBytes[32:])
+	return x, y
 }

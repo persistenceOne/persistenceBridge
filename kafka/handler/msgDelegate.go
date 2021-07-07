@@ -13,7 +13,7 @@ import (
 
 func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -62,7 +62,7 @@ ConsumerLoop:
 
 		for i, validator := range validators {
 			delegateMsg := &stakingTypes.MsgDelegate{
-				DelegatorAddress: m.Chain.MustGetAddress().String(),
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
 				ValidatorAddress: validator.String(),
 				Amount: sdk.Coin{
 					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,

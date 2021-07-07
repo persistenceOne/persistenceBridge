@@ -42,7 +42,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 
 			txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", processHeight), true, nil, nil, "asc")
 			if err != nil {
-				log.Println(err)
+				log.Printf("ERROR getting TM height %d: %s\n", processHeight, err.Error())
 				time.Sleep(sleepDuration)
 				continue
 			}
@@ -58,7 +58,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			}
 		}
 
-		err = onNewBlock(ctx, chain, kafkaState, protoCodec)
+		err = onNewBlock(ctx, initClientCtx, chain, kafkaState, protoCodec)
 		if err != nil {
 			panic(err)
 		}
