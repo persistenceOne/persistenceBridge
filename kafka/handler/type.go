@@ -50,21 +50,28 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	case utils.MsgSend:
 		err := m.HandleMsgSend(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.MsgSend)
+			log.Printf("failed to handle MsgSend for topic: %v\n", utils.MsgSend)
 			return err
 		}
 	case utils.MsgDelegate:
 		err := m.HandleMsgDelegate(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.MsgDelegate)
+			log.Printf("failed to handle MsgDelegate for topic: %v\n", utils.MsgDelegate)
 			return err
 		}
 	case utils.MsgUnbond:
 		err := m.HandleMsgUnbond(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.MsgUnbond)
+			log.Printf("failed to handle MsgUnbond for topic: %v\n", utils.MsgUnbond)
+			return err
+		}
+	case utils.Redelegate:
+		err := m.HandleRelegate(session, claim)
+		if err != nil {
+			log.Printf("failed to handle Redelegate for topic: %v\n", utils.Redelegate)
 			return err
 		}
 	}
+
 	return nil
 }

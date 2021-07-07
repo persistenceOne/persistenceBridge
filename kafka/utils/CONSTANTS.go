@@ -12,10 +12,11 @@ const GroupToTendermint = "group-to-tendermint"
 const GroupEthUnbond = "group-ethereum-unbond"
 const GroupMsgSend = "group-msg-send"
 const GroupMsgDelegate = "group-msg-delegate"
+const GroupRedelegate = "group-redelegate"
 const GroupMsgUnbond = "group-msg-unbond"
 
 var Groups = []string{GroupEthUnbond,
-	GroupMsgSend, GroupMsgDelegate, GroupMsgUnbond,
+	GroupMsgSend, GroupMsgDelegate, GroupRedelegate, GroupMsgUnbond,
 	GroupToEth, GroupToTendermint,
 }
 
@@ -31,6 +32,6 @@ const Redelegate = "redelegate"
 
 // Topics : is list of topics
 var Topics = []string{
-	EthUnbond, MsgSend, MsgDelegate, MsgUnbond,
+	EthUnbond, MsgSend, MsgDelegate, Redelegate, MsgUnbond,
 	ToEth, ToTendermint,
 }

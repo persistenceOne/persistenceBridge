@@ -68,6 +68,7 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 	groupMsgUnbond := state.ConsumerGroup[utils.GroupMsgUnbond]
 	groupMsgDelegate := state.ConsumerGroup[utils.GroupMsgDelegate]
 	groupMsgSend := state.ConsumerGroup[utils.GroupMsgSend]
+	groupRedelegate := state.ConsumerGroup[utils.GroupRedelegate]
 	for {
 		msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
 			Chain: chain, EthClient: ethereumClient, Count: 0}
@@ -76,6 +77,10 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 			log.Println("Error in consumer group.Consume for MsgUnbond", err)
 		}
 		err = groupMsgDelegate.Consume(ctx, []string{utils.MsgDelegate}, msgHandler)
+		if err != nil {
+			log.Println("Error in consumer group.Consume", err)
+		}
+		err = groupRedelegate.Consume(ctx, []string{utils.Redelegate}, msgHandler)
 		if err != nil {
 			log.Println("Error in consumer group.Consume", err)
 		}

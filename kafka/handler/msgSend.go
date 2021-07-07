@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
@@ -40,7 +39,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		if contains(delegatorValidators, validator) {
 			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
 				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
-				ValidatorAddress: constants2.Validator1.String(),
+				ValidatorAddress: validator.String(),
 			}
 			withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
 			if err != nil {
