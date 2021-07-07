@@ -27,9 +27,9 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	}
 
 	// TODO add msg withdraw rewards from multiple validators.
-	if tendermint.AddressIsDelegatorToValidator(m.Chain.MustGetAddress().String(), constants2.Validator1.String(), m.Chain) {
+	if tendermint.AddressIsDelegatorToValidator(configuration.GetAppConfig().Tendermint.PStakeAddress.String(), constants2.Validator1.String(), m.Chain) {
 		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-			DelegatorAddress: m.Chain.MustGetAddress().String(),
+			DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
 			ValidatorAddress: constants2.Validator1.String(),
 		}
 		withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))

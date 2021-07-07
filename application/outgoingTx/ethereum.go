@@ -12,14 +12,12 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	//"github.com/persistenceOne/persistenceBridge/ethereum/magicTx"
 	"log"
 	"math/big"
 	"strings"
-	"time"
-
-	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 )
 
 type WrapTokenMsg struct {
@@ -49,37 +47,24 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
 }
 
-//// EthereumMagicTx
-////TODO Delete
-//func EthereumMagicTx(client *ethclient.Client) (common.Hash, error) {
-//
-//	contractAddress := common.HexToAddress("0xFe0011F1055dFc307C534142bE4610157Aa42eBD")
-//
-//	magicTxABI, err := abi.JSON(strings.NewReader(magicTx.MagicTxABI))
-//	bytesData, err := magicTxABI.Pack("MagicTx", fmt.Sprintf("Abhinav"))
-//	if err != nil {
-//		return common.Hash{}, err
-//	}
-//
-//	return sendTxToEth(client, &contractAddress, nil, bytesData)
-//
-//}
-
 func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
 		return common.Hash{}, err
 	}
+	if len(uncompressedPublicKeys.PublicKeys) == 0 {
+		return common.Hash{}, fmt.Errorf("no public keys got from casp")
+	}
 	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
 
 	fromAddress := crypto.PubkeyToAddress(publicKey)
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	nonce, err := client.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	gasPrice, err := client.SuggestGasPrice(context.Background())
+	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -88,7 +73,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 		Nonce:    nonce,
 		Value:    txValue,
 		Gas:      configuration.GetAppConfig().Ethereum.EthGasLimit,
-		GasPrice: gasPrice,
+		GasPrice: gasPrice.Add(gasPrice, big.NewInt(4000000000)),
 		Data:     txData,
 		To:       contractAddress,
 	})
@@ -99,7 +84,6 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	}
 
 	signer := types.NewEIP155Signer(chainID)
-
 	caspSignature, v, err := getEthSignature(tx, signer) //Signature is of 64 bytes, need to append V value
 	if err != nil {
 		return common.Hash{}, err
@@ -110,14 +94,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 		return common.Hash{}, err
 	}
 
-	//sender, err := signer.Sender(signedTx)
-	//if err != nil {
-	//	return "", err
-	//}
-	//if sender.String() != fromAddress.String() {
-	//	return "", fmt.Errorf("invalid signer")
-	//}
-	log.Printf("Broadcasting ETH Tx: %s\n", signedTx.Hash().String())
+	log.Printf("Broadcasting ETH Tx...: %s\n", signedTx.Hash().String())
 	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
 		log.Printf("ERROR Broadcasting ETH Tx: %s, Error: %s\n", signedTx.Hash().String(), err.Error())
@@ -127,18 +104,21 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 
 //getEthSignature returns R and S in byte array and V value as int
 func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
-	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(signer.Hash(tx).Bytes())}, []string{configuration.GetAppConfig().CASP.EthPublicKey})
+	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
+	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey})
 	if err != nil {
 		return nil, -1, err
 	}
-	time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
-	signOperationResponse, err := caspQueries.GetSignOperation(signDataResponse.OperationID)
+	signatureResponse, err := casp.GetCASPSignature(operationID)
 	if err != nil {
 		return nil, -1, err
 	}
-	signature, err := hex.DecodeString(signOperationResponse.Signatures[0])
+	if len(signatureResponse.Signatures) == 0 {
+		return nil, -1, fmt.Errorf("ethereum signature not found from casp for operation %s", operationID)
+	}
+	signature, err := hex.DecodeString(signatureResponse.Signatures[0])
 	if err != nil {
 		return nil, -1, err
 	}
-	return signature, signOperationResponse.V[0], nil
+	return signature, signatureResponse.V[0], nil
 }

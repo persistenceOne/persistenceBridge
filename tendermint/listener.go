@@ -58,7 +58,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			}
 		}
 
-		err = onNewBlock(ctx, chain, kafkaState, protoCodec)
+		err = onNewBlock(ctx, initClientCtx, chain, kafkaState, protoCodec)
 		if err != nil {
 			panic(err)
 		}

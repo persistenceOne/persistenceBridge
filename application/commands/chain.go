@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/dgraph-io/badger/v3"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
@@ -28,9 +28,9 @@ import (
 
 func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand := &cobra.Command{
-		Use:   "start [path_to_chain_json] [mnemonics]",
+		Use:   "start [path_to_chain_json]",
 		Short: "Start persistenceBridge",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
@@ -92,7 +92,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				}
 			}(db)
 
-			chain, err := tendermint2.InitializeAndStartChain(args[0], timeout, homePath, coinType, args[1])
+			chain, err := tendermint2.InitializeAndStartChain(args[0], timeout, homePath, coinType)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -101,29 +101,6 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", ethereumEndPoint, err.Error())
 			}
-
-			//fmt.Println("Doing tx on TM....")
-			//
-			//msg := bankTypes.MsgSend{
-			//	FromAddress: "cosmos15vs9hfghf3xpsqshw98gq6mtt55wmhlgxf83pd",
-			//	ToAddress:   "cosmos1vvsurayrsqg4nq4e6qcsa2nye5lwfaw99k6q0h",
-			//	Amount:      sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(10))),
-			//}
-			//res, ok, err := outgoingTx.SignAndBroadcastTM(chain, []sdk.Msg{&msg}, "abhinav", 0)
-			//if !ok {
-			//	fmt.Println("TM Tx sending failed")
-			//} else {
-			//	fmt.Println("Tx Tx hash: " + res.TxHash)
-			//}
-
-			//fmt.Println("Doing tx on eth....")
-			//ethRes, err := outgoingTx.SendTxToEth(ethereumClient, pStakeConfig.Ethereum.EthGasLimit)
-			//if err != nil {
-			//	log.Fatalf("Error while doing ETH TEST TX %s: %s\n", ethereumEndPoint, err.Error())
-			//} else {
-			//	fmt.Println("ETH RES: " + ethRes)
-			//}
-			//return nil
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
@@ -166,15 +143,14 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, constants2.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
 	pBridgeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, constants2.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
 	pBridgeCommand.Flags().String(constants2.FlagDenom, constants2.DefaultDenom, "denom name")
-	pBridgeCommand.Flags().String(constants2.FlagEthPrivateKey, "", "private keys of ethereum account which does txs.")
 	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	pBridgeCommand.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
-	pBridgeCommand.Flags().String(constants2.FlagCASPURL, constants2.DefaultCASPUrl, "broadcast mode for tendermint")
-	pBridgeCommand.Flags().String(constants2.FlagCASPVaultID, constants2.DefaultCASPVaultID, "broadcast mode for tendermint")
-	pBridgeCommand.Flags().String(constants2.FlagCASPApiToken, constants2.DefaultCASPAPI, "broadcast mode for tendermint")
-	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, constants2.DefaultCASPTendermintPublicKey, "broadcast mode for tendermint")
-	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "broadcast mode for tendermint")
-	pBridgeCommand.Flags().Uint32(constants2.FlagCASPCoin, constants2.DefaultCASPCoin, "broadcast mode for tendermint")
+	pBridgeCommand.Flags().String(constants2.FlagCASPURL, constants2.DefaultCASPUrl, "casp api url (with http)")
+	pBridgeCommand.Flags().String(constants2.FlagCASPVaultID, constants2.DefaultCASPVaultID, "casp vault id")
+	pBridgeCommand.Flags().String(constants2.FlagCASPApiToken, constants2.DefaultCASPAPI, "casp api token (in format: Bearer ...)")
+	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, constants2.DefaultCASPTendermintPublicKey, "casp tendermint public key")
+	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, constants2.DefaultCASPEthereumPublicKey, "casp ethereum public key")
+	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "csap siganture wait time")
 
 	return pBridgeCommand
 }
@@ -186,18 +162,6 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	}
 	if denom != "" {
 		pstakeConfig.Tendermint.PStakeDenom = denom
-	}
-
-	ethPrivateKeyStr, err := cmd.Flags().GetString(constants2.FlagEthPrivateKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if ethPrivateKeyStr != "" {
-		ethPrivateKey, err := crypto.HexToECDSA(ethPrivateKeyStr)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pstakeConfig.Ethereum.EthAccountPrivateKey = ethPrivateKey
 	}
 
 	ethGasLimit, err := cmd.Flags().GetUint64(constants2.FlagEthGasLimit)
@@ -220,7 +184,7 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if broadcastMode == "sync" || broadcastMode == "async" || broadcastMode == "block" {
+	if broadcastMode == flags.BroadcastBlock || broadcastMode == flags.BroadcastAsync || broadcastMode == flags.BroadcastSync {
 		pstakeConfig.Tendermint.BroadcastMode = broadcastMode
 	} else {
 		log.Fatalln(fmt.Errorf("invalid broadcast mode"))
@@ -255,7 +219,7 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		log.Fatalln(err)
 	}
 	if caspTMPublicKey != "" {
-		pstakeConfig.CASP.TMPublicKey = caspTMPublicKey
+		pstakeConfig.CASP.TendermintPublicKey = caspTMPublicKey
 	}
 
 	caspEthPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPEthPublicKey)
@@ -263,7 +227,7 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		log.Fatalln(err)
 	}
 	if caspTMPublicKey != "" {
-		pstakeConfig.CASP.EthPublicKey = caspEthPublicKey
+		pstakeConfig.CASP.EthereumPublicKey = caspEthPublicKey
 	}
 
 	caspSignatureWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPSignatureWaitTime)
@@ -275,12 +239,6 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	} else {
 		log.Fatalln("invalid casp signature wait time")
 	}
-
-	csapCoin, err := cmd.Flags().GetUint32(constants2.FlagCASPCoin)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	pstakeConfig.CASP.Coin = csapCoin
 
 	return pstakeConfig
 }

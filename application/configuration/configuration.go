@@ -3,7 +3,7 @@ package configuration
 var appConfig *Config
 
 func SetAppConfig(config Config) {
-	if !appConfig.set {
+	if appConfig == nil || !appConfig.set {
 		appConfig = &config
 		appConfig.set = true
 	}

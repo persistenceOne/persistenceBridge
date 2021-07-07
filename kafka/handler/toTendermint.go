@@ -71,15 +71,11 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 	if err != nil {
 		return err
 	}
-	log.Printf("batched messages to send to Tendermint: %v\n", msgs)
 
 	// TODO set memo and timeout height
-	response, ok, err := outgoingTx.TendermintSignAndBroadcastMsgs(handler.Chain, msgs, "", 0)
+	response, err := outgoingTx.FilterMessagesAndBroadcast(handler.Chain, msgs, 0)
 	if err != nil {
 		log.Printf("error occured while send to Tendermint:%v\n", err)
-		return err
-	}
-	if !ok {
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 		defer func() {
@@ -100,12 +96,13 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 			}
 			log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.String(), utils.ToTendermint)
 		}
+		return nil
 	} else {
-		err = db.SetTendermintTx(db.NewTMTransaction(response.TxHash, msgs))
+		err = db.SetTendermintTx(db.NewTMTransaction(response.TxHash))
 		if err != nil {
 			panic(err)
 		}
 	}
-	log.Printf("Broadcasted Tendermint TX HASH: %s, ok: %v\n", response.TxHash, ok)
+	log.Printf("Broadcasted Tendermint TX HASH: %s\n", response.TxHash)
 	return nil
 }

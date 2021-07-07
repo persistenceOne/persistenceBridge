@@ -55,7 +55,7 @@ ConsumerLoop:
 	if sum.GT(sdk.NewInt(0)) {
 		// TODO consider multiple validators
 		delegateMsg := &stakingTypes.MsgDelegate{
-			DelegatorAddress: m.Chain.MustGetAddress().String(),
+			DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
 			ValidatorAddress: constants2.Validator1.String(),
 			Amount: sdk.Coin{
 				Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,

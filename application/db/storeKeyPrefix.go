@@ -6,9 +6,9 @@ type storeKeyPrefix int16
 
 const (
 	statusPrefix storeKeyPrefix = iota + 1
-	tmTransactionPrefix
-	ethTransactionPrefix
-	validator
+	validatorPrefix
+	tendermintBroadcastedTransactionPrefix
+	ethereumBroadcastedWrapTokenTransactionPrefix
 )
 
 func (storeKeyPrefix storeKeyPrefix) GenerateStoreKey(key []byte) []byte {

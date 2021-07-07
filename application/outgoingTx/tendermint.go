@@ -2,9 +2,7 @@ package outgoingTx
 
 import (
 	"encoding/hex"
-	"log"
-	"time"
-
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -16,31 +14,50 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/tendermint/tendermint/crypto"
+	"log"
 )
 
+// FilterMessagesAndBroadcast filters msgs to check repeated withdraw reward message
+func FilterMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
+	var filteredMsgs []sdk.Msg
+	msgsTypes := ""
+	messageHash := make(map[string]bool)
+	for _, msg := range msgs {
+		if !messageHash[hex.EncodeToString(crypto.Sha256(msg.GetSignBytes()))] {
+			filteredMsgs = append(filteredMsgs, msg)
+			messageHash[hex.EncodeToString(crypto.Sha256(msg.GetSignBytes()))] = true
+			msgsTypes = msgsTypes + msg.Type() + " "
+		}
+	}
+	log.Println("Messages to tendermint: " + msgsTypes)
+	return tendermintSignAndBroadcastMsgs(chain, filteredMsgs, "pStake@PersistenceOne", timeoutHeight)
+}
+
 // Timeout height should be greater than current block height or set it 0 for none.
-func TendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, bool, error) {
+func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
-	//TODO index check
+	if len(uncompressedPublicKeys.PublicKeys) == 0 {
+		return nil, fmt.Errorf("no public keys got from casp")
+	}
 	publicKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, publicKey, msgs, memo, timeoutHeight)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
-	signature, err := getTMSignature(bytesToSign, configuration.GetAppConfig().CASP.SignatureWaitTime)
+	signature, err := getTMSignature(bytesToSign)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
-	txRes, ok, err := broadcastTMTx(chain, publicKey, signature, txB, txF)
+	txRes, err := broadcastTMTx(chain, publicKey, signature, txB, txF)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
-	return txRes, ok, err
+	return txRes, err
 }
 
 // Timeout height should be greater than current block height or set it 0 for none.
@@ -98,10 +115,10 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 }
 
 // broadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
-func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, bool, error) {
+func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
-	ctx := chain.CLIContext(0).WithFromAddress(from).WithBroadcastMode("async")
+	ctx := chain.CLIContext(0).WithFromAddress(from).WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode)
 
 	signMode := txFactory.SignMode()
 	if signMode == signing.SignMode_SIGN_MODE_UNSPECIFIED {
@@ -119,38 +136,36 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 	}
 
 	if err := txBuilder.SetSignatures(sig); err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	txBytes, err := ctx.TxConfig.TxEncoder()(txBuilder.GetTx())
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	res, err := ctx.BroadcastTx(txBytes)
 	if err != nil {
-		return nil, false, err
-	}
-	if res.Code != 0 {
-		return res, false, nil
+		return nil, err
 	}
 
-	log.Printf("TX HASH: %s, CODE: %d\n", res.TxHash, res.Code)
-
-	return res, true, nil
+	return res, err
 }
 
-func getTMSignature(bytesToSign []byte, signatureWaitTime time.Duration) ([]byte, error) {
-	signDataResponse, err := caspQueries.SignData([]string{hex.EncodeToString(crypto.Sha256(bytesToSign))}, []string{configuration.GetAppConfig().CASP.TMPublicKey})
+func getTMSignature(bytesToSign []byte) ([]byte, error) {
+	dataToSign := []string{hex.EncodeToString(crypto.Sha256(bytesToSign))}
+	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey})
 	if err != nil {
 		return nil, err
 	}
-	time.Sleep(signatureWaitTime)
-	signOperationResponse, err := caspQueries.GetSignOperation(signDataResponse.OperationID)
+	signatureResponse, err := casp.GetCASPSignature(operationID)
 	if err != nil {
 		return nil, err
 	}
-	signature, err := hex.DecodeString(signOperationResponse.Signatures[0])
+	if len(signatureResponse.Signatures) == 0 {
+		return nil, fmt.Errorf("tendermint signature not found from casp for operation %s", operationID)
+	}
+	signature, err := hex.DecodeString(signatureResponse.Signatures[0])
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package ethereum
 import (
 	"context"
 	"encoding/json"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -11,16 +12,16 @@ import (
 
 func onNewBlock(ctx context.Context, client *ethclient.Client, kafkaState utils.KafkaState) error {
 	return db.IterateEthTx(func(key []byte, value []byte) error {
-		var ethTx db.ETHTransaction
+		var ethTx db.EthereumBroadcastedWrapTokenTransaction
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
-			log.Fatalln("Failed to unmarshal EthTransaction : ", err)
+			log.Fatalln("Failed to unmarshal EthTransaction: ", err)
 		}
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
-		if err != nil {
+		if err == nil {
 			if txReceipt != nil {
 				if txReceipt.Status == 0 {
-					log.Printf("ETH TX FAILED: %s\n", ethTx.TxHash.String())
+					log.Printf("Broadacasted ethereum tx failed: %s\n", ethTx.TxHash.String())
 					for _, msg := range ethTx.Messages {
 						msgBytes, err := json.Marshal(msg)
 						if err != nil {
@@ -32,12 +33,14 @@ func onNewBlock(ctx context.Context, client *ethclient.Client, kafkaState utils.
 						}
 					}
 				}
-				return db.Delete(key)
+				log.Printf("Broadcasted ethereum tx %s success\n", ethTx.TxHash.String())
+				return db.DeleteEthereumTx(ethTx.TxHash)
 			} else {
 				log.Printf("ETH TX %s is in pending transactions\n", ethTx.TxHash)
 			}
-		} else {
-			log.Printf("eth tx hash search failed: %s\n", err)
+		}
+		if err != nil && err != ethereum.NotFound {
+			log.Printf("eth tx %s receipt fetch failed: %s\n", ethTx.TxHash.String(), err)
 		}
 		return nil
 	})

@@ -1,9 +1,9 @@
 package configuration
 
 import (
-	"crypto/ecdsa"
 	"github.com/Shopify/sarama"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"time"
 )
@@ -29,14 +29,14 @@ func NewConfig() Config {
 }
 
 type EthereumConfig struct {
-	EthAccountPrivateKey *ecdsa.PrivateKey
-	EthGasLimit          uint64
+	BridgeAdmin common.Address
+	EthGasLimit uint64
 }
 
 func NewEthereumConfig() EthereumConfig {
 	return EthereumConfig{
-		EthAccountPrivateKey: nil,
-		EthGasLimit:          constants.DefaultEthGasLimit,
+		BridgeAdmin: constants.DefaultBridgeAdmin,
+		EthGasLimit: constants.DefaultEthGasLimit,
 	}
 }
 
@@ -48,31 +48,29 @@ type TendermintConfig struct {
 
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
-		PStakeAddress: nil,
+		PStakeAddress: constants.DefaultPStakeAddress,
 		PStakeDenom:   constants.DefaultDenom,
 		BroadcastMode: constants.DefaultBroadcastMode,
 	}
 }
 
 type CASPConfig struct {
-	URL               string
-	VaultID           string
-	TMPublicKey       string
-	EthPublicKey      string
-	SignatureWaitTime time.Duration
-	APIToken          string
-	Coin              uint32
+	URL                 string
+	VaultID             string
+	TendermintPublicKey string
+	EthereumPublicKey   string
+	SignatureWaitTime   time.Duration
+	APIToken            string
 }
 
 func NewCASPConfig() CASPConfig {
 	return CASPConfig{
-		URL:               constants.DefaultCASPUrl,
-		VaultID:           constants.DefaultCASPVaultID,
-		TMPublicKey:       constants.DefaultCASPTendermintPublicKey,
-		EthPublicKey:      constants.DefaultCASPEthereumPublicKey,
-		SignatureWaitTime: constants.DefaultCASPSignatureWaitTime,
-		APIToken:          constants.DefaultCASPAPI,
-		Coin:              constants.DefaultCASPCoin,
+		URL:                 constants.DefaultCASPUrl,
+		VaultID:             constants.DefaultCASPVaultID,
+		TendermintPublicKey: constants.DefaultCASPTendermintPublicKey,
+		EthereumPublicKey:   constants.DefaultCASPEthereumPublicKey,
+		SignatureWaitTime:   constants.DefaultCASPSignatureWaitTime,
+		APIToken:            constants.DefaultCASPAPI,
 	}
 }
 

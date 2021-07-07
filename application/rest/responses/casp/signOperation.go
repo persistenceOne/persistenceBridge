@@ -9,17 +9,17 @@ type SignOperationResponse struct {
 	StatusText  string    `json:"statusText"`
 	CreatedAt   time.Time `json:"createdAt"`
 	VaultID     string    `json:"vaultID"`
-	Description string    `json:"description"`
+	Description string    `json:"description,omitempty"`
 	IsApproved  bool      `json:"isApproved"`
 	AccountID   string    `json:"accountID"`
 	Groups      []struct {
 		Name    string `json:"name"`
 		Members []struct {
-			ApprovedAt           time.Time `json:"approvedAt"`
-			Id                   string    `json:"id"`
-			IsApproved           bool      `json:"isApproved"`
-			Name                 string    `json:"name"`
-			Status               string    `json:"status"`
+			ApprovedAt           string `json:"approvedAt"`
+			Id                   string `json:"id"`
+			IsApproved           bool   `json:"isApproved"`
+			Name                 string `json:"name"`
+			Status               string `json:"status"`
 			ApprovalGroupAccount struct {
 				Id   string `json:"id"`
 				Name string `json:"name"`
@@ -38,8 +38,8 @@ type SignOperationResponse struct {
 	VaultName           string   `json:"vaultName"`
 	PublicKeys          []string `json:"publicKeys"`
 	DataToSign          []string `json:"dataToSign"`
-	Signatures          []string `json:"signatures"`
-	V                   []int    `json:"v"`
+	Signatures          []string `json:"signatures,omitempty"`
+	V                   []int    `json:"v,omitempty"`
 	LedgerHashAlgorithm string   `json:"ledgerHashAlgorithm"`
 	CollectedData       struct {
 		CollectionComplete   bool          `json:"collectionComplete"`

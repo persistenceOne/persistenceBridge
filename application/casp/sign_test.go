@@ -28,7 +28,7 @@ func TestSignTx(t *testing.T) {
 		Description:  "Test",
 		ProviderData: "",
 		Details:      "",
-		PublicKeys:   []string{"3056301006072A8648CE3D020106052B8104000A034200044F717AE01D84C0827054A4505D779632072F923C811B8A2A2D12B4A55A1B59A4DB2F5FEF4B52B7D4DD08B8047B4ACD565488EAA88CDC2A99EE1E796AD7D1BDDA"},
+		PublicKeys:   []string{"3056301006072A8648CE3D020106052B8104000A03420004A910F239D0799A0DB8B67B16E0CD9902299E6AA9D941A27209F217895367A7D4715840C016750A5D395E1886DBA4D0ED7312E284D74A30A0A5DC6CA80F44425B"},
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	//Leverage Go's HTTP Post function to make request
@@ -68,8 +68,8 @@ func TestGet(t *testing.T) {
 		},
 	}}
 	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/auth/users", nil)
-	request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/vaults/509fd89a-762a-40ec-bd4b-0745b06e2d3d/coins/118/accounts/0/chains/all/addresses?encoding=uncompressed", nil)
-	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/operations/sign/ac98452f-b6ed-424f-bcdd-5dd9c7be0fb8", nil)
+	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/vaults/509fd89a-762a-40ec-bd4b-0745b06e2d3d/coins/118/accounts/0/chains/all/addresses?encoding=uncompressed", nil)
+	request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/operations/sign/656dbc73-7c74-4006-a9d5-9575594c22d9", nil)
 	//request, err := http.NewRequest("GET", "https://65.2.149.241:443/casp/api/v1.0/mng/accounts/bd4c618e-8046-4fef-bdaa-9716ade77553/participants", nil)
 
 	if err != nil {
@@ -77,7 +77,6 @@ func TestGet(t *testing.T) {
 	}
 
 	request.Header.Set("authorization", API_TOKEN)
-	fmt.Println(request.Header)
 	resp, err := client.Do(request)
 	if err != nil {
 		log.Fatalf("An Error Occured %v", err)

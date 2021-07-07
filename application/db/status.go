@@ -5,13 +5,13 @@ import (
 )
 
 const (
-	COSMOS   = "COSMOS"
-	ETHEREUM = "ETHEREUM"
+	cosmos   = "COSMOS"
+	ethereum = "ETHEREUM"
 )
 
 type Status struct {
 	Name            string
-	LastCheckHeight int64
+	LastCheckHeight int64 //TODO change it to Index
 }
 
 var _ DBI = &Status{}
@@ -38,7 +38,7 @@ func getStatus(name string) (Status, error) {
 	status.Name = name
 	b, err := get(status.Key())
 	if err != nil {
-		return Status{}, err
+		return status, err
 	}
 	err = json.Unmarshal(b, &status)
 	return status, err
@@ -53,17 +53,17 @@ func setStatus(name string, height int64) error {
 }
 
 func GetCosmosStatus() (Status, error) {
-	return getStatus(COSMOS)
+	return getStatus(cosmos)
 }
 
 func SetCosmosStatus(height int64) error {
-	return setStatus(COSMOS, height)
+	return setStatus(cosmos, height)
 }
 
 func GetEthereumStatus() (Status, error) {
-	return getStatus(ETHEREUM)
+	return getStatus(ethereum)
 }
 
 func SetEthereumStatus(height int64) error {
-	return setStatus(ETHEREUM, height)
+	return setStatus(ethereum, height)
 }
