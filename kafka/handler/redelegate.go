@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
@@ -13,7 +14,7 @@ import (
 
 func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -64,7 +65,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	// for loop among validators
 
 	for i, validator := range validatorSet {
-		msgRedelegate := stakingTypes.NewMsgBeginRedelegate(m.Chain.MustGetAddress(), redelegationSourceAddress, validator, sdk.NewCoin(m.PstakeConfig.Tendermint.PStakeDenom, redistributeAmount))
+		msgRedelegate := stakingTypes.NewMsgBeginRedelegate(configuration.GetAppConfig().Tendermint.PStakeAddress, redelegationSourceAddress, validator, sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount))
 		if i == len(validatorSet)-1 {
 			msgRedelegate.Amount.Amount = msgRedelegate.Amount.Amount.Add(redistributeChange)
 		}
