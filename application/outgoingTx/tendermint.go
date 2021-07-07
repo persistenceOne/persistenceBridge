@@ -43,20 +43,26 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 		return nil, fmt.Errorf("no public keys got from casp")
 	}
 	publicKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	fmt.Println("***************************** STARTING BROADCASTING TM TX *****************************")
+	fmt.Println("***************************** GET TM BYTES TO SIGN *****************************")
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, publicKey, msgs, memo, timeoutHeight)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("***************************** GOT TM BYTES TO SIGN *****************************")
 
+	fmt.Println("***************************** CASP BEGIN TM SIGNING *****************************")
 	signature, err := getTMSignature(bytesToSign)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("***************************** CASP FINISHED TM SIGNING *****************************")
 
 	txRes, err := broadcastTMTx(chain, publicKey, signature, txB, txF)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("***************************** FINISHED BROADCASTING TM TX *****************************")
 	return txRes, err
 }
 
@@ -110,6 +116,8 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	if err != nil {
 		return []byte{}, txBuilder, txFactory, err
 	}
+
+	fmt.Printf("#################### TM SEQUENCE: %d ####################\n", txFactory.Sequence())
 
 	return bytesToSign, txBuilder, txFactory, nil
 }

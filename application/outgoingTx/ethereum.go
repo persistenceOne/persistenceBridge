@@ -58,6 +58,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	}
 	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
 
+	fmt.Println("***************************** STARTING BROADCASTING ETH TX *****************************")
 	fromAddress := crypto.PubkeyToAddress(publicKey)
 	nonce, err := client.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
@@ -84,11 +85,13 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	}
 
 	signer := types.NewEIP155Signer(chainID)
+	fmt.Println("***************************** CASP BEGIN ETH SIGNING *****************************")
+	fmt.Printf("#################### ETH NOUNCE: %d ####################\n", nonce)
 	caspSignature, v, err := getEthSignature(tx, signer) //Signature is of 64 bytes, need to append V value
 	if err != nil {
 		return common.Hash{}, err
 	}
-
+	fmt.Println("***************************** CASP FINISHED ETH SIGNING *****************************")
 	signedTx, err := tx.WithSignature(signer, append(caspSignature, byte(v)))
 	if err != nil {
 		return common.Hash{}, err
@@ -99,6 +102,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	if err != nil {
 		log.Printf("ERROR Broadcasting ETH Tx: %s, Error: %s\n", signedTx.Hash().String(), err.Error())
 	}
+	fmt.Println("***************************** FINISHED BROADCASTING ETH TX *****************************")
 	return signedTx.Hash(), err
 }
 

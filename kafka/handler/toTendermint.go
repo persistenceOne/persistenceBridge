@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -73,6 +74,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 	}
 
 	// TODO set memo and timeout height
+	fmt.Println("***************************** IN KAFKA TO TM BROADCAST TX *****************************")
 	response, err := outgoingTx.FilterMessagesAndBroadcast(handler.Chain, msgs, 0)
 	if err != nil {
 		log.Printf("error occured while send to Tendermint:%v\n", err)

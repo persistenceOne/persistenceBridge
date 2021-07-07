@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -72,6 +73,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	}
 	log.Printf("batched messages to send to ETH: %v\n", msgs)
 
+	fmt.Println("***************************** IN KAFKA TO ETH BROADCAST TX *****************************")
 	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
 		log.Printf("error occuerd in sending eth transaction: %v, adding messages agin to kafka\n", err)
