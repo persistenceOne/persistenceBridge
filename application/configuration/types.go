@@ -55,22 +55,24 @@ func NewTendermintConfig() TendermintConfig {
 }
 
 type CASPConfig struct {
-	URL                 string
-	VaultID             string
-	TendermintPublicKey string
-	EthereumPublicKey   string
-	SignatureWaitTime   time.Duration
-	APIToken            string
+	URL                     string
+	VaultID                 string
+	TendermintPublicKey     string
+	EthereumPublicKey       string
+	SignatureWaitTime       time.Duration
+	APIToken                string
+	AllowConcurrentKeyUsage bool
 }
 
 func NewCASPConfig() CASPConfig {
 	return CASPConfig{
-		URL:                 constants.DefaultCASPUrl,
-		VaultID:             constants.DefaultCASPVaultID,
-		TendermintPublicKey: constants.DefaultCASPTendermintPublicKey,
-		EthereumPublicKey:   constants.DefaultCASPEthereumPublicKey,
-		SignatureWaitTime:   constants.DefaultCASPSignatureWaitTime,
-		APIToken:            constants.DefaultCASPAPI,
+		URL:                     constants.DefaultCASPUrl,
+		VaultID:                 constants.DefaultCASPVaultID,
+		TendermintPublicKey:     constants.DefaultCASPTendermintPublicKey,
+		EthereumPublicKey:       constants.DefaultCASPEthereumPublicKey,
+		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
+		APIToken:                constants.DefaultCASPAPI,
+		AllowConcurrentKeyUsage: true,
 	}
 }
 

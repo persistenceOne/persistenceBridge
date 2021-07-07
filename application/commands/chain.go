@@ -151,6 +151,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, constants2.DefaultCASPTendermintPublicKey, "casp tendermint public key")
 	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, constants2.DefaultCASPEthereumPublicKey, "casp ethereum public key")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "csap siganture wait time")
+	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 
 	return pBridgeCommand
 }
@@ -238,6 +239,14 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		pstakeConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
 	} else {
 		log.Fatalln("invalid casp signature wait time")
+	}
+
+	caspConcurrentKey, err := cmd.Flags().GetBool(constants2.FlagCASPConcurrentKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if caspTMPublicKey != "" {
+		pstakeConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
 	}
 
 	return pstakeConfig

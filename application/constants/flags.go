@@ -1,6 +1,7 @@
 package constants
 
 import (
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/ethereum/go-ethereum/common"
 	"os"
 	"time"
@@ -27,6 +28,7 @@ const (
 	FlagCASPEthPublicKey      = "caspEthPublicKey"
 	FlagCASPSignatureWaitTime = "caspSignatureWaitTime"
 	FlagCASPApiToken          = "caspApiToken"
+	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
 )
 
 var (
@@ -42,7 +44,7 @@ var (
 	DefaultPStakeAddress, _        = sdk.AccAddressFromBech32("cosmos15vs9hfghf3xpsqshw98gq6mtt55wmhlgxf83pd") //TODO should be derived not given
 	DefaultBridgeAdmin             = common.HexToAddress("0xfCd7b44E0F250928aEC442ebc5E7bc0e4B38a8D5")         //TODO should be derived not given
 	DefaultEthGasLimit             = uint64(500000)
-	DefaultBroadcastMode           = "async"
+	DefaultBroadcastMode           = flags.BroadcastAsync
 	DefaultCASPUrl                 = "https://65.2.149.241:443"
 	DefaultCASPVaultID             = "509fd89a-762a-40ec-bd4b-0745b06e2d3d"
 	DefaultCASPAPI                 = "Bearer cHVuZWV0TmV3QXBpa2V5MTI6OWM1NDBhMzAtNTQ5NC00ZDdhLTljODktODA3MDZiNWNhYzQ1"

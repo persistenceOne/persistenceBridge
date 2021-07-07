@@ -14,22 +14,24 @@ import (
 )
 
 type SignDataRequest struct {
-	DataToSign   []string `json:"dataToSign"`
-	Description  string   `json:"description"`
-	ProviderData string   `json:"providerData"`
-	Details      string   `json:"details"`
-	PublicKeys   []string `json:"publicKeys"`
+	DataToSign              []string `json:"dataToSign"`
+	Description             string   `json:"description"`
+	ProviderData            string   `json:"providerData"`
+	Details                 string   `json:"details"`
+	PublicKeys              []string `json:"publicKeys"`
+	AllowConcurrentKeyUsage bool     `json:"allowConcurrentKeyUsage"`
 }
 
 func SignData(dataToSign []string, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
 	var response casp.PostSignDataResponse
 	//Encode the data
 	postBody, _ := json.Marshal(SignDataRequest{
-		DataToSign:   dataToSign,
-		Description:  description,
-		ProviderData: "",
-		Details:      "",
-		PublicKeys:   publicKeys,
+		DataToSign:              dataToSign,
+		Description:             description,
+		ProviderData:            "",
+		Details:                 "",
+		PublicKeys:              publicKeys,
+		AllowConcurrentKeyUsage: true,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	client := &http.Client{Transport: &http.Transport{
