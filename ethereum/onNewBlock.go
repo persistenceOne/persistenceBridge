@@ -43,7 +43,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 			} else {
 				confirmedBlocks := latestBlockHeight - txReceipt.BlockNumber.Uint64()
 				if confirmedBlocks >= 12 {
-					log.Printf("Broadcasted ethereum tx %s success\n", ethTx.TxHash)
+					log.Printf("Broadcasted ethereum tx %s success. Has %d confirmed blocks\n", ethTx.TxHash, confirmedBlocks)
 					deleteTx = true
 				} else {
 					log.Printf("Broadcasted ethereum tx %s has %d block confirmations\n", ethTx.TxHash, confirmedBlocks)

@@ -1,5 +1,6 @@
 package shutdown
 
+var seal = false
 var stopBridge = false
 var tendermintStopped = false
 var ethStopped = false
@@ -10,7 +11,10 @@ func GetBridgeStopSignal() bool {
 }
 
 func SetBridgeStopSignal(value bool) {
-	stopBridge = value
+	if !seal {
+		stopBridge = value
+		seal = true
+	}
 }
 
 func GetTMStopped() bool {
