@@ -3,12 +3,9 @@ package handler
 import (
 	"errors"
 	"github.com/Shopify/sarama"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"log"
 )
 
@@ -21,30 +18,21 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgSend)
 		}
 	}()
+	validators, err := db.GetValidators()
+	if err != nil {
+		return err
+	}
+
 	loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - m.Count
-	if loop <= 0 {
+	if loop <= len(validators) || m.WithdrawRewards {
 		return nil
 	}
 
-	// TODO add msg withdraw rewards from multiple validators.
-	if tendermint.AddressIsDelegatorToValidator(configuration.GetAppConfig().Tendermint.PStakeAddress.String(), constants2.Validator1.String(), m.Chain) {
-		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-			DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
-			ValidatorAddress: constants2.Validator1.String(),
-		}
-		withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
-		if err != nil {
-			log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
-			return err
-		} else {
-			err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
-			if err2 != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
-				return err2
-			}
-			loop = loop - 1
-		}
+	loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain)
+	if err != nil {
+		return err
 	}
+	m.WithdrawRewards = true
 
 	if loop > 0 {
 		claimMsgChan := claim.Messages()

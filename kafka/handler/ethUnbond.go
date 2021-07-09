@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"log"
 )
 
@@ -53,24 +53,63 @@ ConsumerLoop:
 	}
 
 	if sum.GT(sdk.NewInt(0)) {
-		// TODO consider multiple validators
-		unbondMsg := &stakingTypes.MsgUndelegate{
-			DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
-			ValidatorAddress: constants2.Validator1.String(),
-			Amount: sdk.Coin{
-				Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
-				Amount: sum,
-			},
-		}
-		msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(unbondMsg))
+		delegatorDelegations, err := tendermint.QueryDelegatorDelegations(m.Chain.MustGetAddress().String(), m.Chain)
 		if err != nil {
 			return err
+		}
+		totalDelegations := TotalDelegations(delegatorDelegations)
+		if sum.GT(totalDelegations) {
+			return errors.New("Unbondings requested are greater than delegated tokens")
+		}
+		ratio := sum.ToDec().Quo(totalDelegations.ToDec())
+		var unbondings sdk.Int
+		var unbondMsgs []*stakingTypes.MsgUndelegate
+		for _, delegation := range delegatorDelegations {
+			unbondingShare := ratio.Mul(delegation.Balance.Amount.ToDec()).RoundInt()
+			if unbondingShare.LT(delegation.Balance.Amount) {
+				unbondings = unbondings.Add(unbondingShare)
+			} else {
+				log.Printf("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
+			}
+			unbondMsg := &stakingTypes.MsgUndelegate{
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
+				ValidatorAddress: delegation.Delegation.ValidatorAddress,
+				Amount: sdk.Coin{
+					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
+					Amount: sum,
+				},
+			}
+			unbondMsgs = append(unbondMsgs, unbondMsg)
 		}
 
-		err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
-		if err != nil {
-			log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.MsgUnbond)
-			return err
+		if unbondings.GT(sum) {
+			difference := unbondings.Sub(sum)
+		Loop:
+			for {
+				for _, unbondMsg := range unbondMsgs {
+					if unbondMsg.Amount.Amount.GT(sdk.ZeroInt()) {
+						unbondMsg.Amount.Amount = unbondMsg.Amount.Amount.Sub(sdk.NewInt(1))
+						difference = difference.Sub(sdk.NewInt(1))
+					}
+					if difference.Equal(sdk.ZeroInt()) {
+						break Loop
+					}
+				}
+			}
+
+		}
+
+		for _, unbondMsg := range unbondMsgs {
+			msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(unbondMsg))
+			if err != nil {
+				return err
+			}
+
+			err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
+			if err != nil {
+				log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.MsgUnbond)
+				return err
+			}
 		}
 		session.MarkMessage(kafkaMsg, "")
 	}

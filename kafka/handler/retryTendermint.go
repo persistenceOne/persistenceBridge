@@ -3,12 +3,14 @@ package handler
 import (
 	"errors"
 	"github.com/Shopify/sarama"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
 
-func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
@@ -17,7 +19,6 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
 		}
 	}()
-
 	claimMsgChan := claim.Messages()
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
@@ -31,9 +32,23 @@ ConsumerLoop:
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
-			err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
+			var msg sdk.Msg
+			err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 			if err != nil {
-				log.Printf("failed to produce from %v to :%v", utils.MsgUnbond, utils.ToTendermint)
+				return err
+			}
+			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
+				loop, err := WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain)
+				if err != nil {
+					return err
+				}
+				m.WithdrawRewards = true
+				m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
+			}
+
+			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
+			if err != nil {
+				log.Printf("failed to produce from %v to :%v", utils.RetryTendermint, utils.ToTendermint)
 				break ConsumerLoop
 			}
 			session.MarkMessage(kafkaMsg, "")
@@ -45,6 +60,5 @@ ConsumerLoop:
 			break ConsumerLoop
 		}
 	}
-
 	return nil
 }

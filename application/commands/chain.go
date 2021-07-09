@@ -104,7 +104,9 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
-			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient)
+			end := make(chan bool)
+			ended := make(chan bool)
+			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
 			log.Println("Starting to listen ethereum....")
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, kafkaState, protoCodec)
@@ -121,7 +123,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				for {
 					if !kafkaClosed {
 						log.Println("Stopping Kafka Routine!!!")
-						kafka.KafkaClose(kafkaState)
+						kafka.KafkaClose(kafkaState, end, ended)()
 						kafkaClosed = true
 					}
 					if shutdown.GetTMStopped() && shutdown.GetETHStopped() {
