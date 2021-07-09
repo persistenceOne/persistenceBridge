@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/json"
+	"github.com/dgraph-io/badger/v3"
 )
 
 type TendermintBroadcastedTransaction struct {
@@ -40,4 +41,13 @@ func SetTendermintTx(tmTransaction TendermintBroadcastedTransaction) error {
 
 func IterateTmTx(operation func(key []byte, value []byte) error) error {
 	return iterateKeyValues(tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte{}), operation)
+}
+
+func GetTotalTMBroadacastedTx() (int, error) {
+	total := 0
+	err := iterateKeys(tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
+		total = total + 1
+		return nil
+	})
+	return total, err
 }

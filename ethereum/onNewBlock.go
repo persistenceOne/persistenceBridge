@@ -18,30 +18,29 @@ func onNewBlock(ctx context.Context, client *ethclient.Client, kafkaState utils.
 			log.Fatalln("Failed to unmarshal EthTransaction: ", err)
 		}
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
-		if err == nil {
-			if txReceipt != nil {
-				if txReceipt.Status == 0 {
-					log.Printf("Broadacasted ethereum tx failed: %s\n", ethTx.TxHash.String())
-					for _, msg := range ethTx.Messages {
-						msgBytes, err := json.Marshal(msg)
-						if err != nil {
-							log.Fatalln("Failed to generate msgBytes: ", err)
-						}
-						err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaState.Producer)
-						if err != nil {
-							log.Fatalf("Failed to add msg to kafka topic %s queue: %s\n", utils.ToEth, err.Error())
-						}
-					}
-				} else {
-					log.Printf("Broadcasted ethereum tx %s success\n", ethTx.TxHash.String())
-				}
-				return db.DeleteEthereumTx(ethTx.TxHash)
-			} else {
+		if err != nil {
+			if txReceipt == nil && err == ethereum.NotFound {
 				log.Printf("ETH TX %s is in pending transactions\n", ethTx.TxHash)
+			} else {
+				log.Printf("ETH TX %s receipt fetch failed: %s\n", ethTx.TxHash.String(), err)
 			}
-		}
-		if err != nil && err != ethereum.NotFound {
-			log.Printf("eth tx %s receipt fetch failed: %s\n", ethTx.TxHash.String(), err)
+		} else {
+			if txReceipt.Status == 0 {
+				log.Printf("Broadacasted ethereum tx failed: %s\n", ethTx.TxHash.String())
+				for _, msg := range ethTx.Messages {
+					msgBytes, err := json.Marshal(msg)
+					if err != nil {
+						log.Fatalln("Failed to generate msgBytes: ", err)
+					}
+					err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaState.Producer)
+					if err != nil {
+						log.Fatalf("Failed to add msg to kafka topic %s queue: %s\n", utils.ToEth, err.Error())
+					}
+				}
+			} else {
+				log.Printf("Broadcasted ethereum tx %s success\n", ethTx.TxHash)
+			}
+			return db.DeleteEthereumTx(ethTx.TxHash)
 		}
 		return nil
 	})
