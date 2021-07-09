@@ -3,9 +3,9 @@ package configuration
 var appConfig *Config
 
 func SetAppConfig(config Config) {
-	if appConfig == nil || !appConfig.set {
+	if appConfig == nil || !appConfig.seal {
 		appConfig = &config
-		appConfig.set = true
+		appConfig.seal = true
 	}
 }
 

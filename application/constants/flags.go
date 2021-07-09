@@ -11,7 +11,6 @@ import (
 
 const (
 	FlagTimeOut               = "timeout"
-	FlagCoinType              = "coinType"
 	FlagPBridgeHome           = "pBridgeHome"
 	FlagEthereumEndPoint      = "ethEndPoint"
 	FlagTendermintSleepTime   = "tmSleepTime"
@@ -34,7 +33,6 @@ const (
 
 var (
 	DefaultTimeout                 = "10s"
-	DefaultCoinType                = uint32(118)
 	DefaultEthereumEndPoint        = "wss://ropsten.infura.io/ws/v3/b21966541db246d398fb31402eec2c14"
 	DefaultTendermintSleepTime     = 3000     //ms
 	DefaultEthereumSleepTime       = 4500     //ms

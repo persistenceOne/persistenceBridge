@@ -13,8 +13,7 @@ type Config struct {
 	Tendermint  TendermintConfig
 	Ethereum    EthereumConfig
 	CASP        CASPConfig
-	PBridgeHome string
-	set         bool
+	seal        bool
 	RPCEndpoint string
 }
 
@@ -24,21 +23,22 @@ func NewConfig() Config {
 		Tendermint:  NewTendermintConfig(),
 		Ethereum:    NewEthereumConfig(),
 		CASP:        NewCASPConfig(),
-		PBridgeHome: constants.DefaultPBridgeHome,
-		set:         false,
+		seal:        false,
 		RPCEndpoint: constants.DefaultRPCEndpoint,
 	}
 }
 
 type EthereumConfig struct {
-	BridgeAdmin common.Address
-	GasLimit    uint64
+	BridgeAdmin      common.Address
+	EthereumEndPoint string
+	GasLimit         uint64
 }
 
 func NewEthereumConfig() EthereumConfig {
 	return EthereumConfig{
-		BridgeAdmin: constants.DefaultBridgeAdmin,
-		GasLimit:    constants.DefaultEthGasLimit,
+		BridgeAdmin:      constants.DefaultBridgeAdmin,
+		EthereumEndPoint: constants.DefaultEthereumEndPoint,
+		GasLimit:         constants.DefaultEthGasLimit,
 	}
 }
 
