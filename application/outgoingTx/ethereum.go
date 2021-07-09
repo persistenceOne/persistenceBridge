@@ -86,6 +86,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	if err != nil {
 		return common.Hash{}, err
 	}
+
 	signedTx, err := tx.WithSignature(signer, append(caspSignature, byte(v)))
 	if err != nil {
 		return common.Hash{}, err

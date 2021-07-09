@@ -1,10 +1,11 @@
 package db
 
 import (
-	"github.com/dgraph-io/badger/v3"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"log"
 	"time"
+
+	"github.com/dgraph-io/badger/v3"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )
 
 var db *badger.DB
@@ -36,7 +37,6 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 			return db, err
 		}
 	}
-	// TODO add validator logic
 
 	return db, nil
 }
@@ -44,7 +44,7 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 func OpenDB(dbPath string) (*badger.DB, error) {
 	dbTemp, err := badger.Open(badger.DefaultOptions(dbPath))
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	db = dbTemp
 

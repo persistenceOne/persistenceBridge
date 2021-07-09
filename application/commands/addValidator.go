@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/spf13/cobra"
 	"log"
 )
@@ -24,26 +25,46 @@ func AddCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-
-			database, err := db.OpenDB(homePath + "/db")
-			defer database.Close()
-
-			err = db.SetValidator(db.Validator{
-				Address: validatorAddress,
-				Active:  true,
-			})
+			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 			if err != nil {
-				return err
+				log.Fatalln(err)
 			}
-
-			validators, err := db.GetValidators()
+			var validators []sdk.ValAddress
+			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
-				return err
+				log.Printf("Db is already open: %v", err)
+				log.Printf("sending rpc")
+				var err2 error
+				validators, err2 = rpc.AddValidator(db.Validator{
+					Address: validatorAddress,
+					Active:  true,
+				}, rpcEndpoint)
+				if err2 != nil {
+					return err2
+				}
+			} else {
+				defer database.Close()
+
+				err2 := db.SetValidator(db.Validator{
+					Address: validatorAddress,
+					Active:  true,
+				})
+				if err2 != nil {
+					return err2
+				}
+
+				validators, err2 = db.GetValidators()
+				if err2 != nil {
+					return err2
+				}
 			}
 			log.Printf("Updated set of validators: %v\n", validators)
+
 			return nil
 		},
 	}
+
+	addCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
 	addCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	return addCommand
 }
