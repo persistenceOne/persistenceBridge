@@ -43,7 +43,7 @@ func IterateTmTx(operation func(key []byte, value []byte) error) error {
 	return iterateKeyValues(tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte{}), operation)
 }
 
-func GetTotalTMBroadacastedTx() (int, error) {
+func GetTotalTMBroadcastedTx() (int, error) {
 	total := 0
 	err := iterateKeys(tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
 		total = total + 1

@@ -51,7 +51,7 @@ func IterateEthTx(operation func(key []byte, value []byte) error) error {
 	return iterateKeyValues(ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey([]byte{}), operation)
 }
 
-func GetTotalEthBroadacastedTx() (int, error) {
+func GetTotalEthBroadcastedTx() (int, error) {
 	total := 0
 	err := iterateKeys(ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
 		total = total + 1
