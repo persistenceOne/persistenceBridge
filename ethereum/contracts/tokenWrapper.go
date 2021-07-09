@@ -2,6 +2,7 @@ package contracts
 
 import (
 	"github.com/Shopify/sarama"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"log"
@@ -24,7 +25,7 @@ var TokenWrapper = Contract{
 }
 
 func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
-	// ercAddress := arguments[0].(common.Address)
+	ercAddress := arguments[0].(common.Address)
 	amount := arguments[1].(*big.Int)
 	atomAddress, err := sdkTypes.AccAddressFromBech32(arguments[2].(string))
 	if err != nil {
@@ -40,8 +41,8 @@ func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.Pro
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding sendCoin msg to kafka producer ToTendermint: %s\n", sendCoinMsg.String())
-	err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, *kafkaProducer)
+	log.Printf("Adding sendCoin msg to kafka producer MsgSend, from: %s, to: %s, amount: %d\n", ercAddress.String(), atomAddress.String(), amount.Int64())
+	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
 		log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 		return err

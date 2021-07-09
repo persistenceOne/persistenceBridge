@@ -37,7 +37,7 @@ func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, a
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding stake msg to kafka producer MsgDelegate: %s\n", stakeMsg.String())
+	log.Printf("Adding stake msg to kafka producer MsgDelegate, amount: %d\n", amount.Int64())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, *kafkaProducer)
 	if err != nil {
 		log.Println("Failed to add msg to kafka queue: ", err)
@@ -58,7 +58,7 @@ func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec,
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding unStake msg to kafka producer EthUnbond: %s\n", unStakeMsg.String())
+	log.Printf("Adding unstake msg to kafka producer EthUnbond, amount: %d\n", amount.Int64())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, *kafkaProducer)
 	if err != nil {
 		log.Println("Failed to add msg to kafka queue: ", err)
