@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string, coinType uint32) (*relayer.Chain, error) {
+func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*relayer.Chain, error) {
 	chain, err := fileInputAdd(chainConfigJsonPath)
 	to, err := time.ParseDuration(timeout)
 	if err != nil {
@@ -31,7 +31,8 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string, coin
 		}
 	}
 
-	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, coinType)
+	//118 is not being used anywhere
+	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
 	if err != nil {
 		return chain, err
 	}
