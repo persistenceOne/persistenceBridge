@@ -5,8 +5,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"os"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -42,8 +40,8 @@ var (
 	DefaultEthereumStartHeight     = int64(0) // 0 will not change the db at start
 	DefaultPBridgeHome             = os.ExpandEnv("$HOME/.persistenceBridge")
 	DefaultDenom                   = "uatom"
-	DefaultPStakeAddress, _        = sdk.AccAddressFromBech32("cosmos15vs9hfghf3xpsqshw98gq6mtt55wmhlgxf83pd") //TODO should be derived not given
-	DefaultBridgeAdmin             = common.HexToAddress("0xfCd7b44E0F250928aEC442ebc5E7bc0e4B38a8D5")         //TODO should be derived not given
+	DefaultPStakeAddress           = "cosmos15vs9hfghf3xpsqshw98gq6mtt55wmhlgxf83pd"                   //TODO should be derived not given
+	DefaultBridgeAdmin             = common.HexToAddress("0xfCd7b44E0F250928aEC442ebc5E7bc0e4B38a8D5") //TODO should be derived not given
 	DefaultEthGasLimit             = uint64(500000)
 	DefaultBroadcastMode           = flags.BroadcastAsync
 	DefaultCASPUrl                 = "https://65.2.149.241:443"

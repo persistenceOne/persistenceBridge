@@ -44,7 +44,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 		return err
 	}
 	// query validator delegation
-	delegations, err := tendermint.QueryDelegatorDelegations(m.Chain.MustGetAddress().String(), m.Chain)
+	delegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress, m.Chain)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,12 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	// for loop among validators
 
 	for i, validator := range validatorSet {
-		msgRedelegate := stakingTypes.NewMsgBeginRedelegate(configuration.GetAppConfig().Tendermint.PStakeAddress, redelegationSourceAddress, validator, sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount))
+		msgRedelegate := &stakingTypes.MsgBeginRedelegate{
+			DelegatorAddress:    configuration.GetAppConfig().Tendermint.PStakeAddress,
+			ValidatorSrcAddress: redelegationSourceAddress.String(),
+			ValidatorDstAddress: validator.String(),
+			Amount:              sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount),
+		}
 		if i == len(validatorSet)-1 {
 			msgRedelegate.Amount.Amount = msgRedelegate.Amount.Amount.Add(redistributeChange)
 		}

@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"github.com/Shopify/sarama"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"time"
@@ -43,7 +42,7 @@ func NewEthereumConfig() EthereumConfig {
 }
 
 type TendermintConfig struct {
-	PStakeAddress sdkTypes.AccAddress
+	PStakeAddress string
 	PStakeDenom   string
 	BroadcastMode string
 }

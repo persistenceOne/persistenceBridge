@@ -51,7 +51,7 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 	if err != nil {
 		return loop, err
 	}
-	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress.String(), chain)
+	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress, chain)
 	if err != nil {
 		return loop, err
 	}
@@ -59,7 +59,7 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 	for _, validator := range validators {
 		if contains(delegatorValidators, validator) {
 			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
 				ValidatorAddress: validator.String(),
 			}
 			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))

@@ -2,6 +2,7 @@ package tendermint
 
 import (
 	"encoding/json"
+	"github.com/Shopify/sarama"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -25,9 +26,9 @@ import (
 //	}
 //}
 
-func handleTxSearchResult(clientCtx client.Context, txSearchResult *tmCoreTypes.ResultTxSearch, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) error {
+func handleTxSearchResult(clientCtx client.Context, txSearchResult *tmCoreTypes.ResultTxSearch, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range txSearchResult.Txs {
-		err := processTx(clientCtx, transaction, kafkaState, protoCodec)
+		err := processTx(clientCtx, transaction, kafkaProducer, protoCodec)
 		if err != nil {
 			log.Printf("Failed to process tendermint transaction: %s\n", transaction.Hash.String())
 			return err
@@ -36,7 +37,7 @@ func handleTxSearchResult(clientCtx client.Context, txSearchResult *tmCoreTypes.
 	return nil
 }
 
-func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) error {
+func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	if txQueryResult.TxResult.GetCode() == 0 {
 		// Should be used if txQueryResult.Tx is string
 		//decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)
@@ -64,7 +65,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && memo != "DO_NOT_REFUND" {
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress && memo != "DO_NOT_REFUND" {
 					amount := sdk.ZeroInt()
 					var refundCoins sdk.Coins
 					for _, coin := range txMsg.Amount {
@@ -81,7 +82,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					}
 					exists, accountLimiter, totalAccounts := db.CheckExistsAndGetTotalAccounts(fromAddress)
 					if totalAccounts >= getMaxLimit() {
-						refundAmount(txMsg.FromAddress, txMsg.Amount, kafkaState, protoCodec)
+						refundAmount(txMsg.FromAddress, txMsg.Amount, kafkaProducer, protoCodec)
 						continue
 					}
 					sendAmt, refundAmt := beta(exists, accountLimiter, amount)
@@ -98,7 +99,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						if err != nil {
 							panic(err)
 						}
-						err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaState.Producer)
+						err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 						if err != nil {
 							log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 						}
@@ -110,7 +111,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						}
 					}
 					if len(refundCoins) > 0 {
-						refundAmount(txMsg.FromAddress, refundCoins, kafkaState, protoCodec)
+						refundAmount(txMsg.FromAddress, refundCoins, kafkaProducer, protoCodec)
 					}
 				}
 			default:
@@ -150,9 +151,9 @@ func getMaxLimit() int {
 	return 10000
 }
 
-func refundAmount(toAddress string, coins sdk.Coins, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) {
+func refundAmount(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
 	msg := &banktypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
+		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
 		ToAddress:   toAddress,
 		Amount:      coins,
 	}
@@ -160,7 +161,7 @@ func refundAmount(toAddress string, coins sdk.Coins, kafkaState utils.KafkaState
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaState.Producer)
+	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -14,7 +15,7 @@ import (
 	"log"
 )
 
-func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Chain, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) error {
+func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Chain, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	return db.IterateTmTx(func(key []byte, value []byte) error {
 		var tmTx db.TendermintBroadcastedTransaction
 		err := json.Unmarshal(value, &tmTx)
@@ -50,9 +51,9 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 					if err != nil {
 						log.Fatalln("Failed to generate msgBytes: ", err)
 					}
-					err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
+					err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, *kafkaProducer)
 					if err != nil {
-						log.Fatalf("Failed to add msg %s to kafka topic %s queue: %s\n", msg.String(), utils.ToTendermint, err.Error())
+						log.Fatalf("Failed to add msg %s to kafka topic %s queue: %s\n", msg.String(), utils.RetryTendermint, err.Error())
 					}
 				}
 			} else {

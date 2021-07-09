@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"github.com/Shopify/sarama"
 	"log"
 	"math/big"
 	"time"
@@ -13,11 +14,19 @@ import (
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 )
 
-func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) {
+func StartListening(client *ethclient.Client, sleepDuration time.Duration, brokers []string, protoCodec *codec.ProtoCodec) {
 	ctx := context.Background()
+	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
+	defer func(kafkaProducer sarama.SyncProducer) {
+		err := kafkaProducer.Close()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}(kafkaProducer)
 
 	for {
-		if shutdown.GetBridgeStopSignal() {
+		if shutdown.GetBridgeStopSignal() && shutdown.GetKafkaConsumerClosed() {
 			log.Println("Stopping Ethereum Listener!!!")
 			shutdown.SetETHStopped(true)
 			return
@@ -35,7 +44,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			panic(err)
 		}
 
-		if latestEthHeight > uint64(ethStatus.LastCheckHeight) {
+		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 			log.Printf("ETH: %d\n", processHeight)
 
@@ -46,7 +55,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 				continue
 			}
 
-			err = handleBlock(client, &ctx, block, kafkaState, protoCodec)
+			err = handleBlock(client, &ctx, block, &kafkaProducer, protoCodec)
 			if err != nil {
 				panic(err)
 			}
@@ -56,7 +65,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 				panic(err)
 			}
 		}
-		err = onNewBlock(ctx, client, kafkaState)
+		err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
 		if err != nil {
 			panic(err)
 		}

@@ -3,22 +3,31 @@ package tendermint
 import (
 	"context"
 	"fmt"
+	"github.com/Shopify/sarama"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 )
 
-func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
+func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
+	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
+	defer func(kafkaProducer sarama.SyncProducer) {
+		err := kafkaProducer.Close()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}(kafkaProducer)
 
 	for {
-		if shutdown.GetBridgeStopSignal() {
+		if shutdown.GetBridgeStopSignal() && shutdown.GetKafkaConsumerClosed() {
 			log.Println("Stopping Tendermint Listener!!!")
 			shutdown.SetTMStopped(true)
 			return
@@ -47,7 +56,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 				continue
 			}
 
-			err = handleTxSearchResult(initClientCtx, txSearchResult, kafkaState, protoCodec)
+			err = handleTxSearchResult(initClientCtx, txSearchResult, &kafkaProducer, protoCodec)
 			if err != nil {
 				panic(err)
 			}
@@ -58,7 +67,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			}
 		}
 
-		err = onNewBlock(ctx, initClientCtx, chain, kafkaState, protoCodec)
+		err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
 		if err != nil {
 			panic(err)
 		}

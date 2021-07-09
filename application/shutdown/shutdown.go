@@ -3,6 +3,7 @@ package shutdown
 var stopBridge = false
 var tendermintStopped = false
 var ethStopped = false
+var kafkaConsumerClosed = false
 
 func GetBridgeStopSignal() bool {
 	return stopBridge
@@ -26,4 +27,12 @@ func GetETHStopped() bool {
 
 func SetETHStopped(value bool) {
 	ethStopped = value
+}
+
+func GetKafkaConsumerClosed() bool {
+	return kafkaConsumerClosed
+}
+
+func SetKafkaConsumerClosed(value bool) {
+	kafkaConsumerClosed = value
 }

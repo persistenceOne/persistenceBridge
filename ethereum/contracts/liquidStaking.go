@@ -1,6 +1,7 @@
 package contracts
 
 import (
+	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -17,22 +18,27 @@ var LiquidStaking = Contract{
 	name:    "LIQUID_STAKING",
 	address: constants2.LiquidStakingAddress,
 	abi:     abi.ABI{},
-	methods: map[string]func(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error{
+	methods: map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error{
 		constants2.LiquidStakingStake:   onStake,
 		constants2.LiquidStakingUnStake: onUnStake,
 	},
 }
 
-func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
+func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := arguments[1].(*big.Int)
-	stakeMsg := stakingTypes.NewMsgDelegate(configuration.GetAppConfig().Tendermint.PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())))
+	stakeMsg := &stakingTypes.MsgDelegate{
+		DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		ValidatorAddress: "",
+		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())),
+	}
+
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(stakeMsg))
 	if err != nil {
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
 	log.Printf("Adding stake msg to kafka producer MsgDelegate: %s\n", stakeMsg.String())
-	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, kafkaState.Producer)
+	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, *kafkaProducer)
 	if err != nil {
 		log.Println("Failed to add msg to kafka queue: ", err)
 		return err
@@ -40,16 +46,20 @@ func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, argument
 	return nil
 }
 
-func onUnStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
+func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := arguments[1].(*big.Int)
-	unStakeMsg := stakingTypes.NewMsgUndelegate(configuration.GetAppConfig().Tendermint.PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())))
+	unStakeMsg := &stakingTypes.MsgUndelegate{
+		DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		ValidatorAddress: "",
+		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())),
+	}
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(unStakeMsg))
 	if err != nil {
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
 	log.Printf("Adding unStake msg to kafka producer EthUnbond: %s\n", unStakeMsg.String())
-	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, kafkaState.Producer)
+	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, *kafkaProducer)
 	if err != nil {
 		log.Println("Failed to add msg to kafka queue: ", err)
 		return err

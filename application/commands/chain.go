@@ -11,6 +11,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka"
@@ -109,24 +110,25 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
 			log.Println("Starting to listen ethereum....")
-			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, kafkaState, protoCodec)
+			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
 
 			log.Println("Starting to listen tendermint....")
-			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, kafkaState, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+
+			go rpc.StartServer()
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
 				log.Println("signal received to close: " + sig.String())
 				shutdown.SetBridgeStopSignal(true)
-				kafkaClosed := false
 				for {
-					if !kafkaClosed {
+					if !shutdown.GetKafkaConsumerClosed() {
 						log.Println("Stopping Kafka Routine!!!")
 						kafka.KafkaClose(kafkaState, end, ended)()
-						kafkaClosed = true
+						shutdown.SetKafkaConsumerClosed(true)
 					}
-					if shutdown.GetTMStopped() && shutdown.GetETHStopped() {
+					if shutdown.GetTMStopped() && shutdown.GetETHStopped() && shutdown.GetKafkaConsumerClosed() {
 						return nil
 					}
 				}
