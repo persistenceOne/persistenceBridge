@@ -1,8 +1,17 @@
 package handler
 
 import (
+	"github.com/Shopify/sarama"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/persistenceOne/persistenceBridge/tendermint"
+	"log"
 )
 
 func contains(s []sdk.ValAddress, e sdk.ValAddress) bool {
@@ -28,4 +37,47 @@ func TotalDelegations(delegationResponses stakingTypes.DelegationResponses) sdk.
 		sum = sum.Add(delegation.Balance.Amount)
 	}
 	return sum
+}
+
+func checkCount(currentCount, maxCount int) bool {
+	if currentCount < maxCount {
+		return true
+	}
+	return false
+}
+
+func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.SyncProducer, chain *relayer.Chain) (int, error) {
+	validators, err := db.GetValidators()
+	if err != nil {
+		return loop, err
+	}
+	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress.String(), chain)
+	if err != nil {
+		return loop, err
+	}
+	delegatorValidators := ValidatorsInDelegations(delegatorDelegations)
+	for _, validator := range validators {
+		if contains(delegatorValidators, validator) {
+			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
+				ValidatorAddress: validator.String(),
+			}
+			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
+			if err != nil {
+				log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
+				return loop, err
+			} else {
+				err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
+				if err2 != nil {
+					log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
+					return loop, err2
+				}
+				loop = loop - 1
+				if loop == 0 {
+					return loop, nil
+				}
+			}
+		}
+	}
+	return loop, nil
 }

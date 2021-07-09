@@ -10,10 +10,11 @@ import (
 )
 
 type MsgHandler struct {
-	ProtoCodec *codec.ProtoCodec
-	Chain      *relayer.Chain
-	EthClient  *ethclient.Client
-	Count      int
+	ProtoCodec      *codec.ProtoCodec
+	Chain           *relayer.Chain
+	EthClient       *ethclient.Client
+	Count           int
+	WithdrawRewards bool
 }
 
 var _ sarama.ConsumerGroupHandler = MsgHandler{}

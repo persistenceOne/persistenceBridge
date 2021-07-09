@@ -14,10 +14,11 @@ const GroupMsgSend = "group-msg-send"
 const GroupMsgDelegate = "group-msg-delegate"
 const GroupRedelegate = "group-redelegate"
 const GroupMsgUnbond = "group-msg-unbond"
+const GroupRetryTendermint = "group-retry-tendermint"
 
 var Groups = []string{GroupEthUnbond,
 	GroupMsgSend, GroupMsgDelegate, GroupRedelegate, GroupMsgUnbond,
-	GroupToEth, GroupToTendermint,
+	GroupToEth, GroupRetryTendermint, GroupToTendermint,
 }
 
 //Topics
@@ -29,9 +30,10 @@ const MsgDelegate = "msg-delegate"  //priority2
 const MsgUnbond = "msg-unbond"      //priority1
 const EthUnbond = "ethereum-unbond" //flushes every 3 days
 const Redelegate = "redelegate"
+const RetryTendermint = "retry-tendermint"
 
 // Topics : is list of topics
 var Topics = []string{
 	EthUnbond, MsgSend, MsgDelegate, Redelegate, MsgUnbond,
-	ToEth, ToTendermint,
+	ToEth, RetryTendermint, ToTendermint,
 }

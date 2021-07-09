@@ -24,9 +24,7 @@ ConsumerLoop:
 	for {
 		select {
 		case <-ticker:
-			if len(kafkaMsgs) >= configuration.GetAppConfig().Kafka.ToTendermint.MinBatchSize {
-				break ConsumerLoop
-			}
+			break ConsumerLoop
 		case kafkaMsg, ok = <-claimMsgChan:
 			if ok {
 				kafkaMsgs = append(kafkaMsgs, *kafkaMsg)
@@ -99,11 +97,11 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 				if err != nil {
 					log.Printf("Retry txs: Failed to Marshal ToTendermint Retry msg: Error: %v\n", err)
 				}
-				err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+				err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
 				if err != nil {
 					log.Printf("Retry txs: Failed to add msg to kafka queue: %s\n", err.Error())
 				}
-				log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.Type(), utils.ToTendermint)
+				log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.Type(), utils.RetryTendermint)
 			}
 		}
 		return nil
