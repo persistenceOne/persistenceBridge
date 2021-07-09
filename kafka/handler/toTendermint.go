@@ -2,10 +2,10 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
@@ -74,7 +74,6 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 	}
 
 	// TODO set memo and timeout height
-	fmt.Println("***************************** IN KAFKA TO TM BROADCAST TX *****************************")
 	response, err := outgoingTx.FilterMessagesAndBroadcast(handler.Chain, msgs, 0)
 	if err != nil {
 		log.Printf("error occured while send to Tendermint:%v\n", err)
@@ -88,15 +87,17 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		}()
 
 		for _, msg := range msgs {
-			msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
-			if err != nil {
-				log.Printf("Retry txs: Failed to Marshal ToTendermint Retry msg: Error: %v\n", err)
+			if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
+				msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
+				if err != nil {
+					log.Printf("Retry txs: Failed to Marshal ToTendermint Retry msg: Error: %v\n", err)
+				}
+				err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+				if err != nil {
+					log.Printf("Retry txs: Failed to add msg to kafka queue: %s\n", err.Error())
+				}
+				log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.Type(), utils.ToTendermint)
 			}
-			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
-			if err != nil {
-				log.Printf("Retry txs: Failed to add msg to kafka queue: %s\n", err.Error())
-			}
-			log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.String(), utils.ToTendermint)
 		}
 		return nil
 	} else {

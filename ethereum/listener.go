@@ -35,7 +35,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 			panic(err)
 		}
 
-		if latestEthHeight > uint64(ethStatus.LastCheckHeight) {
+		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 			log.Printf("ETH: %d\n", processHeight)
 
