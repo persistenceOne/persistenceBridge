@@ -51,25 +51,31 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	case utils.MsgSend:
 		err := m.HandleMsgSend(session, claim)
 		if err != nil {
-			log.Printf("failed to handle MsgSend for topic: %v\n", utils.MsgSend)
+			log.Printf("failed to handle MsgSend for topic: %v with error %v\n", utils.MsgSend, err)
 			return err
 		}
 	case utils.MsgDelegate:
 		err := m.HandleMsgDelegate(session, claim)
 		if err != nil {
-			log.Printf("failed to handle MsgDelegate for topic: %v\n", utils.MsgDelegate)
+			log.Printf("failed to handle MsgDelegate for topic: %v with error %v\n", utils.MsgDelegate, err)
 			return err
 		}
 	case utils.MsgUnbond:
 		err := m.HandleMsgUnbond(session, claim)
 		if err != nil {
-			log.Printf("failed to handle MsgUnbond for topic: %v\n", utils.MsgUnbond)
+			log.Printf("failed to handle MsgUnbond for topic: %v with error %v\n", utils.MsgUnbond, err)
 			return err
 		}
 	case utils.Redelegate:
 		err := m.HandleRelegate(session, claim)
 		if err != nil {
-			log.Printf("failed to handle Redelegate for topic: %v\n", utils.Redelegate)
+			log.Printf("failed to handle Redelegate for topic: %v with error %v\n", utils.Redelegate, err)
+			return err
+		}
+	case utils.RetryTendermint:
+		err := m.HandleRetryTendermint(session, claim)
+		if err != nil {
+			log.Printf("failed to handle for topic: %v with error %v", utils.RetryTendermint, err)
 			return err
 		}
 	}
