@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
@@ -59,48 +60,58 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		if validMemo {
 			ethAddress = goEthCommon.HexToAddress(memo)
 		}
-		refund := memo != "DO_NOT_REFUND"
 
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				amount := sdk.NewInt(0)
-				for _, coin := range txMsg.Amount {
-					if coin.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom {
-						amount = coin.Amount
-						break
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && memo != "DO_NOT_REFUND" {
+					amount := sdk.ZeroInt()
+					var refundCoins sdk.Coins
+					for _, coin := range txMsg.Amount {
+						if coin.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom {
+							amount = coin.Amount
+							break
+						} else {
+							refundCoins = append(refundCoins, coin)
+						}
 					}
-				}
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
-					log.Printf("RECEIVED TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
-					ethTxMsg := outgoingTx.WrapTokenMsg{
-						Address: ethAddress,
-						Amount:  amount.BigInt(),
-					}
-					msgBytes, err := json.Marshal(ethTxMsg)
+					fromAddress, err := sdk.AccAddressFromBech32(txMsg.FromAddress)
 					if err != nil {
-						panic(err)
+						log.Fatalln(err)
 					}
-					err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaState.Producer)
-					if err != nil {
-						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+					exists, accountLimiter, totalAccounts := db.CheckExistsAndGetTotalAccounts(fromAddress)
+					if totalAccounts >= getMaxLimit() {
+						refundAmount(txMsg.FromAddress, txMsg.Amount, kafkaState, protoCodec)
+						continue
 					}
-					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress.String() && refund {
-					msg := &banktypes.MsgSend{
-						FromAddress: txMsg.ToAddress,
-						ToAddress:   txMsg.FromAddress,
-						Amount:      txMsg.Amount,
+					sendAmt, refundAmt := beta(exists, accountLimiter, amount)
+					if refundAmt.GT(sdk.ZeroInt()) {
+						refundCoins = append(refundCoins, sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, refundAmt))
 					}
-					msgBytes, err := protoCodec.MarshalInterface(sdk.Msg(msg))
-					if err != nil {
-						panic(err)
+					if sendAmt.GT(sdk.ZeroInt()) && validMemo {
+						log.Printf("RECEIVED TM WRAP TX: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
+						ethTxMsg := outgoingTx.WrapTokenMsg{
+							Address: ethAddress,
+							Amount:  sendAmt.BigInt(),
+						}
+						msgBytes, err := json.Marshal(ethTxMsg)
+						if err != nil {
+							panic(err)
+						}
+						err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaState.Producer)
+						if err != nil {
+							log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+						}
+						log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
+						accountLimiter.Amount = accountLimiter.Amount.Add(sendAmt)
+						err = db.SetAccountLimiter(accountLimiter)
+						if err != nil {
+							panic(err)
+						}
 					}
-					err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
-					if err != nil {
-						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+					if len(refundCoins) > 0 {
+						refundAmount(txMsg.FromAddress, refundCoins, kafkaState, protoCodec)
 					}
-					log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.ToTendermint)
 				}
 			default:
 
@@ -109,4 +120,49 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 	}
 
 	return nil
+}
+
+func beta(exists bool, limiter db.AccountLimiter, amount sdk.Int) (sdk.Int, sdk.Int) {
+	maxAmt := sdk.NewInt(500000000)
+	sendAmount := amount
+	refundAmt := sdk.ZeroInt()
+	if exists {
+		sent := limiter.Amount
+		if sent.Add(sendAmount).GTE(maxAmt) {
+			sendAmount = maxAmt.Sub(sent)
+			refundAmt = amount.Sub(sendAmount)
+		}
+	} else {
+		if amount.GTE(constants.MinimumAmount) {
+			if sendAmount.GTE(maxAmt) {
+				sendAmount = maxAmt
+				refundAmt = amount.Sub(maxAmt)
+			}
+		} else {
+			sendAmount = sdk.ZeroInt()
+			refundAmt = amount
+		}
+	}
+	return sendAmount, refundAmt
+}
+
+func getMaxLimit() int {
+	return 10000
+}
+
+func refundAmount(toAddress string, coins sdk.Coins, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) {
+	msg := &banktypes.MsgSend{
+		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress.String(),
+		ToAddress:   toAddress,
+		Amount:      coins,
+	}
+	msgBytes, err := protoCodec.MarshalInterface(sdk.Msg(msg))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaState.Producer)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.MsgSend)
 }

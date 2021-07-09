@@ -7,12 +7,10 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	//"github.com/persistenceOne/persistenceBridge/ethereum/magicTx"
 	"log"
@@ -49,17 +47,17 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 
 func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
-	if err != nil {
-		return common.Hash{}, err
-	}
-	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		return common.Hash{}, fmt.Errorf("no public keys got from casp")
-	}
-	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
-
-	fromAddress := crypto.PubkeyToAddress(publicKey)
-	nonce, err := client.PendingNonceAt(ctx, fromAddress)
+	//uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+	//if err != nil {
+	//	return common.Hash{}, err
+	//}
+	//if len(uncompressedPublicKeys.PublicKeys) == 0 {
+	//	return common.Hash{}, fmt.Errorf("no public keys got from casp")
+	//}
+	//publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
+	//
+	//fromAddress := crypto.PubkeyToAddress(publicKey)
+	nonce, err := client.PendingNonceAt(ctx, configuration.GetAppConfig().Ethereum.BridgeAdmin)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -72,7 +70,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 	tx := types.NewTx(&types.LegacyTx{
 		Nonce:    nonce,
 		Value:    txValue,
-		Gas:      configuration.GetAppConfig().Ethereum.EthGasLimit,
+		Gas:      configuration.GetAppConfig().Ethereum.GasLimit,
 		GasPrice: gasPrice.Add(gasPrice, big.NewInt(4000000000)),
 		Data:     txData,
 		To:       contractAddress,

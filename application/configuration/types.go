@@ -30,13 +30,13 @@ func NewConfig() Config {
 
 type EthereumConfig struct {
 	BridgeAdmin common.Address
-	EthGasLimit uint64
+	GasLimit    uint64
 }
 
 func NewEthereumConfig() EthereumConfig {
 	return EthereumConfig{
 		BridgeAdmin: constants.DefaultBridgeAdmin,
-		EthGasLimit: constants.DefaultEthGasLimit,
+		GasLimit:    constants.DefaultEthGasLimit,
 	}
 }
 
@@ -82,8 +82,6 @@ type KafkaConfig struct {
 	TopicDetail  sarama.TopicDetail
 	ToEth        TopicConsumer
 	ToTendermint TopicConsumer
-	// start the first unbond
-	EthUnbondStartTime time.Duration
 	// Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
 	EthUnbondCycleTime time.Duration
 }
@@ -108,7 +106,6 @@ func NewKafkaConfig() KafkaConfig {
 			MaxBatchSize: constants.MaxTendermintBatchSize,
 			Ticker:       constants.TendermintTicker,
 		},
-		EthUnbondStartTime: time.Duration(time.Now().Unix()),
 		EthUnbondCycleTime: constants.DefaultEthUnbondCycleTime,
 	}
 }

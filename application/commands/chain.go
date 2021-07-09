@@ -170,7 +170,7 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		log.Fatalln(err)
 	}
 	if ethGasLimit != 0 {
-		pstakeConfig.Ethereum.EthGasLimit = ethGasLimit
+		pstakeConfig.Ethereum.GasLimit = ethGasLimit
 	}
 
 	ports, err := cmd.Flags().GetString(constants2.FlagKafkaPorts)

@@ -9,6 +9,8 @@ const (
 	validatorPrefix
 	tendermintBroadcastedTransactionPrefix
 	ethereumBroadcastedWrapTokenTransactionPrefix
+	unboundEpochTimePrefix
+	accountLimiterPrefix
 )
 
 func (storeKeyPrefix storeKeyPrefix) GenerateStoreKey(key []byte) []byte {

@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	db2 "github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/handler"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
@@ -107,12 +108,21 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
 	ethUnbondConsumerGroup := state.ConsumerGroup[utils.GroupEthUnbond]
 	for {
-		if time.Now().Unix()*1000 > configuration.GetAppConfig().Kafka.EthUnbondStartTime.Milliseconds() {
+		nextEpochTime, err := db2.GetUnboundEpochTime()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if time.Now().Unix() > nextEpochTime.Epoch {
 			msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
 				Chain: chain, EthClient: ethereumClient, Count: 0}
 			err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
 			if err != nil {
 				log.Println("Error in consumer group.Consume for EthUnbond ", err)
+			}
+
+			err = db2.SetUnboundEpochTime(time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
+			if err != nil {
+				log.Fatalln(err)
 			}
 
 			time.Sleep(configuration.GetAppConfig().Kafka.EthUnbondCycleTime)
