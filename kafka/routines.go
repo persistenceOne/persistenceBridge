@@ -14,8 +14,10 @@ import (
 )
 
 // KafkaClose: closes all kafka connections
-func KafkaClose(kafkaState utils.KafkaState) func() {
+func KafkaClose(kafkaState utils.KafkaState, end, ended chan bool) func() {
 	return func() {
+		end <- true
+		_ = <-ended
 		fmt.Println("closing all kafka clients.")
 		if err := kafkaState.Producer.Close(); err != nil {
 			log.Println("Error in closing producer:", err)
@@ -36,12 +38,12 @@ func KafkaClose(kafkaState utils.KafkaState) func() {
 // no need to store any db, producers and consumers are inside kafkaState struct.
 // use kafka.ProducerDeliverMessage() -> to produce message
 // use kafka.TopicConsumer -> to consume messages.
-func KafkaRoutine(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
+func KafkaRoutine(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	ctx := context.Background()
 
 	go consumeToEthMsgs(ctx, kafkaState, protoCodec, chain, ethereumClient)
 	go consumeUnbondings(ctx, kafkaState, protoCodec, chain, ethereumClient)
-	go consumeToTendermintMessages(ctx, kafkaState, protoCodec, chain, ethereumClient)
+	go consumeToTendermintMessages(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
 	//go consumeTendermintMessages(ctx, kafkaState, protoCodec, chain, ethereumClient)
 
 	// go consume other messages
@@ -64,7 +66,7 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
 }
 
 func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
-	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
+	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	groupMsgUnbond := state.ConsumerGroup[utils.GroupMsgUnbond]
 	groupMsgDelegate := state.ConsumerGroup[utils.GroupMsgDelegate]
 	groupMsgSend := state.ConsumerGroup[utils.GroupMsgSend]
@@ -101,25 +103,17 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 		if err != nil {
 			log.Println("Error in consumer groupMsgToTendermint.Consume", err)
 		}
-		log.Println("Next Routine")
+		select {
+		case <-end:
+			log.Printf("Waited for Consumer to end")
+			ended <- true
+			return
+		default:
+			log.Println("Next Routine")
+
+		}
 	}
 }
-
-//func consumeTendermintMessages(ctx context.Context, state utils.KafkaState,
-//	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
-//
-//	groupMsgToTendermint := state.ConsumerGroup[utils.GroupToTendermint]
-//	for {
-//		msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-//			Chain: chain, EthClient: ethereumClient, Count: 0}
-//
-//		err := groupMsgToTendermint.Consume(ctx, []string{utils.ToTendermint}, msgHandler)
-//		if err != nil {
-//			log.Println("Error in consumer group.Consume", err)
-//		}
-//		time.Sleep(time.Duration(1000000000))
-//	}
-//}
 
 func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
