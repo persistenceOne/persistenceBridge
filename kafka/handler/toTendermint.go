@@ -73,39 +73,55 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		return err
 	}
 
-	// TODO set memo and timeout height
-	response, err := outgoingTx.FilterMessagesAndBroadcast(handler.Chain, msgs, 0)
+	countPendingTx, err := db.GetTotalTMBroadcastedTx()
 	if err != nil {
-		log.Printf("error occured while send to Tendermint:%v\n", err)
-		config := utils.SaramaConfig()
-		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
-		defer func() {
-			err := producer.Close()
-			if err != nil {
-				log.Printf("failed to close producer in topic: SendBatchToTendermint\n")
-			}
-		}()
+		log.Fatalln(err)
+	}
 
-		for _, msg := range msgs {
-			if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
-				msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
-				if err != nil {
-					log.Printf("Retry txs: Failed to Marshal ToTendermint Retry msg: Error: %v\n", err)
+	// TODO set memo and timeout height
+	for {
+		if countPendingTx == 0 {
+			response, err := outgoingTx.FilterMessagesAndBroadcast(handler.Chain, msgs, 0)
+			if err != nil {
+				log.Printf("error occured while send to Tendermint:%v\n", err)
+				config := utils.SaramaConfig()
+				producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+				defer func() {
+					err := producer.Close()
+					if err != nil {
+						log.Printf("failed to close producer in topic: SendBatchToTendermint\n")
+					}
+				}()
+
+				for _, msg := range msgs {
+					if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
+						msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
+						if err != nil {
+							log.Printf("Retry txs: Failed to Marshal ToTendermint Retry msg: Error: %v\n", err)
+						}
+						err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+						if err != nil {
+							log.Printf("Retry txs: Failed to add msg to kafka queue: %s\n", err.Error())
+						}
+						log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.Type(), utils.ToTendermint)
+					}
 				}
-				err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+				return nil
+			} else {
+				err = db.SetTendermintTx(db.NewTMTransaction(response.TxHash))
 				if err != nil {
-					log.Printf("Retry txs: Failed to add msg to kafka queue: %s\n", err.Error())
+					panic(err)
 				}
-				log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.Type(), utils.ToTendermint)
 			}
-		}
-		return nil
-	} else {
-		err = db.SetTendermintTx(db.NewTMTransaction(response.TxHash))
-		if err != nil {
-			panic(err)
+			log.Printf("Broadcasted Tendermint TX HASH: %s\n", response.TxHash)
+			return nil
+		} else {
+			log.Println("cannot broadcast yet, tendermint txs pending")
+			time.Sleep(3 * time.Second)
+			countPendingTx, err = db.GetTotalTMBroadcastedTx()
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
-	log.Printf("Broadcasted Tendermint TX HASH: %s\n", response.TxHash)
-	return nil
 }
