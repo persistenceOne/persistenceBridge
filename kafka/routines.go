@@ -101,6 +101,7 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 		if err != nil {
 			log.Println("Error in consumer groupMsgToTendermint.Consume", err)
 		}
+		log.Println("Next Routine")
 	}
 }
 
