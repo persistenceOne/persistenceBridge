@@ -62,6 +62,17 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 		if err != nil {
 			panic(err)
 		}
+		// TODO @puneet, remove where withDrawRewards is cont. added. This will add once per block
+		//withDrawRewards := distributionTypes.NewMsgWithdrawDelegatorReward(configuration.GetAppConfig().Tendermint.PStakeAddress, constants.Validator1)
+		//msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(withDrawRewards))
+		//if err != nil {
+		//	panic(err)
+		//}
+		//err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
+		//if err != nil {
+		//	log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+		//	continue
+		//}
 		time.Sleep(sleepDuration)
 	}
 }

@@ -96,11 +96,11 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					if err != nil {
 						panic(err)
 					}
-					err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
+					err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaState.Producer)
 					if err != nil {
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
-					log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.ToTendermint)
+					log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.MsgSend)
 				}
 			default:
 

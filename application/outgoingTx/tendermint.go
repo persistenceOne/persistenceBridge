@@ -23,9 +23,10 @@ func FilterMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHei
 	msgsTypes := ""
 	messageHash := make(map[string]bool)
 	for _, msg := range msgs {
-		if !messageHash[hex.EncodeToString(crypto.Sha256(msg.GetSignBytes()))] {
+		msgHash := hex.EncodeToString(crypto.Sha256(msg.GetSignBytes()))
+		if !messageHash[msgHash] {
 			filteredMsgs = append(filteredMsgs, msg)
-			messageHash[hex.EncodeToString(crypto.Sha256(msg.GetSignBytes()))] = true
+			messageHash[msgHash] = true
 			msgsTypes = msgsTypes + msg.Type() + " "
 		}
 	}
@@ -47,7 +48,6 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 	if err != nil {
 		return nil, err
 	}
-
 	signature, err := getTMSignature(bytesToSign)
 	if err != nil {
 		return nil, err

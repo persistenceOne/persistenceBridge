@@ -18,15 +18,15 @@ func KafkaClose(kafkaState utils.KafkaState) func() {
 	return func() {
 		fmt.Println("closing all kafka clients.")
 		if err := kafkaState.Producer.Close(); err != nil {
-			log.Print("Error in closing producer:", err)
+			log.Println("Error in closing producer:", err)
 		}
 		for _, consumerGroup := range kafkaState.ConsumerGroup {
 			if err := consumerGroup.Close(); err != nil {
-				log.Print("Error in closing partition:", err)
+				log.Println("Error in closing partition:", err)
 			}
 		}
 		if err := kafkaState.Admin.Close(); err != nil {
-			log.Print("Error in closing admin:", err)
+			log.Println("Error in closing admin:", err)
 		}
 
 	}
@@ -36,7 +36,7 @@ func KafkaClose(kafkaState utils.KafkaState) func() {
 // no need to store any db, producers and consumers are inside kafkaState struct.
 // use kafka.ProducerDeliverMessage() -> to produce message
 // use kafka.TopicConsumer -> to consume messages.
-func KafkaRoutine(kafkaState utils.KafkaState, pstakeConfig configuration.Config, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
+func KafkaRoutine(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client) {
 	ctx := context.Background()
 
 	go consumeToEthMsgs(ctx, kafkaState, protoCodec, chain, ethereumClient)
