@@ -113,7 +113,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
-				log.Println("signal received to close: " + sig.String())
+				log.Println("STOP SIGNAL RECEIVED: " + sig.String())
 				shutdown.SetBridgeStopSignal(true)
 				for {
 					if !shutdown.GetKafkaConsumerClosed() {
@@ -124,6 +124,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 					if shutdown.GetTMStopped() && shutdown.GetETHStopped() && shutdown.GetKafkaConsumerClosed() {
 						return nil
 					}
+					time.Sleep(100 * time.Millisecond)
 				}
 			}
 
