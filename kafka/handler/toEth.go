@@ -24,6 +24,8 @@ ConsumerLoop:
 		case <-ticker:
 			if len(kafkaMsgs) >= configuration.GetAppConfig().Kafka.ToEth.MinBatchSize {
 				break ConsumerLoop
+			} else {
+				return nil
 			}
 		case kafkaMsg, ok = <-claimMsgChan:
 			if ok {
