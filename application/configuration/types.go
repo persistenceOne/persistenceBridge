@@ -1,9 +1,7 @@
 package configuration
 
 import (
-	"crypto/ecdsa"
 	"github.com/Shopify/sarama"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"time"
 )
@@ -12,9 +10,9 @@ type Config struct {
 	Kafka       KafkaConfig
 	Tendermint  TendermintConfig
 	Ethereum    EthereumConfig
-	PStakeDenom string
-	CoinType    uint32
-	PStakeHome  string
+	CASP        CASPConfig
+	seal        bool
+	RPCEndpoint string
 }
 
 func NewConfig() Config {
@@ -22,45 +20,57 @@ func NewConfig() Config {
 		Kafka:       NewKafkaConfig(),
 		Tendermint:  NewTendermintConfig(),
 		Ethereum:    NewEthereumConfig(),
-		PStakeDenom: constants.DefaultDenom,
-		CoinType:    constants.DefaultCoinType,
-		PStakeHome:  constants.DefaultPBridgeHome,
+		CASP:        NewCASPConfig(),
+		seal:        false,
+		RPCEndpoint: constants.DefaultRPCEndpoint,
 	}
 }
 
 type EthereumConfig struct {
-	EthAccountPrivateKey *ecdsa.PrivateKey
-	EthGasLimit          uint64
-	EthereumEndpoint     string
-	EthereumSleepTime    int // seconds
-	EthereumStartHeight  int64
+	EthereumEndPoint string
+	GasLimit         uint64
 }
 
 func NewEthereumConfig() EthereumConfig {
 	return EthereumConfig{
-		EthAccountPrivateKey: nil,
-		EthGasLimit:          constants.DefaultEthGasLimit,
-		EthereumEndpoint:     constants.DefaultEthereumEndPoint,
-		EthereumSleepTime:    constants.DefaultEthereumSleepTime,
-		EthereumStartHeight:  constants.DefaultEthereumStartHeight,
+		EthereumEndPoint: constants.DefaultEthereumEndPoint,
+		GasLimit:         constants.DefaultEthGasLimit,
 	}
 }
 
 type TendermintConfig struct {
-	PStakeAddress         sdkTypes.AccAddress
-	Validators            []sdkTypes.ValAddress
-	RelayerTimeout        string
-	TendermintSleepTime   int //seconds
-	TendermintStartHeight int64
+	PStakeAddress string
+	PStakeDenom   string
+	BroadcastMode string
 }
 
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
-		PStakeAddress:         nil,
-		Validators:            []sdkTypes.ValAddress{constants.Validator1},
-		RelayerTimeout:        constants.DefaultTimeout,
-		TendermintSleepTime:   constants.DefaultTendermintSleepTime,
-		TendermintStartHeight: constants.DefaultTendermintStartHeight,
+		PStakeAddress: constants.DefaultPStakeAddress,
+		PStakeDenom:   constants.DefaultDenom,
+		BroadcastMode: constants.DefaultBroadcastMode,
+	}
+}
+
+type CASPConfig struct {
+	URL                     string
+	VaultID                 string
+	TendermintPublicKey     string
+	EthereumPublicKey       string
+	SignatureWaitTime       time.Duration
+	APIToken                string
+	AllowConcurrentKeyUsage bool
+}
+
+func NewCASPConfig() CASPConfig {
+	return CASPConfig{
+		URL:                     constants.DefaultCASPUrl,
+		VaultID:                 constants.DefaultCASPVaultID,
+		TendermintPublicKey:     constants.DefaultCASPTendermintPublicKey,
+		EthereumPublicKey:       constants.DefaultCASPEthereumPublicKey,
+		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
+		APIToken:                constants.DefaultCASPAPI,
+		AllowConcurrentKeyUsage: true,
 	}
 }
 
@@ -70,8 +80,6 @@ type KafkaConfig struct {
 	TopicDetail  sarama.TopicDetail
 	ToEth        TopicConsumer
 	ToTendermint TopicConsumer
-	// start the first unbond
-	EthUnbondStartTime time.Duration
 	// Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
 	EthUnbondCycleTime time.Duration
 }
@@ -96,7 +104,6 @@ func NewKafkaConfig() KafkaConfig {
 			MaxBatchSize: constants.MaxTendermintBatchSize,
 			Ticker:       constants.TendermintTicker,
 		},
-		EthUnbondStartTime: time.Duration(time.Now().Unix()),
 		EthUnbondCycleTime: constants.DefaultEthUnbondCycleTime,
 	}
 }

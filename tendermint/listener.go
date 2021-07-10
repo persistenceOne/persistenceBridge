@@ -3,25 +3,38 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/Shopify/sarama"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 )
 
-func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
+func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
+	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
+	defer func(kafkaProducer sarama.SyncProducer) {
+		err := kafkaProducer.Close()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}(kafkaProducer)
 
 	for {
 		if shutdown.GetBridgeStopSignal() {
-			log.Println("Stopping Tendermint Listener!!!")
-			shutdown.SetTMStopped(true)
-			return
+			if shutdown.GetKafkaConsumerClosed() {
+				log.Println("Stopping Tendermint Listener!!!")
+				shutdown.SetTMStopped(true)
+				return
+			}
+			time.Sleep(1 * time.Second)
+			continue
 		}
 
 		abciInfo, err := chain.Client.ABCIInfo(ctx)
@@ -31,7 +44,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 			continue
 		}
 
-		cosmosStatus, err := application.GetCosmosStatus()
+		cosmosStatus, err := db.GetCosmosStatus()
 		if err != nil {
 			panic(err)
 		}
@@ -47,16 +60,24 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 				continue
 			}
 
-			err = handleTxSearchResult(initClientCtx, txSearchResult, kafkaState, protoCodec)
+			err = handleTxSearchResult(initClientCtx, txSearchResult, &kafkaProducer, protoCodec)
 			if err != nil {
 				panic(err)
 			}
 
-			err = application.SetCosmosStatus(processHeight)
+			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
 				panic(err)
 			}
+
 		}
+
+		// For Tendermint, we can directly query without waiting for blocks since there is finality
+		err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
+		if err != nil {
+			panic(err)
+		}
+
 		time.Sleep(sleepDuration)
 	}
 }

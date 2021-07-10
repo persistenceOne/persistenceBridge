@@ -3,46 +3,29 @@ package handler
 import (
 	"errors"
 	"github.com/Shopify/sarama"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"log"
 )
 
 func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
 			log.Printf("failed to close producer in topic: %v\n", utils.MsgSend)
 		}
 	}()
-	loop := m.PstakeConfig.Kafka.ToTendermint.MaxBatchSize - m.Count
-	if loop <= 0 {
-		return nil
+	validators, err := db.GetValidators()
+	if err != nil {
+		return err
 	}
 
-	// TODO add msg withdraw rewards from multiple validators.
-	if tendermint.AddressIsDelegatorToValidator(m.Chain.MustGetAddress().String(), constants2.Validator1.String(), m.Chain) {
-		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-			DelegatorAddress: m.Chain.MustGetAddress().String(),
-			ValidatorAddress: constants2.Validator1.String(),
-		}
-		withdrawRewardsMsgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
-		if err != nil {
-			log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
-			return err
-		} else {
-			err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
-			if err2 != nil {
-				log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
-				return err2
-			}
-			loop = loop - 1
-		}
+	loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - m.Count
+	if loop <= len(validators) || m.WithdrawRewards {
+		return nil
 	}
 
 	if loop > 0 {
@@ -58,6 +41,14 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 				}
 				if kafkaMsg == nil {
 					return errors.New("kafka returned nil message")
+				}
+
+				if !m.WithdrawRewards {
+					loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain)
+					if err != nil {
+						return err
+					}
+					m.WithdrawRewards = true
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {

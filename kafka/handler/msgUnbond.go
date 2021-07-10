@@ -3,13 +3,14 @@ package handler
 import (
 	"errors"
 	"github.com/Shopify/sarama"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 )
 
 func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(m.PstakeConfig.Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -37,6 +38,9 @@ ConsumerLoop:
 			}
 			session.MarkMessage(kafkaMsg, "")
 			m.Count++
+			if checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+				break ConsumerLoop
+			}
 		default:
 			break ConsumerLoop
 		}

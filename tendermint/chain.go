@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string, coinType uint32, mnemonics string) (*relayer.Chain, error) {
+func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*relayer.Chain, error) {
 	chain, err := fileInputAdd(chainConfigJsonPath)
 	to, err := time.ParseDuration(timeout)
 	if err != nil {
@@ -31,12 +31,13 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string, coin
 		}
 	}
 
-	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, coinType, mnemonics)
+	//118 is not being used anywhere
+	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
 	if err != nil {
 		return chain, err
 	}
 
-	log.Printf("Keys added: %s\n", ko.Address)
+	log.Printf("Chain Keys added [NOT TO BE USED]: %s\n", ko.Address)
 
 	if err = chain.Start(); err != nil {
 		if err != tendermintService.ErrAlreadyStarted {
