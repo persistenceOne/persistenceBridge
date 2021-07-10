@@ -67,7 +67,7 @@ ConsumerLoop:
 		for i, validator := range validators {
 			delegateMsg := &stakingTypes.MsgDelegate{
 				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
-				ValidatorAddress: validator.String(),
+				ValidatorAddress: validator.Address.String(),
 				Amount: sdk.Coin{
 					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
 					Amount: delegationAmount,
@@ -76,7 +76,7 @@ ConsumerLoop:
 			if i == len(validators)-1 {
 				delegateMsg.Amount.Amount = delegateMsg.Amount.Amount.Add(delegationChange)
 			}
-			msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(delegateMsg))
+			msgBytes, err := m.ProtoCodec.MarshalInterface(delegateMsg)
 			if err != nil {
 				return err
 			}

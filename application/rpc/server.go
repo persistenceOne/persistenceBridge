@@ -11,7 +11,7 @@ import (
 
 type ValidatorRPC struct{}
 
-func (a *ValidatorRPC) GetValidators(empty string, result *[]sdk.ValAddress) error {
+func (a *ValidatorRPC) GetValidators(empty string, result *[]db.Validator) error {
 	r, err := db.GetValidators()
 	*result = r
 	return err
@@ -23,7 +23,7 @@ func (a *ValidatorRPC) GetByValidatorAddress(valAddress sdk.ValAddress, result *
 	return err
 }
 
-func (a *ValidatorRPC) AddValidator(validator db.Validator, result *[]sdk.ValAddress) error {
+func (a *ValidatorRPC) AddValidator(validator db.Validator, result *[]db.Validator) error {
 	err := db.SetValidator(validator)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (a *ValidatorRPC) AddValidator(validator db.Validator, result *[]sdk.ValAdd
 	return err
 }
 
-func (a *ValidatorRPC) DeleteValidator(address sdk.ValAddress, result *[]sdk.ValAddress) error {
+func (a *ValidatorRPC) DeleteValidator(address sdk.ValAddress, result *[]db.Validator) error {
 	err := db.DeleteValidator(address)
 	if err != nil {
 		return err

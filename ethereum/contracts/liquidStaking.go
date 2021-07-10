@@ -25,19 +25,19 @@ var LiquidStaking = Contract{
 }
 
 func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
-	amount := arguments[1].(*big.Int)
+	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	stakeMsg := &stakingTypes.MsgDelegate{
 		DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
 		ValidatorAddress: "",
-		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())),
+		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
 	}
 
-	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(stakeMsg))
+	msgBytes, err := protoCodec.MarshalInterface(stakeMsg)
 	if err != nil {
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding stake msg to kafka producer MsgDelegate, amount: %d\n", amount.Int64())
+	log.Printf("Adding stake msg to kafka producer MsgDelegate, amount: %s\n", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, *kafkaProducer)
 	if err != nil {
 		log.Println("Failed to add msg to kafka queue: ", err)
@@ -47,18 +47,18 @@ func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, a
 }
 
 func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
-	amount := arguments[1].(*big.Int)
+	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	unStakeMsg := &stakingTypes.MsgUndelegate{
 		DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
 		ValidatorAddress: "",
-		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, sdkTypes.NewInt(amount.Int64())),
+		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
 	}
-	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(unStakeMsg))
+	msgBytes, err := protoCodec.MarshalInterface(unStakeMsg)
 	if err != nil {
 		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding unstake msg to kafka producer EthUnbond, amount: %d\n", amount.Int64())
+	log.Printf("Adding unstake msg to kafka producer EthUnbond, amount: %s\n", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, *kafkaProducer)
 	if err != nil {
 		log.Println("Failed to add msg to kafka queue: ", err)

@@ -12,14 +12,16 @@ import (
 
 func AddCommand(initClientCtx client.Context) *cobra.Command {
 	addCommand := &cobra.Command{
-		Use:   "add [ValoperAddress]",
+		Use:   "add [ValoperAddress] [name]",
 		Short: "Add validator address to signing group",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
+
+			validatorName := args[1]
 
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {
@@ -29,7 +31,7 @@ func AddCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			var validators []sdk.ValAddress
+			var validators []db.Validator
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
@@ -37,7 +39,7 @@ func AddCommand(initClientCtx client.Context) *cobra.Command {
 				var err2 error
 				validators, err2 = rpc.AddValidator(db.Validator{
 					Address: validatorAddress,
-					Active:  true,
+					Name:    validatorName,
 				}, rpcEndpoint)
 				if err2 != nil {
 					return err2
@@ -47,7 +49,7 @@ func AddCommand(initClientCtx client.Context) *cobra.Command {
 
 				err2 := db.SetValidator(db.Validator{
 					Address: validatorAddress,
-					Active:  true,
+					Name:    validatorName,
 				})
 				if err2 != nil {
 					return err2
@@ -58,7 +60,14 @@ func AddCommand(initClientCtx client.Context) *cobra.Command {
 					return err2
 				}
 			}
-			log.Printf("Updated set of validators: %v\n", validators)
+			if len(validators) == 0 {
+				log.Println("No validators in db, panic.")
+			} else {
+				log.Printf("Total validators %d:\n", len(validators))
+				for i, validator := range validators {
+					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
+				}
+			}
 
 			return nil
 		},

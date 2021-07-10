@@ -110,7 +110,6 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 			ended <- true
 			return
 		default:
-			log.Println("Next Routine")
 
 		}
 	}

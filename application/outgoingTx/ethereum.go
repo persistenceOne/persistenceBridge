@@ -92,7 +92,6 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 		return common.Hash{}, err
 	}
 
-	log.Printf("Broadcasting ETH Tx...: %s\n", signedTx.Hash().String())
 	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
 		log.Printf("ERROR Broadcasting ETH Tx: %s, Error: %s\n", signedTx.Hash().String(), err.Error())

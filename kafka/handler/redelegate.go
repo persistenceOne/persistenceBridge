@@ -68,13 +68,13 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 		msgRedelegate := &stakingTypes.MsgBeginRedelegate{
 			DelegatorAddress:    configuration.GetAppConfig().Tendermint.PStakeAddress,
 			ValidatorSrcAddress: redelegationSourceAddress.String(),
-			ValidatorDstAddress: validator.String(),
+			ValidatorDstAddress: validator.Address.String(),
 			Amount:              sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount),
 		}
 		if i == len(validatorSet)-1 {
 			msgRedelegate.Amount.Amount = msgRedelegate.Amount.Amount.Add(redistributeChange)
 		}
-		msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(msgRedelegate))
+		msgBytes, err := m.ProtoCodec.MarshalInterface(msgRedelegate)
 		if err != nil {
 			return err
 		}

@@ -33,7 +33,7 @@ func RemoveCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			var validators []sdk.ValAddress
+			var validators []db.Validator
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
@@ -60,7 +60,12 @@ func RemoveCommand(initClientCtx client.Context) *cobra.Command {
 			log.Printf("Updated set of validators: %v\n", validators)
 			if len(validators) == 0 {
 				log.Println("IMPORTANT: No validator present to redelegate!!!")
-				return errors.New("Needs to have atleast one validator to redelegate to.")
+				return errors.New("need to have at least one validator to redelegate to")
+			} else {
+				log.Printf("Total validators %d:\n", len(validators))
+				for i, validator := range validators {
+					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
+				}
 			}
 
 			time.Sleep(1 * time.Minute)

@@ -241,8 +241,6 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	}
 	if caspSignatureWaitTime >= 0 {
 		pstakeConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
-	} else {
-		log.Fatalln("invalid casp signature wait time")
 	}
 
 	caspConcurrentKey, err := cmd.Flags().GetBool(constants2.FlagCASPConcurrentKey)
