@@ -69,12 +69,13 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			if err != nil {
 				panic(err)
 			}
+
+			err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
+			if err != nil {
+				panic(err)
+			}
 		}
 
-		err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
-		if err != nil {
-			panic(err)
-		}
 		time.Sleep(sleepDuration)
 	}
 }
