@@ -45,6 +45,9 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 			pStakeConfig = UpdateConfig(cmd, pStakeConfig)
+			if err := pStakeConfig.Validate(); err != nil {
+				panic(err)
+			}
 			configuration.SetAppConfig(pStakeConfig)
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
@@ -241,6 +244,8 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	}
 	if caspSignatureWaitTime >= 0 {
 		pstakeConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
+	} else if pstakeConfig.CASP.SignatureWaitTime < 0 {
+		log.Fatalln("invalid casp signature wait time")
 	}
 
 	caspConcurrentKey, err := cmd.Flags().GetBool(constants2.FlagCASPConcurrentKey)
