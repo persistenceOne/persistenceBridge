@@ -26,7 +26,7 @@ func ShowCommand(initClientCtx client.Context) *cobra.Command {
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
-				log.Printf("sending rpc")
+				log.Printf("sending rpc to %v", rpcEndpoint)
 				var err2 error
 				validators, err2 = rpc.ShowValidators("", rpcEndpoint)
 				if err2 != nil {
