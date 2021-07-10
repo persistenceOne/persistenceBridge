@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"log"
 	"time"
 
@@ -17,6 +18,12 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 	ctx := context.Background()
 
 	for {
+		if shutdown.GetBridgeStopSignal() {
+			log.Println("Stopping Tendermint Listener!!!")
+			shutdown.SetTMStopped(true)
+			return
+		}
+
 		abciInfo, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
 			log.Printf("Error while fetching tendermint abci info: %s\n", err.Error())
@@ -31,11 +38,11 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, kafkaSta
 
 		if abciInfo.Response.LastBlockHeight > cosmosStatus.LastCheckHeight {
 			processHeight := cosmosStatus.LastCheckHeight + 1
-			fmt.Printf("TM: %d\n", processHeight)
+			log.Printf("TM: %d\n", processHeight)
 
 			txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", processHeight), true, nil, nil, "asc")
 			if err != nil {
-				log.Println(err)
+				log.Printf("ERROR getting TM height %d: %s\n", processHeight, err.Error())
 				time.Sleep(sleepDuration)
 				continue
 			}

@@ -1,4 +1,4 @@
-package responses
+package tendermint
 
 type Response struct {
 	LastBlockHeight string `json:"last_block_height"`

@@ -2,13 +2,11 @@ package tendermint
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
-	"math/big"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -61,22 +59,23 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		if validMemo {
 			ethAddress = goEthCommon.HexToAddress(memo)
 		}
+		refund := memo != "DO_NOT_REFUND"
 
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				var amount *big.Int
+				amount := sdk.NewInt(0)
 				for _, coin := range txMsg.Amount {
 					if coin.Denom == application.GetAppConfiguration().PStakeDenom {
-						amount = coin.Amount.BigInt()
+						amount = coin.Amount
 						break
 					}
 				}
-				if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount != nil && validMemo {
-					log.Printf("TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
+				if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && amount.GTE(constants.MinimumAmount) && validMemo {
+					log.Printf("RECEIVED TM Tx: %s, Msg Index: %d\n", txQueryResult.Hash.String(), i)
 					ethTxMsg := ethereum2.EthTxMsg{
 						Address: ethAddress,
-						Amount:  amount,
+						Amount:  amount.BigInt(),
 					}
 					msgBytes, err := json.Marshal(ethTxMsg)
 					if err != nil {
@@ -87,7 +86,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 					}
 					log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
-				} else {
+				} else if txMsg.ToAddress == application.GetAppConfiguration().PStakeAddress.String() && refund {
 					msg := &banktypes.MsgSend{
 						FromAddress: txMsg.ToAddress,
 						ToAddress:   txMsg.FromAddress,
@@ -110,27 +109,4 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 	}
 
 	return nil
-}
-
-func GenerateUnsignedTx(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (signing.Tx, error) {
-	ctx := chain.CLIContext(0)
-
-	txf, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
-	if err != nil {
-		return nil, err
-	}
-
-	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txf, msgs...)
-	if err != nil {
-		return nil, err
-	}
-
-	txf = txf.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
-
-	txb, err := tx.BuildUnsignedTx(txf, msgs...)
-	if err != nil {
-		return nil, err
-	}
-
-	return txb.GetTx(), nil
 }

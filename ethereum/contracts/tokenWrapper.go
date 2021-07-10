@@ -31,6 +31,11 @@ func onWithdrawUTokens(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec
 	}
 	sendCoinMsg := bankTypes.NewMsgSend(application.GetAppConfiguration().PStakeAddress, atomAddress, sdkTypes.NewCoins(sdkTypes.NewCoin(application.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64()))))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(sendCoinMsg))
+	if err != nil {
+		log.Print("Failed to generate msgBytes: ", err)
+		return err
+	}
+	log.Printf("Adding sendCoin msg to kafka producer ToTendermint: %s\n", sendCoinMsg.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, kafkaState.Producer)
 	if err != nil {
 		log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())

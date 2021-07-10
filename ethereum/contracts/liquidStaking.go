@@ -27,6 +27,11 @@ func onStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, argument
 	amount := arguments[1].(*big.Int)
 	stakeMsg := stakingTypes.NewMsgDelegate(application.GetAppConfiguration().PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(application.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64())))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(stakeMsg))
+	if err != nil {
+		log.Print("Failed to generate msgBytes: ", err)
+		return err
+	}
+	log.Printf("Adding stake msg to kafka producer MsgDelegate: %s\n", stakeMsg.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, kafkaState.Producer)
 	if err != nil {
 		log.Print("Failed to add msg to kafka queue: ", err)
@@ -39,6 +44,11 @@ func onUnStake(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, argume
 	amount := arguments[1].(*big.Int)
 	unStakeMsg := stakingTypes.NewMsgUndelegate(application.GetAppConfiguration().PStakeAddress, constants2.Validator1, sdkTypes.NewCoin(application.GetAppConfiguration().PStakeDenom, sdkTypes.NewInt(amount.Int64())))
 	msgBytes, err := protoCodec.MarshalInterface(sdkTypes.Msg(unStakeMsg))
+	if err != nil {
+		log.Print("Failed to generate msgBytes: ", err)
+		return err
+	}
+	log.Printf("Adding unStake msg to kafka producer EthUnbond: %s\n", unStakeMsg.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, kafkaState.Producer)
 	if err != nil {
 		log.Print("Failed to add msg to kafka queue: ", err)

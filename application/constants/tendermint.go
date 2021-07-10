@@ -3,7 +3,7 @@ package constants
 import sdkTypes "github.com/cosmos/cosmos-sdk/types"
 
 const (
-	validator1 = "cosmosvaloper1pkkayn066msg6kn33wnl5srhdt3tnu2v8fyhft"
+	validator1 = "cosmosvaloper1q8s35u88t5de6mlasaw9wugk5z2vd5y3ta4kc8"
 
 	TxEvents    = "tm.event='Tx'"
 	BlockEvents = "tm.event='NewBlock'"
@@ -12,4 +12,5 @@ const (
 
 var (
 	Validator1, _ = sdkTypes.ValAddressFromBech32(validator1)
+	MinimumAmount = sdkTypes.NewInt(int64(5000000))
 )

@@ -1,4 +1,4 @@
-package responses
+package tendermint
 
 type TxForTxByHeight struct {
 	Hash     string `json:"hash"`

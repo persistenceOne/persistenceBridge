@@ -7,9 +7,13 @@ import (
 
 var (
 	DefaultBrokers            = []string{"localhost:9092"}
-	EthBatchSize              = 2
-	TendermintBatchSize       = 3
-	DefaultEthUnbondCycleTime = time.Duration(259200000000000) //3days
+	MinEthBatchSize           = 1
+	MaxEthBatchSize           = 4
+	EthTicker                 = 5 * time.Second
+	MinTendermintBatchSize    = 1
+	MaxTendermintBatchSize    = 5
+	TendermintTicker          = 5 * time.Second
+	DefaultEthUnbondCycleTime = 259200 * time.Second //3days in seconds
 
 	// TopicDetail : configs only required for admin to create topics if not present.
 	TopicDetail = sarama.TopicDetail{

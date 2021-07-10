@@ -1,4 +1,4 @@
-package responses
+package tendermint
 
 type DelegationResponse struct {
 	DelegationResponses []struct {

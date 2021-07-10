@@ -27,7 +27,7 @@ func InitCommand() *cobra.Command {
 				panic(err)
 			}
 
-			homeDir, err := cmd.Flags().GetString(constants2.FlagPStakeHome)
+			homeDir, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {
 				panic(err)
 			}
@@ -44,7 +44,7 @@ func InitCommand() *cobra.Command {
 	}
 	cmd.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
 	cmd.Flags().Uint32(constants2.FlagCoinType, constants2.DefaultCoinType, "coin type for wallet")
-	cmd.Flags().String(constants2.FlagPStakeHome, constants2.DefaultPStakeHome, "home for pStake")
+	cmd.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	cmd.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	cmd.Flags().String("ports", "localhost:9092", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	cmd.Flags().Int(constants2.FlagTendermintSleepTime, constants2.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")

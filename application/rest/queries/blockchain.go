@@ -2,45 +2,45 @@ package queries
 
 import (
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application/rest/responses"
+	tendermintResponses "github.com/persistenceOne/persistenceBridge/application/rest/responses/tendermint"
 )
 
-func GetABCI(rpcAddress string) (responses.ABCIResponse, error) {
-	var abci responses.ABCIResponse
+func GetABCI(rpcAddress string) (tendermintResponses.ABCIResponse, error) {
+	var abci tendermintResponses.ABCIResponse
 	url := rpcAddress + "/abci_info"
 	err := get(url, &abci)
 	if err != nil {
-		return responses.ABCIResponse{}, err
+		return tendermintResponses.ABCIResponse{}, err
 	}
 	return abci, err
 }
 
-func GetTxsByHeight(rpcAddress, height string) (responses.TxByHeightResponse, error) {
-	var txByHeight responses.TxByHeightResponse
+func GetTxsByHeight(rpcAddress, height string) (tendermintResponses.TxByHeightResponse, error) {
+	var txByHeight tendermintResponses.TxByHeightResponse
 	url := rpcAddress + fmt.Sprintf("/tx_search?query=\"tx.height=%s\"", height)
 	err := get(url, &txByHeight)
 	if err != nil {
-		return responses.TxByHeightResponse{}, err
+		return tendermintResponses.TxByHeightResponse{}, err
 	}
 	return txByHeight, err
 }
 
-func GetTxHash(restAddress, txHash string) (responses.TxHashResponse, error) {
-	var txHashResponse responses.TxHashResponse
+func GetTxHash(restAddress, txHash string) (tendermintResponses.TxHashResponse, error) {
+	var txHashResponse tendermintResponses.TxHashResponse
 	url := restAddress + "/cosmos/tx/v1beta1/txs/" + txHash
 	err := get(url, &txHashResponse)
 	if err != nil {
-		return responses.TxHashResponse{}, err
+		return tendermintResponses.TxHashResponse{}, err
 	}
 	return txHashResponse, err
 }
 
-func GetDelegations(restAddress, accAddress string) (responses.DelegationResponse, error) {
-	var response responses.DelegationResponse
+func GetDelegations(restAddress, accAddress string) (tendermintResponses.DelegationResponse, error) {
+	var response tendermintResponses.DelegationResponse
 	url := restAddress + "/cosmos/staking/v1beta1/delegations/" + accAddress
 	err := get(url, &response)
 	if err != nil {
-		return responses.DelegationResponse{}, err
+		return tendermintResponses.DelegationResponse{}, err
 	}
 	return response, err
 }

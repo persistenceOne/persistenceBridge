@@ -2,13 +2,14 @@ package ethereum
 
 import (
 	"context"
-	"github.com/persistenceOne/persistenceBridge/application"
 	"log"
 	"math/big"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 )
 
@@ -16,6 +17,12 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 	ctx := context.Background()
 
 	for {
+		if shutdown.GetBridgeStopSignal() {
+			log.Println("Stopping Ethereum Listener!!!")
+			shutdown.SetETHStopped(true)
+			return
+		}
+
 		latestEthHeight, err := client.BlockNumber(ctx)
 		if err != nil {
 			log.Printf("Error while fetching latest block height: %s\n", err.Error())
@@ -34,7 +41,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, kafka
 
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
-				log.Println(err)
+				log.Printf("ERROR getting ETH height %d: %s\n", processHeight, err.Error())
 				time.Sleep(sleepDuration)
 				continue
 			}

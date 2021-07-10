@@ -1,4 +1,4 @@
-package responses
+package tendermint
 
 type WebSocketTx struct {
 	Jsonrpc string `json:"jsonrpc"`
