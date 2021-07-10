@@ -57,7 +57,6 @@ func RemoveCommand(initClientCtx client.Context) *cobra.Command {
 				}
 
 			}
-			log.Printf("Updated set of validators: %v\n", validators)
 			if len(validators) == 0 {
 				log.Println("IMPORTANT: No validator present to redelegate!!!")
 				return errors.New("need to have at least one validator to redelegate to")
