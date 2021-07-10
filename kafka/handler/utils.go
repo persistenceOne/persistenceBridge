@@ -57,12 +57,12 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 	}
 	delegatorValidators := ValidatorsInDelegations(delegatorDelegations)
 	for _, validator := range validators {
-		if contains(delegatorValidators, validator) {
+		if contains(delegatorValidators, validator.Address) {
 			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
 				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
-				ValidatorAddress: validator.String(),
+				ValidatorAddress: validator.Address.String(),
 			}
-			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(sdk.Msg(withdrawRewardsMsg))
+			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(withdrawRewardsMsg)
 			if err != nil {
 				log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
 				return loop, err

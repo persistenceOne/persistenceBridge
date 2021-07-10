@@ -2,7 +2,6 @@ package commands
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
@@ -23,7 +22,7 @@ func ShowCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			var validators []sdk.ValAddress
+			var validators []db.Validator
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
@@ -42,9 +41,13 @@ func ShowCommand(initClientCtx client.Context) *cobra.Command {
 				}
 
 			}
-			log.Printf("List set of validators: %v\n", validators)
 			if len(validators) == 0 {
 				log.Println("No validators in db, panic.")
+			} else {
+				log.Printf("Total validators %d:\n", len(validators))
+				for i, validator := range validators {
+					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
+				}
 			}
 			return nil
 		},

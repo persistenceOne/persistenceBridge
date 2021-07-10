@@ -100,7 +100,7 @@ ConsumerLoop:
 		}
 
 		for _, unbondMsg := range unbondMsgs {
-			msgBytes, err := m.ProtoCodec.MarshalInterface(sdk.Msg(unbondMsg))
+			msgBytes, err := m.ProtoCodec.MarshalInterface(unbondMsg)
 			if err != nil {
 				return err
 			}

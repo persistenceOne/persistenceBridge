@@ -8,7 +8,6 @@ import (
 type Validator struct {
 	Address sdk.ValAddress
 	Name    string
-	Active  bool
 }
 
 var _ DBI = &Validator{}
@@ -26,7 +25,6 @@ func (v *Validator) Value() ([]byte, error) {
 }
 
 func (v *Validator) Validate() error {
-	// TODO
 	return nil
 }
 
@@ -51,15 +49,15 @@ func DeleteValidator(address sdk.ValAddress) error {
 	return deleteKV(validator.Key())
 }
 
-func GetValidators() ([]sdk.ValAddress, error) {
-	var validators []sdk.ValAddress
+func GetValidators() ([]Validator, error) {
+	var validators []Validator
 	err := iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
 		err := json.Unmarshal(value, &v)
 		if err != nil {
 			return err
 		}
-		validators = append(validators, v.Address)
+		validators = append(validators, v)
 		return nil
 	})
 	if err != nil {

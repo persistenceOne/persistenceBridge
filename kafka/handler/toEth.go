@@ -76,7 +76,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 
 	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
-		log.Printf("error occuerd in sending eth transaction: %v, adding messages agin to kafka\n", err)
+		log.Printf("error occuerd in sending eth transaction %s, error : %v, adding messages agin to kafka\n", hash.String(), err)
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 		defer func() {

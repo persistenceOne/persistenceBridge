@@ -65,7 +65,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress && memo != "DO_NOT_REFUND" {
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress && memo != "DO_NOT_REVERT" {
 					amount := sdk.ZeroInt()
 					var refundCoins sdk.Coins
 					for _, coin := range txMsg.Amount {
@@ -82,7 +82,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					}
 					exists, accountLimiter, totalAccounts := db.CheckExistsAndGetTotalAccounts(fromAddress)
 					if totalAccounts >= getMaxLimit() {
-						refundAmount(txMsg.FromAddress, txMsg.Amount, kafkaProducer, protoCodec)
+						revertCoins(txMsg.FromAddress, txMsg.Amount, kafkaProducer, protoCodec)
 						continue
 					}
 					sendAmt, refundAmt := beta(exists, accountLimiter, amount)
@@ -103,7 +103,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						if err != nil {
 							log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
 						}
-						log.Printf("Produced to kafka: %v, for topic %v \n", msg.String(), utils.ToEth)
+						log.Printf("Adding wrap token msg to kafka producer ToEth, from: %s, to: %s, amount: %s\n", fromAddress.String(), ethAddress.String(), sendAmt.String())
 						accountLimiter.Amount = accountLimiter.Amount.Add(sendAmt)
 						err = db.SetAccountLimiter(accountLimiter)
 						if err != nil {
@@ -111,7 +111,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						}
 					}
 					if len(refundCoins) > 0 {
-						refundAmount(txMsg.FromAddress, refundCoins, kafkaProducer, protoCodec)
+						revertCoins(txMsg.FromAddress, refundCoins, kafkaProducer, protoCodec)
 					}
 				}
 			default:
@@ -151,13 +151,13 @@ func getMaxLimit() int {
 	return 10000
 }
 
-func refundAmount(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
+func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
 	msg := &banktypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
 		ToAddress:   toAddress,
 		Amount:      coins,
 	}
-	msgBytes, err := protoCodec.MarshalInterface(sdk.Msg(msg))
+	msgBytes, err := protoCodec.MarshalInterface(msg)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -165,5 +165,5 @@ func refundAmount(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncP
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("Produced to kafka: %v, for topic %v\n", msg.String(), utils.MsgSend)
+	log.Printf("REVERT: adding send coin msg to kafka producer MsgSend, to: %s, amount: %s\n", toAddress, coins.String())
 }

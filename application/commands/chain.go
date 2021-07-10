@@ -108,7 +108,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			log.Println("Starting to listen tendermint....")
 			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
-			go rpc.StartServer(pStakeConfig)
+			go rpc.StartServer()
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
