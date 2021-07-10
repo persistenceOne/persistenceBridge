@@ -45,6 +45,9 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 			pStakeConfig = UpdateConfig(cmd, pStakeConfig)
+			if err := pStakeConfig.Validate(); err != nil {
+				panic(err)
+			}
 			configuration.SetAppConfig(pStakeConfig)
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
@@ -105,7 +108,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			log.Println("Starting to listen tendermint....")
 			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
-			go rpc.StartServer()
+			go rpc.StartServer(pStakeConfig)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -241,7 +244,7 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	}
 	if caspSignatureWaitTime >= 0 {
 		pstakeConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
-	} else {
+	} else if pstakeConfig.CASP.SignatureWaitTime < 0 {
 		log.Fatalln("invalid casp signature wait time")
 	}
 

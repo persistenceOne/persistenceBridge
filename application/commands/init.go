@@ -20,6 +20,9 @@ func InitCommand() *cobra.Command {
 
 			config := configuration.NewConfig()
 			config = UpdateConfig(cmd, config)
+			if err := config.Validate(); err != nil {
+				panic(err)
+			}
 			var buf bytes.Buffer
 			encoder := toml.NewEncoder(&buf)
 			if err := encoder.Encode(config); err != nil {
