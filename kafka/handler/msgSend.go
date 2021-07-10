@@ -28,12 +28,6 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		return nil
 	}
 
-	loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain)
-	if err != nil {
-		return err
-	}
-	m.WithdrawRewards = true
-
 	if loop > 0 {
 		claimMsgChan := claim.Messages()
 		var kafkaMsg *sarama.ConsumerMessage
@@ -47,6 +41,14 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 				}
 				if kafkaMsg == nil {
 					return errors.New("kafka returned nil message")
+				}
+
+				if !m.WithdrawRewards {
+					loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain)
+					if err != nil {
+						return err
+					}
+					m.WithdrawRewards = true
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {
