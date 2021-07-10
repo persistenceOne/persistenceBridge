@@ -10,6 +10,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -131,7 +132,7 @@ func beta(limiter db.AccountLimiter, amount sdk.Int) (sendAmount sdk.Int, refund
 		refundAmt = amount
 		return sendAmount, refundAmt
 	}
-	maxAmt := sdk.NewInt(int64(5000000000))
+	maxAmt := sdk.NewInt(int64(500000000))
 	sendAmount = amount
 	refundAmt = sdk.ZeroInt()
 	sent := limiter.Amount
@@ -143,7 +144,32 @@ func beta(limiter db.AccountLimiter, amount sdk.Int) (sendAmount sdk.Int, refund
 }
 
 func getMaxLimit() int {
-	return 10000
+	currentTime := time.Now()
+	// 19th July, 2021
+	if currentTime.Unix() < 1626696000 {
+		return 50000
+	}
+	// 26th July, 2021
+	if currentTime.Unix() < 1627300800 {
+		return 65000
+	}
+	// 2nd August, 2021
+	if currentTime.Unix() < 1627905600 {
+		return 80000
+	}
+	// 9th August, 2021
+	if currentTime.Unix() < 1628510400 {
+		return 95000
+	}
+	// 16th August, 2021
+	if currentTime.Unix() < 1629115200 {
+		return 110000
+	}
+	// 23rd August, 2021
+	if currentTime.Unix() < 1629720000 {
+		return 125000
+	}
+	return 2147483646
 }
 
 func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
