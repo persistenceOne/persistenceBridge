@@ -4,6 +4,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -16,7 +17,7 @@ import (
 
 var LiquidStaking = Contract{
 	name:    "LIQUID_STAKING",
-	address: constants2.LiquidStakingAddress,
+	address: common.HexToAddress(constants2.LiquidStakingAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error{
 		constants2.LiquidStakingStake:   onStake,

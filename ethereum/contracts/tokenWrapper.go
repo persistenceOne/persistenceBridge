@@ -17,7 +17,7 @@ import (
 
 var TokenWrapper = Contract{
 	name:    "TOKEN_WRAPPER",
-	address: constants2.TokenWrapperAddress,
+	address: common.HexToAddress(constants2.TokenWrapperAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error{
 		constants2.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
