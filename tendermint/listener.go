@@ -70,10 +70,12 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				panic(err)
 			}
 
-			err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
-			if err != nil {
-				panic(err)
-			}
+		}
+
+		// For Tendermint, we can directly query without waiting for blocks since there is finality
+		err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
+		if err != nil {
+			panic(err)
 		}
 
 		time.Sleep(sleepDuration)
