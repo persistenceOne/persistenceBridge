@@ -25,7 +25,7 @@ const (
 	FlagCASPSignatureWaitTime = "caspSignatureWaitTime"
 	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
-	FlagRPCEndpoint           = "rpc"
+	FlagRPCEndpoint           = "rpc-endpoint"
 )
 
 var (

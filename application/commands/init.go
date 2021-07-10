@@ -57,5 +57,7 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagCASPEthPublicKey, constants2.DefaultCASPEthereumPublicKey, "casp ethereum public key")
 	cmd.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "csap siganture wait time")
 	cmd.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
+	cmd.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc Endpoint for server")
+
 	return cmd
 }

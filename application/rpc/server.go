@@ -45,7 +45,7 @@ func (a *ValidatorRPC) DeleteValidator(address sdk.ValAddress, result *[]db.Vali
 
 // can add db as an arguement.
 
-func StartServer() {
+func StartServer(rpcEndpoint string) {
 	validatorRPC := new(ValidatorRPC)
 	err := rpc.Register(validatorRPC)
 	if err != nil {
@@ -54,7 +54,7 @@ func StartServer() {
 
 	rpc.HandleHTTP()
 
-	listener, err := net.Listen("tcp", ":4040")
+	listener, err := net.Listen("tcp", rpcEndpoint)
 
 	if err != nil {
 		log.Fatal("Listener error", err)

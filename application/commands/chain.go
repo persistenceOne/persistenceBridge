@@ -108,7 +108,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			log.Println("Starting to listen tendermint....")
 			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
-			go rpc.StartServer()
+			go rpc.StartServer(pStakeConfig.RPCEndpoint)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -150,6 +150,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, -1, "csap siganture wait time")
 	//This will always be used from flag
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
+	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
 
 	return pBridgeCommand
 }
@@ -254,6 +255,14 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 		log.Fatalln(err)
 	}
 	pstakeConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
+
+	bridgeRPCEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if bridgeRPCEndpoint != "" {
+		pstakeConfig.RPCEndpoint = bridgeRPCEndpoint
+	}
 
 	return pstakeConfig
 }
