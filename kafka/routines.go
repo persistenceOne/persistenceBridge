@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -23,7 +22,7 @@ func KafkaClose(kafkaState utils.KafkaState, end, ended chan bool) func() {
 		_ = <-ended
 		_ = <-ended
 		_ = <-ended
-		fmt.Println("closing all kafka clients.")
+		log.Println("closing all kafka clients")
 		if err := kafkaState.Producer.Close(); err != nil {
 			log.Println("Error in closing producer:", err)
 		}
@@ -50,9 +49,7 @@ func KafkaRoutine(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, cha
 	go consumeUnbondings(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
 	go consumeToTendermintMessages(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
-	// go consume other messages
-
-	fmt.Println("started consumers")
+	log.Println("started consumers")
 }
 
 func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
@@ -67,7 +64,7 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
 		}
 		select {
 		case <-end:
-			log.Printf("Waited for Consumer to end")
+			log.Println("Stopping ToEth Consumer!!!")
 			ended <- true
 			return
 		default:
@@ -117,7 +114,7 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 		}
 		select {
 		case <-end:
-			log.Printf("Waited for Consumer to end")
+			log.Println("Stopping To-Tendermint Consumer!!!")
 			ended <- true
 			return
 		default:
@@ -150,7 +147,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			ticker := time.Tick(configuration.GetAppConfig().Kafka.EthUnbondCycleTime)
 			select {
 			case <-end:
-				log.Printf("Waited for Consumer to end")
+				log.Println("Stopping Unbondings Consumer!!!")
 				ended <- true
 				return
 			case <-ticker:
@@ -160,7 +157,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			ticker := time.Tick(time.Duration(nextEpochTime.Epoch - time.Now().UnixNano()))
 			select {
 			case <-end:
-				log.Printf("Waited for Consumer to end")
+				log.Println("Stopping Unbondings Consumer!!!")
 				ended <- true
 				return
 			case <-ticker:
