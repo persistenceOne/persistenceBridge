@@ -78,7 +78,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 
 	for {
 		if countPendingTx == 0 {
-			response, err := outgoingTx.FilterMessagesAndBroadcast(handler.Chain, msgs, 0)
+			response, err := outgoingTx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
 			if err != nil {
 				log.Printf("error occured while send to Tendermint:%v\n", err)
 				config := utils.SaramaConfig()

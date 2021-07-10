@@ -26,10 +26,14 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 	}(kafkaProducer)
 
 	for {
-		if shutdown.GetBridgeStopSignal() && shutdown.GetKafkaConsumerClosed() {
-			log.Println("Stopping Ethereum Listener!!!")
-			shutdown.SetETHStopped(true)
-			return
+		if shutdown.GetBridgeStopSignal() {
+			if shutdown.GetKafkaConsumerClosed() {
+				log.Println("Stopping Ethereum Listener!!!")
+				shutdown.SetETHStopped(true)
+				return
+			}
+			time.Sleep(1 * time.Second)
+			continue
 		}
 
 		latestEthHeight, err := client.BlockNumber(ctx)

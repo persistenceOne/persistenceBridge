@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -17,34 +18,29 @@ import (
 	"log"
 )
 
-// FilterMessagesAndBroadcast filters msgs to check repeated withdraw reward message
-func FilterMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
-	var filteredMsgs []sdk.Msg
+var tmPublicKey cryptotypes.PubKey
+
+// LogMessagesAndBroadcast filters msgs to check repeated withdraw reward message
+func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	msgsTypes := ""
-	messageHash := make(map[string]bool)
 	for _, msg := range msgs {
-		msgHash := hex.EncodeToString(crypto.Sha256(msg.GetSignBytes()))
-		if !messageHash[msgHash] {
-			filteredMsgs = append(filteredMsgs, msg)
-			messageHash[msgHash] = true
+		if msg.Type() == bankTypes.TypeMsgSend {
+			sendCoin := msg.(*bankTypes.MsgSend)
+			msgsTypes = msgsTypes + msg.Type() + " [to: " + sendCoin.ToAddress + " amount: " + sendCoin.Amount.String() + "] "
+		} else {
 			msgsTypes = msgsTypes + msg.Type() + " "
 		}
 	}
 	log.Println("Messages to tendermint: " + msgsTypes)
-	return tendermintSignAndBroadcastMsgs(chain, filteredMsgs, "pStake@PersistenceOne", timeoutHeight)
+	return tendermintSignAndBroadcastMsgs(chain, msgs, "pStake@PersistenceOne", timeoutHeight)
 }
 
 // Timeout height should be greater than current block height or set it 0 for none.
 func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
-	if err != nil {
-		return nil, err
+	if tmPublicKey == nil {
+		setTMPublicKey()
 	}
-	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		return nil, fmt.Errorf("no public keys got from casp")
-	}
-	publicKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
-	bytesToSign, txB, txF, err := getTMBytesToSign(chain, publicKey, msgs, memo, timeoutHeight)
+	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmPublicKey, msgs, memo, timeoutHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +49,7 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 		return nil, err
 	}
 
-	txRes, err := broadcastTMTx(chain, publicKey, signature, txB, txF)
+	txRes, err := broadcastTMTx(chain, tmPublicKey, signature, txB, txF)
 	if err != nil {
 		return nil, err
 	}
@@ -170,4 +166,20 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 		return nil, err
 	}
 	return signature, nil
+}
+
+func setTMPublicKey() {
+	if tmPublicKey != nil {
+		log.Printf("outgoingTx: casp tendermint public key already set to %s To change update config and restart.\n", tmPublicKey.String())
+		return
+	}
+	log.Println("outgoingTx: setting tendermint casp public key")
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if len(uncompressedPublicKeys.PublicKeys) == 0 {
+		log.Fatalln(err)
+	}
+	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
 }

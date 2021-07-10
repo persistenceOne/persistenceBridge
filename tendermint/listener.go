@@ -27,10 +27,14 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 	}(kafkaProducer)
 
 	for {
-		if shutdown.GetBridgeStopSignal() && shutdown.GetKafkaConsumerClosed() {
-			log.Println("Stopping Tendermint Listener!!!")
-			shutdown.SetTMStopped(true)
-			return
+		if shutdown.GetBridgeStopSignal() {
+			if shutdown.GetKafkaConsumerClosed() {
+				log.Println("Stopping Tendermint Listener!!!")
+				shutdown.SetTMStopped(true)
+				return
+			}
+			time.Sleep(1 * time.Second)
+			continue
 		}
 
 		abciInfo, err := chain.Client.ABCIInfo(ctx)

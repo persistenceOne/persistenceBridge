@@ -2,7 +2,6 @@ package configuration
 
 import (
 	"github.com/Shopify/sarama"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"time"
 )
@@ -28,14 +27,12 @@ func NewConfig() Config {
 }
 
 type EthereumConfig struct {
-	BridgeAdmin      common.Address
 	EthereumEndPoint string
 	GasLimit         uint64
 }
 
 func NewEthereumConfig() EthereumConfig {
 	return EthereumConfig{
-		BridgeAdmin:      constants.DefaultBridgeAdmin,
 		EthereumEndPoint: constants.DefaultEthereumEndPoint,
 		GasLimit:         constants.DefaultEthGasLimit,
 	}

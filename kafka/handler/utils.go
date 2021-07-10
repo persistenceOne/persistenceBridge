@@ -32,7 +32,7 @@ func ValidatorsInDelegations(delegationResponses stakingTypes.DelegationResponse
 }
 
 func TotalDelegations(delegationResponses stakingTypes.DelegationResponses) sdk.Int {
-	var sum sdk.Int
+	sum := sdk.ZeroInt()
 	for _, delegation := range delegationResponses {
 		sum = sum.Add(delegation.Balance.Amount)
 	}

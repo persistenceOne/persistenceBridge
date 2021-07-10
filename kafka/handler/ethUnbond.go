@@ -24,7 +24,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 
 	claimMsgChan := claim.Messages()
 	var ok bool
-	var sum = sdk.NewInt(0)
+	sum := sdk.ZeroInt()
 ConsumerLoop:
 	for {
 		select {
@@ -52,7 +52,7 @@ ConsumerLoop:
 		}
 	}
 
-	if sum.GT(sdk.NewInt(0)) {
+	if sum.GT(sdk.ZeroInt()) {
 		delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress, m.Chain)
 		if err != nil {
 			return err
@@ -62,7 +62,7 @@ ConsumerLoop:
 			return errors.New("Unbondings requested are greater than delegated tokens")
 		}
 		ratio := sum.ToDec().Quo(totalDelegations.ToDec())
-		var unbondings sdk.Int
+		unbondings := sdk.ZeroInt()
 		var unbondMsgs []*stakingTypes.MsgUndelegate
 		for _, delegation := range delegatorDelegations {
 			unbondingShare := ratio.Mul(delegation.Balance.Amount.ToDec()).RoundInt()

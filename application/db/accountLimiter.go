@@ -50,28 +50,24 @@ func SetAccountLimiter(a AccountLimiter) error {
 	return set(&a)
 }
 
-func CheckExistsAndGetTotalAccounts(address sdk.AccAddress) (bool, AccountLimiter, int) {
+func GetAccountLimiterAndTotal(address sdk.AccAddress) (AccountLimiter, int) {
 	total := 0
 	acc := AccountLimiter{
 		AccountAddress: address,
 		Amount:         sdk.ZeroInt(),
 	}
-	exists := false
 	err := iterateKeys(accountLimiterPrefix.GenerateStoreKey([]byte{}), func(key []byte, item *badger.Item) error {
 		total = total + 1
-		if !exists {
-			exists = bytes.Equal(key, acc.Key())
-			if exists {
-				err := item.Value(func(val []byte) error {
-					return json.Unmarshal(val, &acc)
-				})
-				return err
-			}
+		if acc.Amount.Equal(sdk.ZeroInt()) && bytes.Equal(key, acc.Key()) {
+			err := item.Value(func(val []byte) error {
+				return json.Unmarshal(val, &acc)
+			})
+			return err
 		}
 		return nil
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return exists, acc, total
+	return acc, total
 }

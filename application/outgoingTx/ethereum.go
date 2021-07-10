@@ -7,16 +7,20 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	//"github.com/persistenceOne/persistenceBridge/ethereum/magicTx"
 	"log"
 	"math/big"
 	"strings"
 )
+
+var ethBridgeAdmin common.Address
 
 type WrapTokenMsg struct {
 	Address common.Address `json:"address"`
@@ -47,17 +51,10 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 
 func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
-	//uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
-	//if err != nil {
-	//	return common.Hash{}, err
-	//}
-	//if len(uncompressedPublicKeys.PublicKeys) == 0 {
-	//	return common.Hash{}, fmt.Errorf("no public keys got from casp")
-	//}
-	//publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
-	//
-	//fromAddress := crypto.PubkeyToAddress(publicKey)
-	nonce, err := client.PendingNonceAt(ctx, configuration.GetAppConfig().Ethereum.BridgeAdmin)
+	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
+		setEthBridgeAdmin()
+	}
+	nonce, err := client.PendingNonceAt(ctx, ethBridgeAdmin)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -118,4 +115,21 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, e
 		return nil, -1, err
 	}
 	return signature, signatureResponse.V[0], nil
+}
+
+func setEthBridgeAdmin() {
+	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
+		log.Printf("outgoingTx: casp ethereum bridge admin already set to %s To change update config and restart.\n", ethBridgeAdmin.String())
+		return
+	}
+	log.Println("outgoingTx: setting ethereum bridge admin from casp")
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if len(uncompressedPublicKeys.PublicKeys) == 0 {
+		log.Fatalln(fmt.Errorf("no eth public keys got from casp"))
+	}
+	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
+	ethBridgeAdmin = crypto.PubkeyToAddress(publicKey)
 }

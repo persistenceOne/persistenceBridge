@@ -80,12 +80,13 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 					if err != nil {
 						log.Fatalln(err)
 					}
-					exists, accountLimiter, totalAccounts := db.CheckExistsAndGetTotalAccounts(fromAddress)
+					accountLimiter, totalAccounts := db.GetAccountLimiterAndTotal(fromAddress)
 					if totalAccounts >= getMaxLimit() {
+						log.Println("REVERT: MAX Account Limit Reached")
 						revertCoins(txMsg.FromAddress, txMsg.Amount, kafkaProducer, protoCodec)
 						continue
 					}
-					sendAmt, refundAmt := beta(exists, accountLimiter, amount)
+					sendAmt, refundAmt := beta(accountLimiter, amount)
 					if refundAmt.GT(sdk.ZeroInt()) {
 						refundCoins = append(refundCoins, sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, refundAmt))
 					}
@@ -111,6 +112,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 						}
 					}
 					if len(refundCoins) > 0 {
+						log.Println("REVERT: left over coins")
 						revertCoins(txMsg.FromAddress, refundCoins, kafkaProducer, protoCodec)
 					}
 				}
@@ -123,26 +125,19 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 	return nil
 }
 
-func beta(exists bool, limiter db.AccountLimiter, amount sdk.Int) (sdk.Int, sdk.Int) {
-	maxAmt := sdk.NewInt(500000000)
-	sendAmount := amount
-	refundAmt := sdk.ZeroInt()
-	if exists {
-		sent := limiter.Amount
-		if sent.Add(sendAmount).GTE(maxAmt) {
-			sendAmount = maxAmt.Sub(sent)
-			refundAmt = amount.Sub(sendAmount)
-		}
-	} else {
-		if amount.GTE(constants.MinimumAmount) {
-			if sendAmount.GTE(maxAmt) {
-				sendAmount = maxAmt
-				refundAmt = amount.Sub(maxAmt)
-			}
-		} else {
-			sendAmount = sdk.ZeroInt()
-			refundAmt = amount
-		}
+func beta(limiter db.AccountLimiter, amount sdk.Int) (sendAmount sdk.Int, refundAmt sdk.Int) {
+	if amount.LT(constants.MinimumAmount) {
+		sendAmount = sdk.ZeroInt()
+		refundAmt = amount
+		return sendAmount, refundAmt
+	}
+	maxAmt := sdk.NewInt(int64(5000000000))
+	sendAmount = amount
+	refundAmt = sdk.ZeroInt()
+	sent := limiter.Amount
+	if sent.Add(sendAmount).GTE(maxAmt) {
+		sendAmount = maxAmt.Sub(sent)
+		refundAmt = amount.Sub(sendAmount)
 	}
 	return sendAmount, refundAmt
 }

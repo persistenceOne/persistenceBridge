@@ -24,7 +24,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	claimMsgChan := claim.Messages()
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
-	var sum = sdk.NewInt(0)
+	sum := sdk.ZeroInt()
 ConsumerLoop:
 	for {
 		select {
