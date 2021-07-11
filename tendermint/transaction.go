@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/Shopify/sarama"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -127,7 +126,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 }
 
 func beta(limiter db.AccountLimiter, amount sdk.Int) (sendAmount sdk.Int, refundAmt sdk.Int) {
-	if amount.LT(constants.MinimumAmount) {
+	if amount.LT(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
 		sendAmount = sdk.ZeroInt()
 		refundAmt = amount
 		return sendAmount, refundAmt

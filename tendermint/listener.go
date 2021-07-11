@@ -27,13 +27,20 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 	}(kafkaProducer)
 
 	for {
+		// For Tendermint, we can directly query without waiting for blocks since there is finality
+		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
+		if err != nil {
+			log.Printf("tendermint onNewBlock err: %v\n", err)
+			return
+		}
+
 		if shutdown.GetBridgeStopSignal() {
 			if shutdown.GetKafkaConsumerClosed() {
 				log.Println("Stopping Tendermint Listener!!!")
 				shutdown.SetTMStopped(true)
 				return
 			}
-			time.Sleep(1 * time.Second)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -70,12 +77,6 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				panic(err)
 			}
 
-		}
-
-		// For Tendermint, we can directly query without waiting for blocks since there is finality
-		err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
-		if err != nil {
-			panic(err)
 		}
 
 		time.Sleep(sleepDuration)

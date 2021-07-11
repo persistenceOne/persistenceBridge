@@ -39,16 +39,18 @@ func NewEthereumConfig() EthereumConfig {
 }
 
 type TendermintConfig struct {
-	PStakeAddress string
-	PStakeDenom   string
-	BroadcastMode string
+	PStakeAddress     string
+	PStakeDenom       string
+	BroadcastMode     string
+	MinimumWrapAmount int64
 }
 
 func NewTendermintConfig() TendermintConfig {
 	return TendermintConfig{
-		PStakeAddress: constants.DefaultPStakeAddress,
-		PStakeDenom:   constants.DefaultDenom,
-		BroadcastMode: constants.DefaultBroadcastMode,
+		PStakeAddress:     constants.DefaultPStakeAddress,
+		PStakeDenom:       constants.DefaultDenom,
+		BroadcastMode:     constants.DefaultBroadcastMode,
+		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
 	}
 }
 

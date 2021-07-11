@@ -26,6 +26,7 @@ const (
 	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
 	FlagRPCEndpoint           = "rpc-endpoint"
+	FlagMinimumWrapAmount     = "minWrapAmt"
 )
 
 var (
@@ -40,6 +41,7 @@ var (
 	DefaultPStakeAddress           = "cosmos15vs9hfghf3xpsqshw98gq6mtt55wmhlgxf83pd" //TODO should be derived not given
 	DefaultEthGasLimit             = uint64(500000)
 	DefaultBroadcastMode           = flags.BroadcastAsync
+	DefaultMinimumWrapAmount       = int64(5000000)
 	DefaultCASPUrl                 = "https://65.2.149.241:443"
 	DefaultCASPVaultID             = "509fd89a-762a-40ec-bd4b-0745b06e2d3d"
 	DefaultCASPAPI                 = "Bearer cHVuZWV0TmV3QXBpa2V5MTI6OWM1NDBhMzAtNTQ5NC00ZDdhLTljODktODA3MDZiNWNhYzQ1"

@@ -148,9 +148,10 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, -1, "csap siganture wait time")
+	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
+	pBridgeCommand.Flags().Int64(constants2.FlagMinimumWrapAmount, -1, "minimum amount in send coin tx to wrap onto eth")
 	//This will always be used from flag
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
-	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
 
 	return pBridgeCommand
 }
@@ -262,6 +263,14 @@ func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configu
 	}
 	if bridgeRPCEndpoint != "" {
 		pstakeConfig.RPCEndpoint = bridgeRPCEndpoint
+	}
+
+	minWrapAmt, err := cmd.Flags().GetInt64(constants2.FlagMinimumWrapAmount)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if minWrapAmt >= 0 {
+		pstakeConfig.Tendermint.MinimumWrapAmount = minWrapAmt
 	}
 
 	return pstakeConfig
