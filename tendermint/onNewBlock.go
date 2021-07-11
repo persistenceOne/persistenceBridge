@@ -53,7 +53,7 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 					}
 					err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, *kafkaProducer)
 					if err != nil {
-						log.Fatalf("Failed to add msg %s to kafka topic %s queue: %s\n", msg.String(), utils.RetryTendermint, err.Error())
+						log.Fatalf("Failed to add messages of %s to kafka queue RetryTendermint: %s [TM onNewBlock]\n", tmTx.TxHash, err.Error())
 					}
 				}
 			} else {

@@ -44,7 +44,7 @@ func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.Pro
 	log.Printf("Adding sendCoin msg to kafka producer MsgSend, from: %s, to: %s, amount: %s\n", ercAddress.String(), atomAddress.String(), sendCoinMsg.Amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
-		log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+		log.Printf("Failed to add msg to kafka queue MsgSend: %s [ETH Listener (onWithDrawUTokens)]\n", err.Error())
 		return err
 	}
 	return nil

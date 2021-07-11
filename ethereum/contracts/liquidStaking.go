@@ -41,7 +41,7 @@ func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, a
 	log.Printf("Adding stake msg to kafka producer MsgDelegate, amount: %s\n", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, *kafkaProducer)
 	if err != nil {
-		log.Println("Failed to add msg to kafka queue: ", err)
+		log.Printf("Failed to add msg to kafka queue MsgDelegate: %s [ETH Listener (onStake)]\n", err.Error())
 		return err
 	}
 	return nil
@@ -62,7 +62,7 @@ func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec,
 	log.Printf("Adding unstake msg to kafka producer EthUnbond, amount: %s\n", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, *kafkaProducer)
 	if err != nil {
-		log.Println("Failed to add msg to kafka queue: ", err)
+		log.Printf("Failed to add msg to kafka queue EthUnbond: %s [ETH Listener (onUnStake)]\n", err.Error())
 		return err
 	}
 	return nil

@@ -86,6 +86,12 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				}
 			}(db)
 
+			unboundEpochTime, err := db2.GetUnboundEpochTime()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
+
 			chain, err := tendermint2.InitializeAndStartChain(args[0], timeout, homePath)
 			if err != nil {
 				log.Fatalln(err)

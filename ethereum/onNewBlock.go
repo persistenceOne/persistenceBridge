@@ -36,7 +36,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 					}
 					err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 					if err != nil {
-						log.Fatalf("Failed to add msg to kafka topic %s queue: %s\n", utils.ToEth, err.Error())
+						log.Printf("Failed to add msg to kafka queue ToEth: %s [ETH onNewBlock]\n", err.Error())
 					}
 				}
 				deleteTx = true
