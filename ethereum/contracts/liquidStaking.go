@@ -28,7 +28,7 @@ var LiquidStaking = Contract{
 func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	stakeMsg := &stakingTypes.MsgDelegate{
-		DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ValidatorAddress: "",
 		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
 	}
@@ -50,7 +50,7 @@ func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, a
 func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	unStakeMsg := &stakingTypes.MsgUndelegate{
-		DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ValidatorAddress: "",
 		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
 	}

@@ -17,9 +17,7 @@ func GetEthAddress() (common.Address, error) {
 		return common.Address{}, fmt.Errorf("no public keys got from casp")
 	}
 	publicKey := GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
-
-	fromAddress := crypto.PubkeyToAddress(publicKey)
-	return fromAddress, nil
+	return crypto.PubkeyToAddress(publicKey), nil
 }
 
 func GetTendermintAddress() (sdk.AccAddress, error) {

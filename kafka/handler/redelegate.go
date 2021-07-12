@@ -44,7 +44,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 		return err
 	}
 	// query validator delegation
-	delegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress, m.Chain)
+	delegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), m.Chain)
 	if err != nil {
 		return err
 	}
@@ -57,6 +57,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	}
 	if totalRedistributeAmount.Equal(sdk.ZeroInt()) {
 		log.Printf("No Delegations to Redelegate for validator src Address %v", redelegationSourceAddress.String())
+		session.MarkMessage(kafkaMsg, "")
 		return nil
 	}
 	redistributeAmount := totalRedistributeAmount.QuoRaw(int64(len(validatorSet)))
@@ -66,7 +67,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 
 	for i, validator := range validatorSet {
 		msgRedelegate := &stakingTypes.MsgBeginRedelegate{
-			DelegatorAddress:    configuration.GetAppConfig().Tendermint.PStakeAddress,
+			DelegatorAddress:    configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 			ValidatorSrcAddress: redelegationSourceAddress.String(),
 			ValidatorDstAddress: validator.Address.String(),
 			Amount:              sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount),

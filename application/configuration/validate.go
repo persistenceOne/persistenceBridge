@@ -8,31 +8,40 @@ import (
 )
 
 // Validate :panics if config is not valid
-func (config Config) Validate() error {
-	if err := config.Ethereum.Validate(); err != nil {
-		panic(err)
+func (config config) validate() error {
+	if err := config.Ethereum.validate(); err != nil {
+		return err
 	}
-	if err := config.Tendermint.Validate(); err != nil {
-		panic(err)
+	if err := config.Tendermint.validate(); err != nil {
+		return err
 	}
-	if err := config.Kafka.Validate(); err != nil {
-		panic(err)
+	if err := config.Kafka.validate(); err != nil {
+		return err
+	}
+	if err := config.CASP.validate(); err != nil {
+		return err
 	}
 	return nil
 }
 
 // Validate :panics if config is not valid
-func (config EthereumConfig) Validate() error {
-
+func (config ethereumConfig) validate() error {
+	if config.GasLimit <= 0 {
+		return fmt.Errorf("invalid eth gas limit")
+	}
 	return nil
 }
 
 // Validate :panics if config is not valid
-func (config TendermintConfig) Validate() error {
-	_, err := sdk.AccAddressFromBech32(config.PStakeAddress)
+func (config tendermintConfig) validate() error {
+	if config.pStakeAddress == "" {
+		return fmt.Errorf("pStakeAddress empty")
+	}
+	_, err := sdk.AccAddressFromBech32(config.pStakeAddress)
 	if err != nil {
 		return err
 	}
+
 	if !(config.BroadcastMode == flags.BroadcastAsync || config.BroadcastMode == flags.BroadcastSync || config.BroadcastMode == flags.BroadcastBlock) {
 		return fmt.Errorf("invalid broadcast mode")
 	}
@@ -40,7 +49,7 @@ func (config TendermintConfig) Validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config KafkaConfig) Validate() error {
+func (config kafkaConfig) validate() error {
 	if config.TopicDetail.ReplicationFactor < 1 {
 		return errors.New("replicationFactor has to be atleast 1")
 	}
@@ -52,6 +61,25 @@ func (config KafkaConfig) Validate() error {
 	}
 	if config.ToEth.MinBatchSize > config.ToEth.MaxBatchSize {
 		return errors.New("ethereum min batch size cannot be greater than max batch size")
+	}
+	return nil
+}
+
+func (config caspConfig) validate() error {
+	if config.VaultID == "" {
+		return fmt.Errorf("casp vault id empty")
+	}
+	if config.APIToken == "" {
+		return fmt.Errorf("casp api token empty")
+	}
+	if config.URL == "" {
+		return fmt.Errorf("casp url empty")
+	}
+	if config.TendermintPublicKey == "" {
+		return fmt.Errorf("casp tendermint public empty")
+	}
+	if config.EthereumPublicKey == "" {
+		return fmt.Errorf("casp tendermint public empty")
 	}
 	return nil
 }

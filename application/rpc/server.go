@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"log"
-	"net"
 	"net/http"
 	"net/rpc"
 )
@@ -54,13 +53,15 @@ func StartServer(rpcEndpoint string) {
 
 	rpc.HandleHTTP()
 
-	listener, err := net.Listen("tcp", rpcEndpoint)
+	//listener, err := net.Listen("tcp", rpcEndpoint)
 
-	if err != nil {
-		log.Fatal("Listener error", err)
-	}
+	//if err != nil {
+	//	log.Fatal("Listener error", err)
+	//}
 	log.Printf("serving rpc on port %d", 4040)
-	err = http.Serve(listener, nil)
+	http.HandleFunc("/status", status)
+	http.HandleFunc("/validators", validators)
+	err = http.ListenAndServe(rpcEndpoint, nil)
 
 	if err != nil {
 		log.Fatal("error serving: ", err)

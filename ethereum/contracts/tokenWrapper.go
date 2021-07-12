@@ -32,7 +32,7 @@ func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.Pro
 		return err
 	}
 	sendCoinMsg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   atomAddress.String(),
 		Amount:      sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount)),
 	}

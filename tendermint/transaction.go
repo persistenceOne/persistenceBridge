@@ -65,7 +65,7 @@ func processTx(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx, ka
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.PStakeAddress {
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetPStakeAddress() {
 					if memo != "DO_NOT_REVERT" {
 						amount := sdk.ZeroInt()
 						refundCoins := sdk.NewCoins()
@@ -176,7 +176,7 @@ func getMaxLimit() int {
 
 func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
 	msg := &banktypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   toAddress,
 		Amount:      coins,
 	}
