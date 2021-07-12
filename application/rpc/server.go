@@ -53,11 +53,6 @@ func StartServer(rpcEndpoint string) {
 
 	rpc.HandleHTTP()
 
-	//listener, err := net.Listen("tcp", rpcEndpoint)
-
-	//if err != nil {
-	//	log.Fatal("Listener error", err)
-	//}
 	log.Printf("serving rpc on port %d", 4040)
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/validators", validators)
