@@ -16,8 +16,10 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/commands"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities"
 	"github.com/spf13/cobra"
 	tendermintClient "github.com/tendermint/tendermint/libs/cli"
+
 	"os"
 )
 
@@ -54,6 +56,8 @@ func main() {
 	rootCommand.AddCommand(tendermintClient.NewCompletionCmd(rootCommand, true))
 	rootCommand.AddCommand(debug.Cmd())
 	rootCommand.AddCommand(version.NewVersionCommand())
+	rootCommand.PersistentFlags().Int64Var(&utilities.ChatId,"telegram-chat-id",0,"telegram chat id to which bot is added")
+	rootCommand.PersistentFlags().StringVar(&utilities.Token,"telegram-token","","telegram bot token to send alerts for errors")
 	rootCommand.PersistentFlags().UintVar(
 		&invalidCheckPeriod,
 		flagInvalidCheckPeriod,
