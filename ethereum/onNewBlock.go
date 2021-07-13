@@ -28,7 +28,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		} else {
 			deleteTx := false
 			if txReceipt.Status == 0 {
-				log.Printf("Broadacasted ethereum tx failed: %s\n", ethTx.TxHash.String())
+				log.Printf("Broadacasted ethereum tx %s (block: %d) failed.\n", ethTx.TxHash.String(), txReceipt.BlockNumber.Uint64())
 				for _, msg := range ethTx.Messages {
 					msgBytes, err := json.Marshal(msg)
 					if err != nil {
@@ -43,10 +43,10 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 			} else {
 				confirmedBlocks := latestBlockHeight - txReceipt.BlockNumber.Uint64()
 				if confirmedBlocks >= 12 {
-					log.Printf("Broadcasted ethereum tx %s success. Has %d confirmed blocks\n", ethTx.TxHash, confirmedBlocks)
+					log.Printf("Broadcasted ethereum tx %s (block: %d) success. Has %d confirmed blocks.\n", ethTx.TxHash, txReceipt.BlockNumber.Uint64(), confirmedBlocks)
 					deleteTx = true
 				} else {
-					log.Printf("Broadcasted ethereum tx %s has %d block confirmations\n", ethTx.TxHash, confirmedBlocks)
+					log.Printf("Broadcasted ethereum tx %s (block: %d) has %d block confirmations.\n", ethTx.TxHash, txReceipt.BlockNumber.Uint64(), confirmedBlocks)
 				}
 			}
 			if deleteTx {
