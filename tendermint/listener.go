@@ -30,7 +30,8 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
 		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
 		if err != nil {
-			log.Printf("tendermint onNewBlock err: %v\n", err)
+			// TODO NOTIFY, will lead to stuck state
+			log.Printf("Stopping Tendermint Listener, onNewBlock err: %s\n", err.Error())
 			return
 		}
 
@@ -69,12 +70,15 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 			err = handleTxSearchResult(initClientCtx, txSearchResult, &kafkaProducer, protoCodec)
 			if err != nil {
-				panic(err)
+				// TODO NOTIFY, will lead to stuck state
+				log.Printf("ERROR handling TM txs at height %d: %s\n", processHeight, err.Error())
+				time.Sleep(sleepDuration)
+				continue
 			}
 
 			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
-				panic(err)
+				log.Fatalf("ERROR setting tendermint status: %s\n", err.Error())
 			}
 
 		}

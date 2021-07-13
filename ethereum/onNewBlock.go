@@ -16,14 +16,14 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		var ethTx db.EthereumBroadcastedWrapTokenTransaction
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
-			log.Fatalln("Failed to unmarshal EthTransaction: ", err)
+			log.Fatalf("Failed to unmarshal EthTransaction [ETH onNewBlock]: %s\n", err.Error())
 		}
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
 		if err != nil {
 			if txReceipt == nil && err == ethereum.NotFound {
 				log.Printf("ETH TX %s is in pending transactions\n", ethTx.TxHash)
 			} else {
-				log.Printf("ETH TX %s receipt fetch failed: %s\n", ethTx.TxHash.String(), err)
+				log.Printf("ETH [onNewBlock] TX %s receipt fetch failed: %s\n", ethTx.TxHash.String(), err)
 			}
 		} else {
 			deleteTx := false

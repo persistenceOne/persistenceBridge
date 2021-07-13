@@ -54,6 +54,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
+				// TODO NOTIFY, will lead to stuck state
 				log.Printf("ERROR getting ETH height %d: %s\n", processHeight, err.Error())
 				time.Sleep(sleepDuration)
 				continue
@@ -61,17 +62,18 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 			err = handleBlock(client, &ctx, block, &kafkaProducer, protoCodec)
 			if err != nil {
-				panic(err)
+				log.Fatalf("Eth listener unable to handleBlock: %s\n", err.Error())
 			}
 
 			err = db.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
-				panic(err)
+				log.Fatalf("ERROR setting ethereum status: %s\n", err.Error())
 			}
 
 			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
 			if err != nil {
-				log.Printf("ethereum onNewBlock err: %v\n", err)
+				// TODO NOTIFY, will lead to stuck state
+				log.Printf("Stopping ethereum Listener, onNewBlock err: %v\n", err)
 				return
 			}
 		}

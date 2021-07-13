@@ -20,36 +20,36 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 		var tmTx db.TendermintBroadcastedTransaction
 		err := json.Unmarshal(value, &tmTx)
 		if err != nil {
-			log.Fatalln("Failed to unmarshal TendermintBroadcastedTransaction : ", err)
+			return fmt.Errorf("failed to unmarshal TendermintBroadcastedTransaction %s [TM onNewBlock]: %s", tmTx.TxHash, err.Error())
 		}
 		txHashBytes, err := hex.DecodeString(tmTx.TxHash)
 		if err != nil {
-			log.Fatalln("invalid tx hash : ", err)
+			return fmt.Errorf("invalid tx hash %s [TM onNewBlock]: %s", tmTx.TxHash, err.Error())
 		}
 		txResult, err := chain.Client.Tx(ctx, txHashBytes, true)
 		if err != nil {
 			if err.Error() == fmt.Sprintf("RPC error -32603 - Internal error: tx (%s) not found", tmTx.TxHash) {
-				log.Printf("TM Tx %s still pending\n", tmTx.TxHash)
+				log.Printf("TM TX %s still pending.\n", tmTx.TxHash)
 				return nil
 			}
-			log.Printf("tm tx hash search failed: %s\n", err)
+			log.Printf("TM TX hash %s search failed [TM onNewBlock]: %s\n", tmTx.TxHash, err.Error())
 			return err
 		} else {
 			if txResult.TxResult.GetCode() != 0 {
 				log.Printf("Broadcasted tendermint tx %s (block: %d) failed, code: %d, log: %s\n", tmTx.TxHash, txResult.Height, txResult.TxResult.GetCode(), txResult.TxResult.Log)
 				txInterface, err := clientCtx.TxConfig.TxDecoder()(txResult.Tx)
 				if err != nil {
-					log.Fatalln(err.Error())
+					return err
 				}
 
 				transaction, ok := txInterface.(signing.Tx)
 				if !ok {
-					log.Fatalln("Unable to parse transaction into signing.Tx")
+					return fmt.Errorf("unable to parse transaction into signing.Tx [TM onNewBlock]")
 				}
 				for _, msg := range transaction.GetMsgs() {
 					msgBytes, err := protoCodec.MarshalInterface(msg)
 					if err != nil {
-						log.Fatalln("Failed to generate msgBytes: ", err)
+						return fmt.Errorf("failed to generate msgBytes [TM onNewBlock]: %s", err.Error())
 					}
 					err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, *kafkaProducer)
 					if err != nil {
@@ -61,7 +61,6 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 			}
 			return db.DeleteTendermintTx(tmTx.TxHash)
 		}
-
 		return nil
 	})
 }
