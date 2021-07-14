@@ -69,6 +69,7 @@ func main() {
 	rootCommand.AddCommand(commands.RemoveCommand(initClientCtx))
 	rootCommand.AddCommand(commands.ShowCommand(initClientCtx))
 	rootCommand.AddCommand(commands.InitCommand())
+	utilities.InitLog()
 
 	if err := serverCmd.Execute(rootCommand, constants.DefaultPBridgeHome); err != nil {
 		switch e := err.(type) {
