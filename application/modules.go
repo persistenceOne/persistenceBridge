@@ -26,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeClient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	"github.com/gravity-devs/liquidity/x/liquidity"
 )
 
 var ModuleBasics = module.NewBasicManager(
@@ -47,4 +48,5 @@ var ModuleBasics = module.NewBasicManager(
 	evidence.AppModuleBasic{},
 	transfer.AppModuleBasic{},
 	vesting.AppModuleBasic{},
+	liquidity.AppModuleBasic{},
 )

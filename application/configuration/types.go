@@ -3,56 +3,58 @@ package configuration
 import (
 	"github.com/Shopify/sarama"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"log"
 	"time"
 )
 
-type Config struct {
-	Kafka       KafkaConfig
-	Tendermint  TendermintConfig
-	Ethereum    EthereumConfig
-	CASP        CASPConfig
+type config struct {
+	Kafka       kafkaConfig
+	Tendermint  tendermintConfig
+	Ethereum    ethereumConfig
+	CASP        caspConfig
 	seal        bool
 	RPCEndpoint string
 }
 
-func NewConfig() Config {
-	return Config{
-		Kafka:       NewKafkaConfig(),
-		Tendermint:  NewTendermintConfig(),
-		Ethereum:    NewEthereumConfig(),
-		CASP:        NewCASPConfig(),
+func newConfig() config {
+	return config{
+		Kafka:       newKafkaConfig(),
+		Tendermint:  newTendermintConfig(),
+		Ethereum:    newEthereumConfig(),
+		CASP:        newCASPConfig(),
 		seal:        false,
 		RPCEndpoint: constants.DefaultRPCEndpoint,
 	}
 }
 
-type EthereumConfig struct {
+type ethereumConfig struct {
 	EthereumEndPoint string
 	GasLimit         uint64
 }
 
-func NewEthereumConfig() EthereumConfig {
-	return EthereumConfig{
+func newEthereumConfig() ethereumConfig {
+	return ethereumConfig{
 		EthereumEndPoint: constants.DefaultEthereumEndPoint,
 		GasLimit:         constants.DefaultEthGasLimit,
 	}
 }
 
-type TendermintConfig struct {
-	PStakeAddress string
-	PStakeDenom   string
-	BroadcastMode string
+type tendermintConfig struct {
+	pStakeAddress     string
+	PStakeDenom       string
+	BroadcastMode     string
+	MinimumWrapAmount int64
 }
 
-func NewTendermintConfig() TendermintConfig {
-	return TendermintConfig{
-		PStakeAddress: constants.DefaultPStakeAddress,
-		PStakeDenom:   constants.DefaultDenom,
-		BroadcastMode: constants.DefaultBroadcastMode,
+func newTendermintConfig() tendermintConfig {
+	return tendermintConfig{
+		PStakeDenom:       constants.DefaultDenom,
+		BroadcastMode:     constants.DefaultBroadcastMode,
+		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
 	}
 }
 
-type CASPConfig struct {
+type caspConfig struct {
 	URL                     string
 	VaultID                 string
 	TendermintPublicKey     string
@@ -62,19 +64,19 @@ type CASPConfig struct {
 	AllowConcurrentKeyUsage bool
 }
 
-func NewCASPConfig() CASPConfig {
-	return CASPConfig{
-		URL:                     constants.DefaultCASPUrl,
-		VaultID:                 constants.DefaultCASPVaultID,
-		TendermintPublicKey:     constants.DefaultCASPTendermintPublicKey,
-		EthereumPublicKey:       constants.DefaultCASPEthereumPublicKey,
+func newCASPConfig() caspConfig {
+	return caspConfig{
+		URL:                     "",
+		VaultID:                 "",
+		TendermintPublicKey:     "",
+		EthereumPublicKey:       "",
 		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
-		APIToken:                constants.DefaultCASPAPI,
+		APIToken:                "",
 		AllowConcurrentKeyUsage: true,
 	}
 }
 
-type KafkaConfig struct {
+type kafkaConfig struct {
 	// Brokers: List of brokers to run kafka cluster
 	Brokers      []string
 	TopicDetail  sarama.TopicDetail
@@ -90,8 +92,8 @@ type TopicConsumer struct {
 	Ticker       time.Duration
 }
 
-func NewKafkaConfig() KafkaConfig {
-	return KafkaConfig{
+func newKafkaConfig() kafkaConfig {
+	return kafkaConfig{
 		Brokers:     constants.DefaultBrokers,
 		TopicDetail: constants.TopicDetail,
 		ToEth: TopicConsumer{
@@ -106,4 +108,11 @@ func NewKafkaConfig() KafkaConfig {
 		},
 		EthUnbondCycleTime: constants.DefaultEthUnbondCycleTime,
 	}
+}
+
+func (config tendermintConfig) GetPStakeAddress() string {
+	if config.pStakeAddress == "" {
+		log.Fatalln("pStakeAddress not set")
+	}
+	return config.pStakeAddress
 }

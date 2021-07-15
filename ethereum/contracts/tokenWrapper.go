@@ -17,7 +17,7 @@ import (
 
 var TokenWrapper = Contract{
 	name:    "TOKEN_WRAPPER",
-	address: constants2.TokenWrapperAddress,
+	address: common.HexToAddress(constants2.TokenWrapperAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error{
 		constants2.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
@@ -32,7 +32,7 @@ func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.Pro
 		return err
 	}
 	sendCoinMsg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   atomAddress.String(),
 		Amount:      sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount)),
 	}
@@ -44,7 +44,7 @@ func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.Pro
 	log.Printf("Adding sendCoin msg to kafka producer MsgSend, from: %s, to: %s, amount: %s\n", ercAddress.String(), atomAddress.String(), sendCoinMsg.Amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
-		log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+		log.Printf("Failed to add msg to kafka queue MsgSend: %s [ETH Listener (onWithDrawUTokens)]\n", err.Error())
 		return err
 	}
 	return nil

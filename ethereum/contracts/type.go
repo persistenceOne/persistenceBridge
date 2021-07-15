@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/ethereum/go-ethereum/common"
 	"log"
 	"strings"
 
@@ -12,7 +13,7 @@ import (
 
 type ContractI interface {
 	GetName() string
-	GetAddress() string
+	GetAddress() common.Address
 	GetABI() abi.ABI
 	SetABI(contractABIString string)
 	GetMethods() map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error
@@ -21,7 +22,7 @@ type ContractI interface {
 
 type Contract struct {
 	name    string
-	address string
+	address common.Address
 	abi     abi.ABI
 	methods map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error
 }
@@ -32,7 +33,7 @@ func (contract *Contract) GetName() string {
 	return contract.name
 }
 
-func (contract *Contract) GetAddress() string {
+func (contract *Contract) GetAddress() common.Address {
 	return contract.address
 }
 

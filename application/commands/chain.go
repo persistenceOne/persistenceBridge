@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
@@ -22,7 +22,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -39,16 +38,27 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			pStakeConfig := configuration.Config{}
+			pStakeConfig := configuration.InitConfig()
 			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
-			pStakeConfig = UpdateConfig(cmd, pStakeConfig)
-			if err := pStakeConfig.Validate(); err != nil {
-				panic(err)
+			pStakeConfig = configuration.SetConfig(cmd)
+
+			tmAddress, err := casp.GetTendermintAddress()
+			if err != nil {
+				log.Fatalln(err)
 			}
-			configuration.SetAppConfig(pStakeConfig)
+			log.Printf("Bridge Tendermint Address: %s\n", tmAddress.String())
+
+			ethAddress, err := casp.GetEthAddress()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			log.Printf("Bridge Ethereum Address: %s\n", ethAddress.String())
+
+			configuration.SetPStakeAddress(tmAddress)
+			configuration.ValidateAndSeal()
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
 			if err != nil {
@@ -85,6 +95,12 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 					log.Println("Error while closing DB: ", err.Error())
 				}
 			}(db)
+
+			unboundEpochTime, err := db2.GetUnboundEpochTime()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
 			chain, err := tendermint2.InitializeAndStartChain(args[0], timeout, homePath)
 			if err != nil {
@@ -148,121 +164,10 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, -1, "csap siganture wait time")
+	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
+	pBridgeCommand.Flags().Int64(constants2.FlagMinimumWrapAmount, -1, "minimum amount in send coin tx to wrap onto eth")
 	//This will always be used from flag
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
-	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
 
 	return pBridgeCommand
-}
-
-func UpdateConfig(cmd *cobra.Command, pstakeConfig configuration.Config) configuration.Config {
-	denom, err := cmd.Flags().GetString(constants2.FlagDenom)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if denom != "" {
-		pstakeConfig.Tendermint.PStakeDenom = denom
-	}
-
-	ethereumEndPoint, err := cmd.Flags().GetString(constants2.FlagEthereumEndPoint)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if ethereumEndPoint != "" {
-		pstakeConfig.Ethereum.EthereumEndPoint = ethereumEndPoint
-	}
-
-	ethGasLimit, err := cmd.Flags().GetUint64(constants2.FlagEthGasLimit)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if ethGasLimit != 0 {
-		pstakeConfig.Ethereum.GasLimit = ethGasLimit
-	}
-
-	ports, err := cmd.Flags().GetString(constants2.FlagKafkaPorts)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if ports != "" {
-		pstakeConfig.Kafka.Brokers = strings.Split(ports, ",")
-	}
-
-	broadcastMode, err := cmd.Flags().GetString(constants2.FlagBroadcastMode)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if broadcastMode != "" {
-		if broadcastMode == flags.BroadcastBlock || broadcastMode == flags.BroadcastAsync || broadcastMode == flags.BroadcastSync {
-			pstakeConfig.Tendermint.BroadcastMode = broadcastMode
-		} else {
-			log.Fatalln(fmt.Errorf("invalid broadcast mode"))
-		}
-	}
-
-	caspURL, err := cmd.Flags().GetString(constants2.FlagCASPURL)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if caspURL != "" {
-		pstakeConfig.CASP.URL = caspURL
-	}
-
-	caspVaultID, err := cmd.Flags().GetString(constants2.FlagCASPVaultID)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if caspVaultID != "" {
-		pstakeConfig.CASP.VaultID = caspVaultID
-	}
-
-	csapApiToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if csapApiToken != "" {
-		pstakeConfig.CASP.APIToken = csapApiToken
-	}
-
-	caspTMPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPTMPublicKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if caspTMPublicKey != "" {
-		pstakeConfig.CASP.TendermintPublicKey = caspTMPublicKey
-	}
-
-	caspEthPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPEthPublicKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if caspTMPublicKey != "" {
-		pstakeConfig.CASP.EthereumPublicKey = caspEthPublicKey
-	}
-
-	caspSignatureWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPSignatureWaitTime)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if caspSignatureWaitTime >= 0 {
-		pstakeConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
-	} else if pstakeConfig.CASP.SignatureWaitTime < 0 {
-		log.Fatalln("invalid casp signature wait time")
-	}
-
-	caspConcurrentKey, err := cmd.Flags().GetBool(constants2.FlagCASPConcurrentKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	pstakeConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
-
-	bridgeRPCEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if bridgeRPCEndpoint != "" {
-		pstakeConfig.RPCEndpoint = bridgeRPCEndpoint
-	}
-
-	return pstakeConfig
 }

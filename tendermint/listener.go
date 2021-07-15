@@ -27,13 +27,21 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 	}(kafkaProducer)
 
 	for {
+		// For Tendermint, we can directly query without waiting for blocks since there is finality
+		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
+		if err != nil {
+			// TODO NOTIFY, will lead to stuck state
+			log.Printf("Stopping Tendermint Listener, onNewBlock err: %s\n", err.Error())
+			return
+		}
+
 		if shutdown.GetBridgeStopSignal() {
 			if shutdown.GetKafkaConsumerClosed() {
 				log.Println("Stopping Tendermint Listener!!!")
 				shutdown.SetTMStopped(true)
 				return
 			}
-			time.Sleep(1 * time.Second)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -62,20 +70,17 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 			err = handleTxSearchResult(initClientCtx, txSearchResult, &kafkaProducer, protoCodec)
 			if err != nil {
-				panic(err)
+				// TODO NOTIFY, will lead to stuck state
+				log.Printf("ERROR handling TM txs at height %d: %s\n", processHeight, err.Error())
+				time.Sleep(sleepDuration)
+				continue
 			}
 
 			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
-				panic(err)
+				log.Fatalf("ERROR setting tendermint status: %s\n", err.Error())
 			}
 
-		}
-
-		// For Tendermint, we can directly query without waiting for blocks since there is finality
-		err = onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
-		if err != nil {
-			panic(err)
 		}
 
 		time.Sleep(sleepDuration)

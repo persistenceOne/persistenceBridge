@@ -18,11 +18,9 @@ func InitCommand() *cobra.Command {
 		Short: "init root command",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			config := configuration.NewConfig()
-			config = UpdateConfig(cmd, config)
-			if err := config.Validate(); err != nil {
-				panic(err)
-			}
+			configuration.InitConfig()
+			config := configuration.SetConfig(cmd)
+
 			var buf bytes.Buffer
 			encoder := toml.NewEncoder(&buf)
 			if err := encoder.Encode(config); err != nil {
@@ -50,14 +48,15 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagDenom, constants2.DefaultDenom, "denom name")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
-	cmd.Flags().String(constants2.FlagCASPURL, constants2.DefaultCASPUrl, "casp api url (with http)")
-	cmd.Flags().String(constants2.FlagCASPVaultID, constants2.DefaultCASPVaultID, "casp vault id")
-	cmd.Flags().String(constants2.FlagCASPApiToken, constants2.DefaultCASPAPI, "casp api token (in format: Bearer ...)")
-	cmd.Flags().String(constants2.FlagCASPTMPublicKey, constants2.DefaultCASPTendermintPublicKey, "casp tendermint public key")
-	cmd.Flags().String(constants2.FlagCASPEthPublicKey, constants2.DefaultCASPEthereumPublicKey, "casp ethereum public key")
+	cmd.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
+	cmd.Flags().String(constants2.FlagCASPVaultID, "", "casp vault id")
+	cmd.Flags().String(constants2.FlagCASPApiToken, "", "casp api token (in format: Bearer ...)")
+	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
+	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
 	cmd.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "csap siganture wait time")
 	cmd.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 	cmd.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc Endpoint for server")
+	cmd.Flags().Int64(constants2.FlagMinimumWrapAmount, constants2.DefaultMinimumWrapAmount, "minimum amount in send coin tx to wrap onto eth")
 
 	return cmd
 }

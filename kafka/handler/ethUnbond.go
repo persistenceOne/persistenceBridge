@@ -53,7 +53,7 @@ ConsumerLoop:
 	}
 
 	if sum.GT(sdk.ZeroInt()) {
-		delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.PStakeAddress, m.Chain)
+		delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), m.Chain)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ ConsumerLoop:
 				log.Printf("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
 			}
 			unbondMsg := &stakingTypes.MsgUndelegate{
-				DelegatorAddress: configuration.GetAppConfig().Tendermint.PStakeAddress,
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 				ValidatorAddress: delegation.Delegation.ValidatorAddress,
 				Amount: sdk.Coin{
 					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
