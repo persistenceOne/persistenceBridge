@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	"math/big"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -14,10 +18,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
-	//"github.com/persistenceOne/persistenceBridge/ethereum/magicTx"
-	"log"
-	"math/big"
-	"strings"
 )
 
 var ethBridgeAdmin common.Address
@@ -91,7 +91,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 
 	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
-		log.Printf("ERROR Broadcasting ETH Tx: %s, Error: %s\n", signedTx.Hash().String(), err.Error())
+		logging.Error("Broadcasting ETH Tx:", signedTx.Hash().String(), "Error:", err.Error())
 	}
 	return signedTx.Hash(), err
 }
@@ -119,16 +119,16 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, e
 
 func setEthBridgeAdmin() {
 	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
-		log.Printf("outgoingTx: casp ethereum bridge admin already set to %s To change update config and restart.\n", ethBridgeAdmin.String())
+		logging.Warn("outgoingTx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 		return
 	}
-	log.Println("outgoingTx: setting ethereum bridge admin from casp")
+	logging.Info("outgoingTx: setting ethereum bridge admin from casp")
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
 	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		log.Fatalln(fmt.Errorf("no eth public keys got from casp"))
+		logging.Fatal("no eth public keys got from casp")
 	}
 	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
 	ethBridgeAdmin = crypto.PubkeyToAddress(publicKey)

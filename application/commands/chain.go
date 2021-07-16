@@ -17,6 +17,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/kafka"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -49,16 +50,22 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			log.Printf("Bridge Tendermint Address: %s\n", tmAddress.String())
 
 			ethAddress, err := casp.GetEthAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
-			log.Printf("Bridge Ethereum Address: %s\n", ethAddress.String())
 
 			configuration.SetPStakeAddress(tmAddress)
 			configuration.ValidateAndSeal()
+
+			err = logging.InitializeBotAndLog("info")
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			logging.Info("Bridge (Wrap) Tendermint Address:", tmAddress.String())
+			logging.Info("Bridge (Admin) Ethereum Address:", ethAddress.String())
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
 			if err != nil {
@@ -118,10 +125,10 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			ended := make(chan bool)
 			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
-			log.Println("Starting to listen ethereum....")
+			logging.Info("Starting to listen ethereum....")
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
 
-			log.Println("Starting to listen tendermint....")
+			logging.Info("Starting to listen tendermint....")
 			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			go rpc.StartServer(pStakeConfig.RPCEndpoint)
@@ -129,11 +136,11 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
-				log.Println("STOP SIGNAL RECEIVED: " + sig.String())
+				logging.Info("STOP SIGNAL RECEIVED: " + sig.String())
 				shutdown.SetBridgeStopSignal(true)
 				for {
 					if !shutdown.GetKafkaConsumerClosed() {
-						log.Println("Stopping Kafka Routine!!!")
+						logging.Info("Stopping Kafka Routine!!!")
 						kafka.KafkaClose(kafkaState, end, ended)()
 						shutdown.SetKafkaConsumerClosed(true)
 					}
@@ -166,6 +173,8 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, -1, "csap siganture wait time")
 	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
 	pBridgeCommand.Flags().Int64(constants2.FlagMinimumWrapAmount, -1, "minimum amount in send coin tx to wrap onto eth")
+	pBridgeCommand.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")
+	pBridgeCommand.Flags().Int64(constants2.FlagTelegramChatID, 0, "telegram chat id")
 	//This will always be used from flag
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 

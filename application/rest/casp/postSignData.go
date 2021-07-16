@@ -8,8 +8,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -56,11 +56,11 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 	}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		log.Printf("error posting casp sign data %s\n", string(body))
+		logging.Error("posting casp sign data, err:", err, "Body:", string(body))
 		var errResponse casp.ErrorResponse
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {
-			log.Fatalf("CASP SIGNING ERROR (Unknown response type): %v\n", err)
+			logging.Fatal("CASP SIGNING ERROR (Unknown response type):", err)
 		}
 		if errResponse.Title == constants.VAULT_BUSY {
 			return response, true, nil

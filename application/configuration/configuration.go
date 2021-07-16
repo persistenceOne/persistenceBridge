@@ -2,13 +2,14 @@ package configuration
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/spf13/cobra"
-	"log"
-	"strings"
-	"time"
 )
 
 var appConfig *config
@@ -145,6 +146,22 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		if minWrapAmt >= 0 {
 			appConfig.Tendermint.MinimumWrapAmount = minWrapAmt
+		}
+
+		telegramBotToken, err := cmd.Flags().GetString(constants2.FlagTelegramBotToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if telegramBotToken != "" {
+			appConfig.TelegramBot.Token = telegramBotToken
+		}
+
+		telegramBotChatID, err := cmd.Flags().GetInt64(constants2.FlagTelegramChatID)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if minWrapAmt != 0 {
+			appConfig.TelegramBot.ChatID = telegramBotChatID
 		}
 	}
 

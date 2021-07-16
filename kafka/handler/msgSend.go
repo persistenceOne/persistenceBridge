@@ -6,7 +6,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
@@ -15,7 +15,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v\n", utils.MsgSend)
+			logging.Error("failed to close producer in topic: MsgSend, error:", err)
 		}
 	}()
 	validators, err := db.GetValidators()
@@ -52,7 +52,8 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {
-					log.Printf("failed to produce from %v to :%v", utils.MsgSend, utils.ToTendermint)
+					//TODO @Puneet return err??
+					logging.Error("failed to produce from: MsgSend to: ToTendermint")
 					break ConsumerLoop
 				}
 				session.MarkMessage(kafkaMsg, "")

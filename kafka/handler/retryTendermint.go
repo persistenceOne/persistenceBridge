@@ -7,7 +7,7 @@ import (
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
@@ -16,7 +16,7 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
+			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
 		}
 	}()
 	claimMsgChan := claim.Messages()
@@ -48,7 +48,8 @@ ConsumerLoop:
 
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				log.Printf("failed to produce from %v to :%v", utils.RetryTendermint, utils.ToTendermint)
+				//TODO @Puneet return err??
+				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, error:", err)
 				break ConsumerLoop
 			}
 			session.MarkMessage(kafkaMsg, "")

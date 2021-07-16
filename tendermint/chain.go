@@ -2,13 +2,14 @@ package tendermint
 
 import (
 	"encoding/json"
-	"github.com/cosmos/relayer/helpers"
-	"github.com/cosmos/relayer/relayer"
-	tendermintService "github.com/tendermint/tendermint/libs/service"
 	"io/ioutil"
-	"log"
 	"os"
 	"time"
+
+	"github.com/cosmos/relayer/helpers"
+	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	tendermintService "github.com/tendermint/tendermint/libs/service"
 )
 
 func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*relayer.Chain, error) {
@@ -24,7 +25,7 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*re
 	}
 
 	if chain.KeyExists(chain.Key) {
-		log.Printf("deleting old key %s\n", chain.Key)
+		logging.Info("deleting old key", chain.Key)
 		err = chain.Keybase.Delete(chain.Key)
 		if err != nil {
 			return chain, err
@@ -37,7 +38,7 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*re
 		return chain, err
 	}
 
-	log.Printf("Chain Keys added [NOT TO BE USED]: %s\n", ko.Address)
+	logging.Warn("Chain Keys added  [NOT TO BE USED]:", ko.Address)
 
 	if err = chain.Start(); err != nil {
 		if err != tendermintService.ErrAlreadyStarted {

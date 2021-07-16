@@ -3,6 +3,7 @@ package outgoingTx
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -14,8 +15,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/tendermint/tendermint/crypto"
-	"log"
 )
 
 var tmPublicKey cryptotypes.PubKey
@@ -31,7 +32,7 @@ func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight
 			msgsTypes = msgsTypes + msg.Type() + " "
 		}
 	}
-	log.Println("Messages to tendermint: " + msgsTypes)
+	logging.Info("Messages to tendermint:", msgsTypes)
 	return tendermintSignAndBroadcastMsgs(chain, msgs, "pStake@PersistenceOne", timeoutHeight)
 }
 
@@ -170,16 +171,16 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 
 func setTMPublicKey() {
 	if tmPublicKey != nil {
-		log.Printf("outgoingTx: casp tendermint public key already set to %s To change update config and restart.\n", tmPublicKey.String())
+		logging.Warn("outgoingTx: casp tendermint public key already set to.", tmPublicKey.String(), "To change update config and restart.")
 		return
 	}
-	log.Println("outgoingTx: setting tendermint casp public key")
+	logging.Info("outgoingTx: setting tendermint casp public key")
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
 	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
 	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
 }

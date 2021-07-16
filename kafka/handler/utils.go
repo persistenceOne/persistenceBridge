@@ -11,7 +11,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func contains(s []sdk.ValAddress, e sdk.ValAddress) bool {
@@ -64,12 +64,12 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 			}
 			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(withdrawRewardsMsg)
 			if err != nil {
-				log.Printf("Failed to Marshal WithdrawMessage: Error: %v\n", err)
+				logging.Error("Failed to Marshal WithdrawMessage, Error:", err)
 				return loop, err
 			} else {
 				err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
 				if err2 != nil {
-					log.Printf("error in handler for topic %v, failed to produce to queue\n", utils.MsgSend)
+					logging.Error("failed to produce withdrawRewards to queue ToTendermint")
 					return loop, err2
 				}
 				loop = loop - 1

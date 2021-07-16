@@ -8,7 +8,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"math/big"
 
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -26,6 +26,7 @@ var LiquidStaking = Contract{
 }
 
 func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
+	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	stakeMsg := &stakingTypes.MsgDelegate{
 		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
@@ -35,19 +36,19 @@ func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, a
 
 	msgBytes, err := protoCodec.MarshalInterface(stakeMsg)
 	if err != nil {
-		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding stake msg to kafka producer MsgDelegate, amount: %s\n", amount.String())
+	logging.Info("Adding stake msg to kafka producer MsgDelegate", ercAddress.String(), "amount:", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, *kafkaProducer)
 	if err != nil {
-		log.Printf("Failed to add msg to kafka queue MsgDelegate: %s [ETH Listener (onStake)]\n", err.Error())
+		logging.Error("Failed to add msg to kafka queue [ETH Listener (onStake)] MsgDelegate:", err)
 		return err
 	}
 	return nil
 }
 
 func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
+	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	unStakeMsg := &stakingTypes.MsgUndelegate{
 		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
@@ -56,13 +57,12 @@ func onUnStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec,
 	}
 	msgBytes, err := protoCodec.MarshalInterface(unStakeMsg)
 	if err != nil {
-		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding unstake msg to kafka producer EthUnbond, amount: %s\n", amount.String())
+	logging.Info("Adding unStake msg to kafka producer EthUnbond, from: ", ercAddress.String(), "amount:", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.EthUnbond, *kafkaProducer)
 	if err != nil {
-		log.Printf("Failed to add msg to kafka queue EthUnbond: %s [ETH Listener (onUnStake)]\n", err.Error())
+		logging.Error("Failed to add msg to kafka queue  [ETH Listener (onUnStake)] EthUnbond:", err)
 		return err
 	}
 	return nil

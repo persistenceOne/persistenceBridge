@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"math/big"
 )
 
@@ -40,7 +40,7 @@ func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 func getXY(caspPubKey string) (big.Int, big.Int) {
 	pubKeyBytes, err := hex.DecodeString(string([]rune(caspPubKey)[2:])) // uncompressed pubkey
 	if err != nil {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
 	var x big.Int
 	x.SetBytes(pubKeyBytes[0:32])

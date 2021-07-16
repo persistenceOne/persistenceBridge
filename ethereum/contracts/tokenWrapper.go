@@ -5,7 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"math/big"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -38,13 +38,12 @@ func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.Pro
 	}
 	msgBytes, err := protoCodec.MarshalInterface(sendCoinMsg)
 	if err != nil {
-		log.Println("Failed to generate msgBytes: ", err)
 		return err
 	}
-	log.Printf("Adding sendCoin msg to kafka producer MsgSend, from: %s, to: %s, amount: %s\n", ercAddress.String(), atomAddress.String(), sendCoinMsg.Amount.String())
+	logging.Info("Adding sendCoin (unwrap) msg to kafka producer MsgSend, from:", ercAddress.String(), "to:", sendCoinMsg.ToAddress, "amount:", sendCoinMsg.Amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
-		log.Printf("Failed to add msg to kafka queue MsgSend: %s [ETH Listener (onWithDrawUTokens)]\n", err.Error())
+		logging.Error("Failed to add msg to kafka queue [ETH Listener (onWithDrawUTokens)] MsgSend: ", err)
 		return err
 	}
 	return nil

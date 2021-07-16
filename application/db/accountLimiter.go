@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dgraph-io/badger/v3"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 type AccountLimiter struct {
@@ -67,7 +68,7 @@ func GetAccountLimiterAndTotal(address sdk.AccAddress) (AccountLimiter, int) {
 		return nil
 	})
 	if err != nil {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
 	return acc, total
 }

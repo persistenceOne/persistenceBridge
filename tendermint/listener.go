@@ -3,16 +3,16 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"github.com/Shopify/sarama"
-	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/shutdown"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/shutdown"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
@@ -21,8 +21,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
-			log.Println(err)
-			return
+			logging.Error(err)
 		}
 	}(kafkaProducer)
 
@@ -30,14 +29,13 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
 		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
 		if err != nil {
-			// TODO NOTIFY, will lead to stuck state
-			log.Printf("Stopping Tendermint Listener, onNewBlock err: %s\n", err.Error())
+			logging.Error("Stopping Tendermint Listener, onNewBlock err:", err)
 			return
 		}
 
 		if shutdown.GetBridgeStopSignal() {
 			if shutdown.GetKafkaConsumerClosed() {
-				log.Println("Stopping Tendermint Listener!!!")
+				logging.Info("Stopping Tendermint Listener!!!")
 				shutdown.SetTMStopped(true)
 				return
 			}
@@ -47,7 +45,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 		abciInfo, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
-			log.Printf("Error while fetching tendermint abci info: %s\n", err.Error())
+			logging.Error("Error while fetching tendermint abci info:", err.Error())
 			time.Sleep(sleepDuration)
 			continue
 		}
@@ -59,30 +57,28 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 		if abciInfo.Response.LastBlockHeight > cosmosStatus.LastCheckHeight {
 			processHeight := cosmosStatus.LastCheckHeight + 1
-			log.Printf("TM: %d\n", processHeight)
+			logging.Info("Tendermint Block:", processHeight)
 
 			txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", processHeight), true, nil, nil, "asc")
 			if err != nil {
-				log.Printf("ERROR getting TM height %d: %s\n", processHeight, err.Error())
+				logging.Error("Unable to get tendermint block:", processHeight, "ERR:", err)
 				time.Sleep(sleepDuration)
 				continue
 			}
 
 			err = handleTxSearchResult(initClientCtx, txSearchResult, &kafkaProducer, protoCodec)
 			if err != nil {
-				// TODO NOTIFY, will lead to stuck state
-				log.Printf("ERROR handling TM txs at height %d: %s\n", processHeight, err.Error())
+				logging.Error("Unable to handle tendermint txs at height:", processHeight, "ERR:", err)
 				time.Sleep(sleepDuration)
 				continue
 			}
 
 			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
-				log.Fatalf("ERROR setting tendermint status: %s\n", err.Error())
+				logging.Fatal("ERROR setting tendermint status:", err)
 			}
 
 		}
-
 		time.Sleep(sleepDuration)
 	}
 }

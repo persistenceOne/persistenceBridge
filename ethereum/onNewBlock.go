@@ -3,12 +3,13 @@ package ethereum
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/Shopify/sarama"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient.Client, kafkaProducer *sarama.SyncProducer) error {
@@ -16,37 +17,39 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		var ethTx db.EthereumBroadcastedWrapTokenTransaction
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
-			log.Fatalf("Failed to unmarshal EthTransaction [ETH onNewBlock]: %s\n", err.Error())
+			logging.Fatal("Failed to unmarshal EthTransaction [ETH onNewBlock]:", err)
+			return err
 		}
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
 		if err != nil {
 			if txReceipt == nil && err == ethereum.NotFound {
-				log.Printf("ETH TX %s is in pending transactions\n", ethTx.TxHash)
+				logging.Info("Pending broadcast eth tx:", ethTx.TxHash)
 			} else {
-				log.Printf("ETH [onNewBlock] TX %s receipt fetch failed: %s\n", ethTx.TxHash.String(), err)
+				logging.Error("Receipt fetch failed [onNewBlock] eth tx:", ethTx.TxHash.String(), "Error:", err)
 			}
 		} else {
 			deleteTx := false
 			if txReceipt.Status == 0 {
-				log.Printf("Broadacasted ethereum tx %s (block: %d) failed.\n", ethTx.TxHash.String(), txReceipt.BlockNumber.Uint64())
+				logging.Warn("Broadcast eth tx failed, Hash:", ethTx.TxHash.String(), "Block:", txReceipt.BlockNumber.Uint64())
 				for _, msg := range ethTx.Messages {
 					msgBytes, err := json.Marshal(msg)
 					if err != nil {
-						log.Fatalln("Failed to generate msgBytes: ", err)
+						return err
 					}
 					err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 					if err != nil {
-						log.Printf("Failed to add msg to kafka queue ToEth: %s [ETH onNewBlock]\n", err.Error())
+						logging.Error("Failed to add msg to kafka queue [ETH onNewBlock] ToEth, Message:", msg, "Error:", err)
+						return err
 					}
 				}
 				deleteTx = true
 			} else {
 				confirmedBlocks := latestBlockHeight - txReceipt.BlockNumber.Uint64()
 				if confirmedBlocks >= 12 {
-					log.Printf("Broadcasted ethereum tx %s (block: %d) success. Has %d confirmed blocks.\n", ethTx.TxHash, txReceipt.BlockNumber.Uint64(), confirmedBlocks)
+					logging.Info("Broadcast eth tx successful. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
 					deleteTx = true
 				} else {
-					log.Printf("Broadcasted ethereum tx %s (block: %d) has %d block confirmations.\n", ethTx.TxHash, txReceipt.BlockNumber.Uint64(), confirmedBlocks)
+					logging.Info("Broadcast eth tx confirmation pending. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
 				}
 			}
 			if deleteTx {

@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"log"
 	"strings"
 
@@ -61,17 +62,17 @@ func (contract *Contract) GetMethodAndArguments(inputData []byte) (*abi.Method, 
 
 	decodedSig, err := hex.DecodeString(txData[:8])
 	if err != nil {
-		log.Fatalf("Unable decode method ID (decodeSig) of %s: %s\n", contract.name, err.Error())
+		logging.Fatal("Unable decode method ID (decodeSig) of", contract.name, "Error:", err)
 	}
 
 	method, err := contract.abi.MethodById(decodedSig)
 	if err != nil {
-		log.Fatalf("Unable to fetch method of %s: %s\n", contract.name, err.Error())
+		logging.Fatal("Unable to fetch method of", contract.name, "Error:", err)
 	}
 
 	decodedData, err := hex.DecodeString(txData[8:])
 	if err != nil {
-		log.Fatalf("Unable to decode input data of %s: %s\n", contract.name, err.Error())
+		logging.Fatal("Unable to decode input data of", contract.name, "Error:", err)
 	}
 
 	arguments, err := method.Inputs.Unpack(decodedData)

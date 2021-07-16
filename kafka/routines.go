@@ -9,7 +9,7 @@ import (
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/handler"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"time"
 )
 
@@ -22,17 +22,17 @@ func KafkaClose(kafkaState utils.KafkaState, end, ended chan bool) func() {
 		_ = <-ended
 		_ = <-ended
 		_ = <-ended
-		log.Println("closing all kafka clients")
+		logging.Info("closing all kafka clients")
 		if err := kafkaState.Producer.Close(); err != nil {
-			log.Println("Error in closing producer:", err)
+			logging.Error("Error in closing producer:", err)
 		}
 		for _, consumerGroup := range kafkaState.ConsumerGroup {
 			if err := consumerGroup.Close(); err != nil {
-				log.Println("Error in closing partition:", err)
+				logging.Error("Error in closing partition:", err)
 			}
 		}
 		if err := kafkaState.Admin.Close(); err != nil {
-			log.Println("Error in closing admin:", err)
+			logging.Error("Error in closing admin:", err)
 		}
 
 	}
@@ -49,7 +49,7 @@ func KafkaRoutine(kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec, cha
 	go consumeUnbondings(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
 	go consumeToTendermintMessages(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
-	log.Println("started consumers")
+	logging.Info("Started consumers")
 }
 
 func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
@@ -60,16 +60,15 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
 			Chain: chain, EthClient: ethereumClient, Count: 0}
 		err := consumerGroup.Consume(ctx, []string{utils.ToEth}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer group.Consume", err)
+			logging.Error("Error in consumer group.Consume", err)
 		}
 		select {
 		case <-end:
-			log.Println("Stopping ToEth Consumer!!!")
+			logging.Info("Stopping ToEth Consumer!!!")
 			ended <- true
 			return
 		default:
-			log.Println("Next Routine Eth")
-
+			logging.Debug("Next Routine Eth")
 		}
 	}
 }
@@ -88,37 +87,37 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 			Chain: chain, EthClient: ethereumClient, Count: 0, WithdrawRewards: false}
 		err := groupRedelegate.Consume(ctx, []string{utils.Redelegate}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer groupRedelegate.Consume", err)
+			logging.Error("Consumer groupRedelegate.Consume:", err)
 		}
 		err = groupMsgUnbond.Consume(ctx, []string{utils.MsgUnbond}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer groupMsgUnbond.Consume for MsgUnbond", err)
+			logging.Error("Consumer groupMsgUnbond.Consume:", err)
 		}
 		err = groupMsgDelegate.Consume(ctx, []string{utils.MsgDelegate}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer groupMsgDelegate.Consume", err)
+			logging.Error("Consumer groupMsgDelegate.Consume:", err)
 		}
 		err = groupMsgSend.Consume(ctx, []string{utils.MsgSend}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer groupMsgSend.Consume", err)
+			logging.Error("Consumer groupMsgSend.Consume:", err)
 		}
 
 		err = groupRetryTendermint.Consume(ctx, []string{utils.RetryTendermint}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer groupRetryTendermint.Consume", err)
+			logging.Error("Consumer groupRetryTendermint.Consume:", err)
 		}
 
 		err = groupMsgToTendermint.Consume(ctx, []string{utils.ToTendermint}, msgHandler)
 		if err != nil {
-			log.Println("Error in consumer groupMsgToTendermint.Consume", err)
+			logging.Error("Consumer groupMsgToTendermint.Consume:", err)
 		}
 		select {
 		case <-end:
-			log.Println("Stopping To-Tendermint Consumer!!!")
+			logging.Info("Stopping To-Tendermint Consumer!!!")
 			ended <- true
 			return
 		default:
-			log.Println("Next Routine Tendermint")
+			logging.Debug("Next Routine Tendermint")
 
 		}
 	}
@@ -130,38 +129,38 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 	for {
 		nextEpochTime, err := db2.GetUnboundEpochTime()
 		if err != nil {
-			log.Fatalln(err)
+			logging.Fatal(err)
 		}
 		if time.Now().Unix() > nextEpochTime.Epoch {
 			msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
 				Chain: chain, EthClient: ethereumClient, Count: 0}
 			err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
 			if err != nil {
-				log.Println("Error in consumer group.Consume for EthUnbond ", err)
+				logging.Error("Consumer group.Consume for EthUnbond:", err)
 			}
 
 			err = db2.SetUnboundEpochTime(time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
 			if err != nil {
-				log.Fatalln(err)
+				logging.Fatal(err)
 			}
 			ticker := time.Tick(configuration.GetAppConfig().Kafka.EthUnbondCycleTime)
 			select {
 			case <-end:
-				log.Println("Stopping Unbondings Consumer!!!")
+				logging.Info("Stopping Unbondings Consumer!!!")
 				ended <- true
 				return
 			case <-ticker:
-				log.Println("Next Routine Unbond")
+				logging.Debug("Next Routine Unbond")
 			}
 		} else {
 			ticker := time.Tick(time.Duration(nextEpochTime.Epoch - time.Now().UnixNano()))
 			select {
 			case <-end:
-				log.Println("Stopping Unbondings Consumer!!!")
+				logging.Info("Stopping Unbondings Consumer!!!")
 				ended <- true
 				return
 			case <-ticker:
-				log.Println("Next Routine Unbond")
+				logging.Debug("Next Routine Unbond")
 
 			}
 		}
