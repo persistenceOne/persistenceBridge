@@ -52,7 +52,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {
-					//TODO @Puneet return err??
+					//TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 					logging.Error("failed to produce from: MsgSend to: ToTendermint")
 					break ConsumerLoop
 				}

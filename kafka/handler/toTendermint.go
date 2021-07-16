@@ -95,12 +95,12 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 						msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
 						if err != nil {
 							logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
-							// TODO @Puneet continue or return?
+							// TODO @Puneet continue or return? ~ this case should never come, log(ALERT), continue
 						}
 						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
 						if err != nil {
 							logging.Error("Retry txs: Failed to add msg to kafka queue, Msg:", msg.String(), "Error:", err)
-							// TODO @Puneet continue or return?
+							// TODO @Puneet continue or return? ~ let it continue, log the message, will have to send manually.
 						}
 						logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
 					}

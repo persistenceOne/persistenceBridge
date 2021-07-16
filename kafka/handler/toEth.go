@@ -90,7 +90,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToEth, producer)
 			if err != nil {
 				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "error:", err)
-				// TODO @Puneet continue or return?
+				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.
 			}
 		}
 		return err
