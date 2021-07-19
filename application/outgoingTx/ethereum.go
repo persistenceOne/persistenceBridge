@@ -49,7 +49,7 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
 }
 
-func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
+func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
 	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
 		setEthBridgeAdmin()
@@ -70,7 +70,7 @@ func sendTxToEth(client *ethclient.Client, contractAddress *common.Address, txVa
 		Gas:      configuration.GetAppConfig().Ethereum.GasLimit,
 		GasPrice: gasPrice.Add(gasPrice, big.NewInt(4000000000)),
 		Data:     txData,
-		To:       contractAddress,
+		To:       toAddress,
 	})
 
 	chainID, err := client.ChainID(ctx)

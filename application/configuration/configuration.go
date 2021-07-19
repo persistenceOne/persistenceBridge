@@ -160,7 +160,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if minWrapAmt != 0 {
+		if telegramBotChatID != 0 {
 			appConfig.TelegramBot.ChatID = telegramBotChatID
 		}
 	}

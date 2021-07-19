@@ -22,27 +22,27 @@ func InitializeBotAndLog(logLevel string) (err error) {
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
 		bot, err = tb.NewBot(tb.Settings{Token: configuration.GetAppConfig().TelegramBot.Token})
 		if err != nil {
-			logrus.Fatalln("ERROR while setting up bot: %s\n", err.Error())
+			return err
 		}
-	}
-	if configuration.GetAppConfig().TelegramBot.ChatID == 0 {
-		err = fmt.Errorf("invalid bot's chat id")
-	} else {
-		err = sendMessage("pBridge bot initialized")
+		if configuration.GetAppConfig().TelegramBot.ChatID != 0 {
+			Info("Sending initialising bot message...")
+			err = sendMessage("pBridge bot initialized")
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return err
 }
 
 func Error(err ...interface{}) {
 	logrus.Errorln(err...)
-	message := fmt.Sprintln(err...)
-	_ = sendMessage("ERROR:\n" + message)
+	_ = sendMessage("ERROR:\n" + fmt.Sprintln(err...))
 }
 
 func Warn(warn ...interface{}) {
 	logrus.Warnln(warn...)
-	message := fmt.Sprintln(warn...)
-	_ = sendMessage("WARNING:\n" + message)
+	_ = sendMessage("WARNING:\n" + fmt.Sprintln(warn...))
 }
 
 func Info(info ...interface{}) {
@@ -54,8 +54,7 @@ func Debug(debug ...interface{}) {
 }
 
 func Fatal(err ...interface{}) {
-	message := fmt.Sprintln(err...)
-	_ = sendMessage("FATAL:\n" + message)
+	_ = sendMessage("FATAL:\n" + fmt.Sprintln(err...))
 	logrus.Fatalln(err...)
 }
 

@@ -125,13 +125,13 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			ended := make(chan bool)
 			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
+			go rpc.StartServer(pStakeConfig.RPCEndpoint)
+
 			logging.Info("Starting to listen ethereum....")
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
 			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
-
-			go rpc.StartServer(pStakeConfig.RPCEndpoint)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)

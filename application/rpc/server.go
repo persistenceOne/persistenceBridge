@@ -53,7 +53,7 @@ func StartServer(rpcEndpoint string) {
 
 	rpc.HandleHTTP()
 
-	logging.Info("Serving rpc on ", rpcEndpoint)
+	logging.Info("Starting RPC server on:", rpcEndpoint)
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/validators", validators)
 	err = http.ListenAndServe(rpcEndpoint, nil)

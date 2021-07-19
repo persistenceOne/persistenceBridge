@@ -24,15 +24,15 @@ func KafkaClose(kafkaState utils.KafkaState, end, ended chan bool) func() {
 		_ = <-ended
 		logging.Info("closing all kafka clients")
 		if err := kafkaState.Producer.Close(); err != nil {
-			logging.Error("Error in closing producer:", err)
+			logging.Error("Closing producer error:", err)
 		}
 		for _, consumerGroup := range kafkaState.ConsumerGroup {
 			if err := consumerGroup.Close(); err != nil {
-				logging.Error("Error in closing partition:", err)
+				logging.Error("Closing partition error:", err)
 			}
 		}
 		if err := kafkaState.Admin.Close(); err != nil {
-			logging.Error("Error in closing admin:", err)
+			logging.Error("Closing admin error:", err)
 		}
 
 	}
@@ -60,7 +60,7 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
 			Chain: chain, EthClient: ethereumClient, Count: 0}
 		err := consumerGroup.Consume(ctx, []string{utils.ToEth}, msgHandler)
 		if err != nil {
-			logging.Error("Error in consumer group.Consume", err)
+			logging.Error("Consumer group.Consume:", err)
 		}
 		select {
 		case <-end:
@@ -161,9 +161,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 				return
 			case <-ticker:
 				logging.Debug("Next Routine Unbond")
-
 			}
 		}
-
 	}
 }

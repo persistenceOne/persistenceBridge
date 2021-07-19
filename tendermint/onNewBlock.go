@@ -22,7 +22,7 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 		var tmTx db.TendermintBroadcastedTransaction
 		err := json.Unmarshal(value, &tmTx)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal TendermintBroadcastedTransaction %s [TM onNewBlock]: %s", tmTx.TxHash, err.Error())
+			return fmt.Errorf("failed to unmarshal TendermintBroadcastedTransaction %s [TM onNewBlock]: %s", string(key), err.Error())
 		}
 		txHashBytes, err := hex.DecodeString(tmTx.TxHash)
 		if err != nil {
@@ -31,10 +31,10 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 		txResult, err := chain.Client.Tx(ctx, txHashBytes, true)
 		if err != nil {
 			if err.Error() == fmt.Sprintf("RPC error -32603 - Internal error: tx (%s) not found", tmTx.TxHash) {
-				logging.Info("TM TX still pending:", tmTx.TxHash)
+				logging.Info("Tendermint tx still pending:", tmTx.TxHash)
 				return nil
 			}
-			logging.Error(fmt.Sprintf("TM TX hash %s search failed [TM onNewBlock]: %s", tmTx.TxHash, err.Error()))
+			logging.Error(fmt.Sprintf("Tendermint tx hash %s search failed [TM onNewBlock]: %s", tmTx.TxHash, err.Error()))
 			return err
 		} else {
 			if txResult.TxResult.GetCode() != 0 {
@@ -56,7 +56,7 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 						}
 						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, *kafkaProducer)
 						if err != nil {
-							return fmt.Errorf("Failed to add messages of %s to kafka queue [TM onNewBlock] RetryTendermint: %s\n", msg.String(), err.Error())
+							return fmt.Errorf("failed to add messages of %s to kafka queue [TM onNewBlock] RetryTendermint: %s", msg.String(), err.Error())
 						}
 					}
 				}

@@ -3,6 +3,7 @@ package ethereum
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/Shopify/sarama"
 	"github.com/ethereum/go-ethereum"
@@ -17,20 +18,19 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		var ethTx db.EthereumBroadcastedWrapTokenTransaction
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
-			logging.Fatal("Failed to unmarshal EthTransaction [ETH onNewBlock]:", err)
-			return err
+			return fmt.Errorf("failed to unmarshal EthereumBroadcastedWrapTokenTransaction %s [ETH onNewBlock]: %s", string(key), err.Error())
 		}
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
 		if err != nil {
 			if txReceipt == nil && err == ethereum.NotFound {
-				logging.Info("Pending broadcast eth tx:", ethTx.TxHash)
+				logging.Info("Broadcast ethereum tx pending:", ethTx.TxHash)
 			} else {
 				logging.Error("Receipt fetch failed [onNewBlock] eth tx:", ethTx.TxHash.String(), "Error:", err)
 			}
 		} else {
 			deleteTx := false
 			if txReceipt.Status == 0 {
-				logging.Warn("Broadcast eth tx failed, Hash:", ethTx.TxHash.String(), "Block:", txReceipt.BlockNumber.Uint64())
+				logging.Error("Broadcast ethereum tx failed, Hash:", ethTx.TxHash.String(), "Block:", txReceipt.BlockNumber.Uint64())
 				for _, msg := range ethTx.Messages {
 					msgBytes, err := json.Marshal(msg)
 					if err != nil {
@@ -46,10 +46,10 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 			} else {
 				confirmedBlocks := latestBlockHeight - txReceipt.BlockNumber.Uint64()
 				if confirmedBlocks >= 12 {
-					logging.Info("Broadcast eth tx successful. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
+					logging.Info("Broadcast ethereum tx successful. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
 					deleteTx = true
 				} else {
-					logging.Info("Broadcast eth tx confirmation pending. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
+					logging.Info("Broadcast ethereum tx confirmation pending. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
 				}
 			}
 			if deleteTx {

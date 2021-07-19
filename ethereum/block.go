@@ -37,7 +37,7 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 func handleTransaction(client *ethclient.Client, ctx *context.Context, transaction *types.Transaction, contract contracts2.ContractI, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	receipt, err := client.TransactionReceipt(*ctx, transaction.Hash())
 	if err != nil {
-		logging.Error("Error while fetching receipt of tx:", transaction.Hash().String(), "Error:", err)
+		logging.Error("Unable to get receipt of tx:", transaction.Hash().String(), "Error:", err)
 		return err
 	}
 

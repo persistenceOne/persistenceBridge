@@ -137,7 +137,7 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				accountLimiter.Amount = accountLimiter.Amount.Add(sendAmt)
 				err = db.SetAccountLimiter(accountLimiter)
 				if err != nil {
-					panic(err)
+					logging.Fatal(err)
 				}
 			}
 			if len(refundCoins) > 0 {

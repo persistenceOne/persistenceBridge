@@ -38,7 +38,7 @@ func onStake(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, a
 	if err != nil {
 		return err
 	}
-	logging.Info("Adding stake msg to kafka producer MsgDelegate", ercAddress.String(), "amount:", amount.String())
+	logging.Info("Adding stake msg to kafka producer MsgDelegate, from:", ercAddress.String(), "amount:", amount.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgDelegate, *kafkaProducer)
 	if err != nil {
 		logging.Error("Failed to add msg to kafka queue [ETH Listener (onStake)] MsgDelegate:", err)

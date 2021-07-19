@@ -38,7 +38,7 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*re
 		return chain, err
 	}
 
-	logging.Warn("Chain Keys added  [NOT TO BE USED]:", ko.Address)
+	logging.Warn("Chain Keys added [NOT TO BE USED]:", ko.Address)
 
 	if err = chain.Start(); err != nil {
 		if err != tendermintService.ErrAlreadyStarted {

@@ -37,7 +37,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 		latestEthHeight, err := client.BlockNumber(ctx)
 		if err != nil {
-			logging.Error("Error while fetching latest block height:", err)
+			logging.Error("Unable to fetch ethereum latest block height:", err)
 			time.Sleep(sleepDuration)
 			continue
 		}

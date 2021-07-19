@@ -45,7 +45,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 		abciInfo, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
-			logging.Error("Error while fetching tendermint abci info:", err.Error())
+			logging.Error("Unable to fetch tendermint ABCI info:", err)
 			time.Sleep(sleepDuration)
 			continue
 		}
@@ -59,9 +59,10 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			processHeight := cosmosStatus.LastCheckHeight + 1
 			logging.Info("Tendermint Block:", processHeight)
 
+			//TODO bug of pages and perPage
 			txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", processHeight), true, nil, nil, "asc")
 			if err != nil {
-				logging.Error("Unable to get tendermint block:", processHeight, "ERR:", err)
+				logging.Error("Unable to fetch tendermint txs for block:", processHeight, "ERR:", err)
 				time.Sleep(sleepDuration)
 				continue
 			}

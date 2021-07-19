@@ -23,7 +23,7 @@ func QueryValidatorDelegator(delegatorAddress, validatorAddress string, chain *r
 		ValidatorAddr: validatorAddress,
 	})
 	if err != nil {
-		logging.Error("Delegator delegations not found, Error:", err)
+		logging.Error("Delegator's validator not found, Error:", err)
 		return stakingTypes.Validator{}, err
 	}
 	return stakingRes.GetValidator(), err
@@ -36,7 +36,7 @@ func QueryDelegatorValidatorDelegations(delegatorAddress, validatorAddress strin
 		ValidatorAddr: validatorAddress,
 	})
 	if err != nil {
-		logging.Error("Delegator delegations not found, Error:", err)
+		logging.Error("Delegator validator delegation not found, Error:", err)
 		return stakingTypes.DelegationResponse{}, err
 	}
 	return *stakingRes.DelegationResponse, err
