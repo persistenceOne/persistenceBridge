@@ -33,9 +33,9 @@ type tmWrapOrRevert struct {
 	memo     string
 }
 
-func handleTxSearchResult(clientCtx client.Context, txSearchResult *tmCoreTypes.ResultTxSearch, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	var allTxsWrapOrRevert []tmWrapOrRevert
-	for _, transaction := range txSearchResult.Txs {
+	for _, transaction := range resultTxs {
 		tmWrapOrReverts, err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
