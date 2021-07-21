@@ -16,6 +16,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/tendermint/tendermint v0.34.11
 	github.com/tendermint/tm-db v0.6.4
+	google.golang.org/grpc v1.37.0
 	gopkg.in/tucnak/telebot.v2 v2.3.5
 )
 

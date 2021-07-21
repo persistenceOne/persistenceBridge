@@ -12,6 +12,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func contains(s []sdk.ValAddress, e sdk.ValAddress) bool {
@@ -53,6 +55,10 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 	}
 	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), chain)
 	if err != nil {
+		errStatus, ok := status.FromError(err)
+		if ok && errStatus.Code() == codes.NotFound {
+			return loop, nil
+		}
 		return loop, err
 	}
 	delegatorValidators := ValidatorsInDelegations(delegatorDelegations)

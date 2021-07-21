@@ -48,7 +48,7 @@ func QueryDelegatorDelegations(delegatorAddress string, chain *relayer.Chain) (s
 		DelegatorAddr: delegatorAddress,
 	})
 	if err != nil {
-		logging.Error("Delegator delegations not found, Error:", err)
+		logging.Info("Delegator delegations not found, Error:", err)
 		return nil, err
 	}
 	return stakingRes.DelegationResponses, err
