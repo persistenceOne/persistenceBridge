@@ -32,6 +32,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
 		if err != nil {
 			logging.Error("Stopping Tendermint Listener, onNewBlock err:", err)
+			shutdown.SetTMStopped(true)
 			return
 		}
 

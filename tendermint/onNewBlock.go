@@ -62,7 +62,6 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 				}
 			} else {
 				logging.Info("Broadcast tendermint tx successful. Hash:", tmTx.TxHash, "Block:", txResult.Height)
-				return nil
 			}
 			return db.DeleteTendermintTx(tmTx.TxHash)
 		}

@@ -34,7 +34,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 			if err.Error() == constants.OPERATION_ID_NOT_FOUND {
 				return caspResponses.SignOperationResponse{}, fmt.Errorf("operation id not found")
 			}
-			logging.Error("casp sign operation:", err)
+			logging.Error("CASP sign operation:", operationID, " Error:", err)
 			return caspResponses.SignOperationResponse{}, err
 		}
 		if signOperationResponse.Status == constants.PENDING {

@@ -59,7 +59,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			configuration.SetPStakeAddress(tmAddress)
 			configuration.ValidateAndSeal()
 
-			err = logging.InitializeBotAndLog("info")
+			err = logging.InitializeBot()
 			if err != nil {
 				log.Fatalln(err)
 			}

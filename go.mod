@@ -12,7 +12,6 @@ require (
 	github.com/ethereum/go-ethereum v1.10.5
 	github.com/gorilla/mux v1.8.0
 	github.com/gravity-devs/liquidity v1.2.9
-	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/tendermint/tendermint v0.34.11
 	github.com/tendermint/tm-db v0.6.4

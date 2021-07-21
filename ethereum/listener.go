@@ -71,6 +71,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
 			if err != nil {
 				logging.Error("Stopping ethereum Listener, onNewBlock error:", err)
+				shutdown.SetETHStopped(true)
 				return
 			}
 		}
