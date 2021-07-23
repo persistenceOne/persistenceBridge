@@ -60,7 +60,9 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 			err = handleBlock(client, &ctx, block, &kafkaProducer, protoCodec)
 			if err != nil {
-				logging.Fatal("Ethereum listener unable to handleBlock:", processHeight, "Error:", err)
+				logging.Error("Unable to fetch handle ethereum block:", processHeight, "Error:", err)
+				time.Sleep(sleepDuration)
+				continue
 			}
 
 			err = db.SetEthereumStatus(processHeight.Int64())

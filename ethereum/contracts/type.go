@@ -2,14 +2,13 @@ package contracts
 
 import (
 	"encoding/hex"
-	"github.com/Shopify/sarama"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"log"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 type ContractI interface {
@@ -17,7 +16,7 @@ type ContractI interface {
 	GetAddress() common.Address
 	GetABI() abi.ABI
 	SetABI(contractABIString string)
-	GetMethods() map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error
+	GetSDKMsgAndSender() map[string]func(arguments []interface{}) (sdk.Msg, common.Address, error)
 	GetMethodAndArguments(inputData []byte) (*abi.Method, []interface{}, error)
 }
 
@@ -25,7 +24,7 @@ type Contract struct {
 	name    string
 	address common.Address
 	abi     abi.ABI
-	methods map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error
+	methods map[string]func(arguments []interface{}) (sdk.Msg, common.Address, error)
 }
 
 var _ ContractI = &Contract{}
@@ -42,7 +41,7 @@ func (contract *Contract) GetABI() abi.ABI {
 	return contract.abi
 }
 
-func (contract *Contract) GetMethods() map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
+func (contract *Contract) GetSDKMsgAndSender() map[string]func(arguments []interface{}) (sdk.Msg, common.Address, error) {
 	return contract.methods
 }
 

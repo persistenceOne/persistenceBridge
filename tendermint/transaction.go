@@ -20,12 +20,6 @@ import (
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
-//func handleTxEvent(clientCtx client.Context, txEvent tmTypes.EventDataTx, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) {
-//	if txEvent.Result.Code == 0 {
-//		_ = processTx(clientCtx, txEvent.Tx, kafkaState, protoCodec)
-//	}
-//}
-
 type tmWrapOrRevert struct {
 	txHash   string
 	msgIndex int
