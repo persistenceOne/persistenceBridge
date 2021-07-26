@@ -76,9 +76,6 @@ func collectAllEthTxs(client *ethclient.Client, ctx *context.Context, transactio
 				msg:    msg,
 				txHash: transaction.Hash().String(),
 			}
-			return ethTxToTM, nil
-		} else {
-			return ethTxToTM, fmt.Errorf("function for method: %s of contract: %s not found", method.RawName, contract.GetName())
 		}
 	}
 	return ethTxToTM, nil
