@@ -39,7 +39,7 @@ ConsumerLoop:
 			}
 			session.MarkMessage(kafkaMsg, "")
 			m.Count++
-			if checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+			if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 				break ConsumerLoop
 			}
 		default:
