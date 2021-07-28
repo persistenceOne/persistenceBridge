@@ -55,7 +55,9 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 		cosmosStatus, err := db.GetCosmosStatus()
 		if err != nil {
-			panic(err)
+			logging.Error("Stopping Tendermint Listener, unable to get status, Error:", err)
+			shutdown.SetTMStopped(true)
+			return
 		}
 
 		if abciInfo.Response.LastBlockHeight > cosmosStatus.LastCheckHeight {

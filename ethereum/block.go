@@ -36,7 +36,7 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 			default:
 			}
 			if contract != nil {
-				ethTxToTM, err := collectAllEthTxs(client, ctx, transaction, contract)
+				ethTxToTM, err := collectEthTx(client, ctx, transaction, contract)
 				if err != nil {
 					logging.Error("Failed to process ethereum tx:", transaction.Hash().String())
 					return err
@@ -51,7 +51,7 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 	return nil
 }
 
-func collectAllEthTxs(client *ethclient.Client, ctx *context.Context, transaction *types.Transaction, contract contracts2.ContractI) (ethTxToTendermint, error) {
+func collectEthTx(client *ethclient.Client, ctx *context.Context, transaction *types.Transaction, contract contracts2.ContractI) (ethTxToTendermint, error) {
 	var ethTxToTM ethTxToTendermint
 	receipt, err := client.TransactionReceipt(*ctx, transaction.Hash())
 	if err != nil {

@@ -44,7 +44,9 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 		ethStatus, err := db.GetEthereumStatus()
 		if err != nil {
-			panic(err)
+			logging.Error("Stopping Ethereum Listener, unable to get status, Error:", err)
+			shutdown.SetETHStopped(true)
+			return
 		}
 
 		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
