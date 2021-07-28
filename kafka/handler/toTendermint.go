@@ -10,7 +10,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"time"
 )
 
@@ -73,20 +73,20 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 
 	countPendingTx, err := db.GetTotalTMBroadcastedTx()
 	if err != nil {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
 
 	for {
 		if countPendingTx == 0 {
 			response, err := outgoingTx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
 			if err != nil {
-				log.Printf("error occured while send to Tendermint:%v\n", err)
+				logging.Error("Unable to broadcast tendermint messages:", err)
 				config := utils.SaramaConfig()
 				producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 				defer func() {
 					err := producer.Close()
 					if err != nil {
-						log.Printf("failed to close producer in topic: SendBatchToTendermint\n")
+						logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", err)
 					}
 				}()
 
@@ -94,30 +94,32 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 					if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
 						msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
 						if err != nil {
-							log.Printf("Retry txs: Failed to Marshal ToTendermint Retry msg: Error: %v\n", err)
+							logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
+							// TODO @Puneet continue or return? ~ this case should never come, log(ALERT), continue
 						}
 						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
 						if err != nil {
-							log.Printf("Retry txs: Failed to add msg to kafka queue: %s\n", err.Error())
+							logging.Error("Retry txs: Failed to add msg to kafka queue, Msg:", msg.String(), "Error:", err)
+							// TODO @Puneet continue or return? ~ let it continue, log the message, will have to send manually.
 						}
-						log.Printf("Retry txs: Produced to kafka: %v, for topic %v\n", msg.Type(), utils.RetryTendermint)
+						logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
 					}
 				}
 				return nil
 			} else {
 				err = db.SetTendermintTx(db.NewTMTransaction(response.TxHash))
 				if err != nil {
-					panic(err)
+					logging.Fatal(err)
 				}
 			}
-			log.Printf("Broadcasted Tendermint TX HASH: %s\n", response.TxHash)
+			logging.Info("Broadcast Tendermint Tx Hash:", response.TxHash)
 			return nil
 		} else {
-			log.Println("cannot broadcast yet, tendermint txs pending")
+			logging.Info("cannot broadcast yet, tendermint txs pending")
 			time.Sleep(3 * time.Second)
 			countPendingTx, err = db.GetTotalTMBroadcastedTx()
 			if err != nil {
-				log.Fatalln(err)
+				logging.Fatal(err)
 			}
 		}
 	}

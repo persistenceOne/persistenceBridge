@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 type MsgHandler struct {
@@ -33,49 +33,49 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	case utils.ToEth:
 		err := m.HandleToEth(session, claim)
 		if err != nil {
-			log.Printf("failed batch and handle for topic: %v with error %v\n", utils.ToEth, err)
+			logging.Error("failed batch and handle for topic ToEth with error:", err)
 			return err
 		}
 	case utils.ToTendermint:
 		err := m.HandleToTendermint(session, claim)
 		if err != nil {
-			log.Printf("failed to handle for topic: %v with error %v\n", utils.ToTendermint, err)
+			logging.Error("failed to handle for topic ToTendermint with error:", err)
 			return err
 		}
 	case utils.EthUnbond:
 		err := m.HandleEthUnbond(session, claim)
 		if err != nil {
-			log.Printf("failed to handle EthUnbonding for topic: %v\n", utils.EthUnbond)
+			logging.Error("failed to handle for topic EthUnbond with error:", err)
 			return err
 		}
 	case utils.MsgSend:
 		err := m.HandleMsgSend(session, claim)
 		if err != nil {
-			log.Printf("failed to handle MsgSend for topic: %v with error %v\n", utils.MsgSend, err)
+			logging.Error("failed to handle MsgSend for topic MsgSend with error:", err)
 			return err
 		}
 	case utils.MsgDelegate:
 		err := m.HandleMsgDelegate(session, claim)
 		if err != nil {
-			log.Printf("failed to handle MsgDelegate for topic: %v with error %v\n", utils.MsgDelegate, err)
+			logging.Error("failed to handle MsgDelegate for topic MsgDelegate with error:", err)
 			return err
 		}
 	case utils.MsgUnbond:
 		err := m.HandleMsgUnbond(session, claim)
 		if err != nil {
-			log.Printf("failed to handle MsgUnbond for topic: %v with error %v\n", utils.MsgUnbond, err)
+			logging.Error("failed to handle for topic MsgUnbond with error:", err)
 			return err
 		}
 	case utils.Redelegate:
 		err := m.HandleRelegate(session, claim)
 		if err != nil {
-			log.Printf("failed to handle Redelegate for topic: %v with error %v\n", utils.Redelegate, err)
+			logging.Error("failed to handle for topic Redelegate with error:", err)
 			return err
 		}
 	case utils.RetryTendermint:
 		err := m.HandleRetryTendermint(session, claim)
 		if err != nil {
-			log.Printf("failed to handle for topic: %v with error %v", utils.RetryTendermint, err)
+			logging.Error("failed to handle for topic RetryTendermint with error:", err)
 			return err
 		}
 	}

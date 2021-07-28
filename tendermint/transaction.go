@@ -2,29 +2,23 @@ package tendermint
 
 import (
 	"encoding/json"
-	"github.com/Shopify/sarama"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
 	"strings"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	goEthCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
 )
-
-//func handleTxEvent(clientCtx client.Context, txEvent tmTypes.EventDataTx, kafkaState utils.KafkaState, protoCodec *codec.ProtoCodec) {
-//	if txEvent.Result.Code == 0 {
-//		_ = processTx(clientCtx, txEvent.Tx, kafkaState, protoCodec)
-//	}
-//}
 
 type tmWrapOrRevert struct {
 	txHash   string
@@ -33,12 +27,12 @@ type tmWrapOrRevert struct {
 	memo     string
 }
 
-func handleTxSearchResult(clientCtx client.Context, txSearchResult *tmCoreTypes.ResultTxSearch, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	var allTxsWrapOrRevert []tmWrapOrRevert
-	for _, transaction := range txSearchResult.Txs {
+	for _, transaction := range resultTxs {
 		tmWrapOrReverts, err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
-			log.Printf("Failed to process tendermint transaction: %s\n", transaction.Hash.String())
+			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
 			return err
 		}
 		allTxsWrapOrRevert = append(allTxsWrapOrRevert, tmWrapOrReverts...)
@@ -107,11 +101,11 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 			}
 			fromAddress, err := sdk.AccAddressFromBech32(wrapOrRevertMsg.msg.FromAddress)
 			if err != nil {
-				log.Fatalln(err)
+				logging.Fatal(err)
 			}
 			accountLimiter, totalAccounts := db.GetAccountLimiterAndTotal(fromAddress)
 			if totalAccounts >= getMaxLimit() {
-				log.Printf("REVERT TM %s, Msg Index %d. MAX Account Limit Reached\n", wrapOrRevertMsg.txHash, wrapOrRevertMsg.msgIndex)
+				logging.Info("Reverting Tendermint Tx [MAX Account Limit Reached]:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
 				revertCoins(wrapOrRevertMsg.msg.FromAddress, wrapOrRevertMsg.msg.Amount, kafkaProducer, protoCodec)
 				continue
 			}
@@ -120,7 +114,7 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				refundCoins = refundCoins.Add(sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, refundAmt))
 			}
 			if sendAmt.GT(sdk.ZeroInt()) && validEthMemo {
-				log.Printf("RECEIVED TM WRAP TX: %s, Msg Index: %d\n", wrapOrRevertMsg.txHash, wrapOrRevertMsg.msgIndex)
+				logging.Info("Received Tendermint Wrap Tx:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
 				ethTxMsg := outgoingTx.WrapTokenMsg{
 					Address: ethAddress,
 					Amount:  sendAmt.BigInt(),
@@ -129,23 +123,23 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("Adding wrap token msg to kafka producer ToEth, from: %s, to: %s, amount: %s\n", fromAddress.String(), ethAddress.String(), sendAmt.String())
+				logging.Info("Adding wrap token msg to kafka producer ToEth, from:", fromAddress.String(), "to:", ethAddress.String(), "amount:", sendAmt.String())
 				err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 				if err != nil {
-					log.Fatalf("Failed to add msg to kafka queue ToEth: %s [TM Listener]\n", err.Error())
+					logging.Fatal("Failed to add msg to kafka queue ToEth [TM Listener]:", err)
 				}
 				accountLimiter.Amount = accountLimiter.Amount.Add(sendAmt)
 				err = db.SetAccountLimiter(accountLimiter)
 				if err != nil {
-					panic(err)
+					logging.Fatal(err)
 				}
 			}
 			if len(refundCoins) > 0 {
-				log.Printf("REVERT LEFT OVER COINS: TM %s Msg Index: %d.\n", wrapOrRevertMsg.txHash, wrapOrRevertMsg.msgIndex)
+				logging.Info("Reverting left over coins: TxHash:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
 				revertCoins(wrapOrRevertMsg.msg.FromAddress, refundCoins, kafkaProducer, protoCodec)
 			}
 		} else {
-			log.Printf("TM Tx %s deposited %s to wrap address.\n", wrapOrRevertMsg.txHash, wrapOrRevertMsg.msg.Amount.String())
+			logging.Info("Deposited to wrap address, TxHash:", wrapOrRevertMsg.txHash, "amount:", wrapOrRevertMsg.msg.Amount.String())
 		}
 	}
 }
@@ -204,11 +198,11 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncPr
 	}
 	msgBytes, err := protoCodec.MarshalInterface(msg)
 	if err != nil {
-		log.Fatalln(err)
+		logging.Fatal(err)
 	}
-	log.Printf("REVERT: adding send coin msg to kafka producer MsgSend, to: %s, amount: %s\n", toAddress, coins.String())
+	logging.Info("REVERT: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
-		log.Fatalf("Failed to add msg to kafka queue MsgSend: %s [TM Listener (REVERT)]\n", err.Error())
+		logging.Fatal("Failed to add msg to kafka queue ToEth [TM Listener REVERT]:", err)
 	}
 }

@@ -21,6 +21,12 @@ func (config config) validate() error {
 	if err := config.CASP.validate(); err != nil {
 		return err
 	}
+	if err := config.TelegramBot.validate(); err != nil {
+		return err
+	}
+	if config.RPCEndpoint == "" {
+		return fmt.Errorf("rpc endpoint empty")
+	}
 	return nil
 }
 
@@ -80,6 +86,13 @@ func (config caspConfig) validate() error {
 	}
 	if config.EthereumPublicKey == "" {
 		return fmt.Errorf("casp tendermint public empty")
+	}
+	return nil
+}
+
+func (config telegramBot) validate() error {
+	if (config.ChatID != 0 && config.Token == "") || (config.ChatID == 0 && config.Token != "") {
+		return fmt.Errorf("telegram bot configuration invalid")
 	}
 	return nil
 }

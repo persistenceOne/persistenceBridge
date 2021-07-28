@@ -3,7 +3,7 @@ package rpc
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"net/http"
 	"net/rpc"
 )
@@ -48,17 +48,17 @@ func StartServer(rpcEndpoint string) {
 	validatorRPC := new(ValidatorRPC)
 	err := rpc.Register(validatorRPC)
 	if err != nil {
-		log.Fatal("error registering ValidatorRPC", err)
+		logging.Fatal("error registering ValidatorRPC:", err)
 	}
 
 	rpc.HandleHTTP()
 
-	log.Printf("serving rpc on port %d", 4040)
+	logging.Info("Starting RPC server on:", rpcEndpoint)
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/validators", validators)
 	err = http.ListenAndServe(rpcEndpoint, nil)
 
 	if err != nil {
-		log.Fatal("error serving: ", err)
+		logging.Fatal("rpc server:", err)
 	}
 }

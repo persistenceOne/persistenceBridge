@@ -9,7 +9,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
@@ -18,7 +18,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v\n", utils.MsgDelegate)
+			logging.Error("failed to close producer in topic: MsgDelegate, error:", err)
 		}
 	}()
 
@@ -56,7 +56,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 
 	}
 	if totalRedistributeAmount.Equal(sdk.ZeroInt()) {
-		log.Printf("No Delegations to Redelegate for validator src Address %v", redelegationSourceAddress.String())
+		logging.Info("No Delegations to Redelegate for validator src Address", redelegationSourceAddress.String())
 		session.MarkMessage(kafkaMsg, "")
 		return nil
 	}
@@ -82,7 +82,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 
 		err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
 		if err != nil {
-			log.Printf("failed to produce message from topic %v to %v\n", utils.Redelegate, utils.ToTendermint)
+			logging.Error("failed to produce message from topic Redelegate to ToTendermint")
 			return err
 		}
 		m.Count++

@@ -1,51 +1,38 @@
 package contracts
 
 import (
-	"github.com/Shopify/sarama"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"log"
 	"math/big"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 var TokenWrapper = Contract{
 	name:    "TOKEN_WRAPPER",
 	address: common.HexToAddress(constants2.TokenWrapperAddress),
 	abi:     abi.ABI{},
-	methods: map[string]func(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error{
+	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
 		constants2.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
 	},
 }
 
-func onWithdrawUTokens(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec, arguments []interface{}) error {
+func onWithdrawUTokens(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 	atomAddress, err := sdkTypes.AccAddressFromBech32(arguments[2].(string))
 	if err != nil {
-		return err
+		return nil, common.Address{}, err
 	}
 	sendCoinMsg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   atomAddress.String(),
 		Amount:      sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount)),
 	}
-	msgBytes, err := protoCodec.MarshalInterface(sendCoinMsg)
-	if err != nil {
-		log.Println("Failed to generate msgBytes: ", err)
-		return err
-	}
-	log.Printf("Adding sendCoin msg to kafka producer MsgSend, from: %s, to: %s, amount: %s\n", ercAddress.String(), atomAddress.String(), sendCoinMsg.Amount.String())
-	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
-	if err != nil {
-		log.Printf("Failed to add msg to kafka queue MsgSend: %s [ETH Listener (onWithDrawUTokens)]\n", err.Error())
-		return err
-	}
-	return nil
+	logging.Info("Received ETH Unwrap Tx from:", ercAddress.String(), "amount:", amount.String(), "toAddress:", atomAddress.String())
+	return sendCoinMsg, ercAddress, nil
 }

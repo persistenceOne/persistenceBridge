@@ -8,7 +8,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
@@ -17,7 +17,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v\n", utils.MsgDelegate)
+			logging.Error("failed to close producer in topic: MsgDelegate, error:", err)
 		}
 	}()
 
@@ -39,13 +39,13 @@ ConsumerLoop:
 			var msg sdk.Msg
 			err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 			if err != nil {
-				log.Printf("proto failed to unmarshal\n")
+				return err
 			}
 			switch txMsg := msg.(type) {
 			case *stakingTypes.MsgDelegate:
 				sum = sum.Add(txMsg.Amount.Amount)
 			default:
-				log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
+				logging.Error("Unexpected type found in topic: EthUnbond")
 			}
 		default:
 			break ConsumerLoop
@@ -58,7 +58,7 @@ ConsumerLoop:
 			return err
 		}
 		if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count < len(validators) {
-			log.Printf("Delegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
+			logging.Error("Delegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
 			return nil
 		}
 		delegationAmount := sum.QuoRaw(int64(len(validators)))
@@ -83,7 +83,7 @@ ConsumerLoop:
 
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
 			if err != nil {
-				log.Printf("failed to produce message from topic %v to %v\n", utils.MsgDelegate, utils.ToTendermint)
+				logging.Error("failed to produce message from: MsgDelegate to ToTendermint")
 				return err
 			}
 			m.Count++

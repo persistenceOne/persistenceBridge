@@ -1,10 +1,11 @@
 package configuration
 
 import (
-	"github.com/Shopify/sarama"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"log"
 	"time"
+
+	"github.com/Shopify/sarama"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 type config struct {
@@ -12,6 +13,7 @@ type config struct {
 	Tendermint  tendermintConfig
 	Ethereum    ethereumConfig
 	CASP        caspConfig
+	TelegramBot telegramBot
 	seal        bool
 	RPCEndpoint string
 }
@@ -22,6 +24,7 @@ func newConfig() config {
 		Tendermint:  newTendermintConfig(),
 		Ethereum:    newEthereumConfig(),
 		CASP:        newCASPConfig(),
+		TelegramBot: newTelegramBot(),
 		seal:        false,
 		RPCEndpoint: constants.DefaultRPCEndpoint,
 	}
@@ -90,6 +93,18 @@ type TopicConsumer struct {
 	MinBatchSize int
 	MaxBatchSize int
 	Ticker       time.Duration
+}
+
+type telegramBot struct {
+	Token  string
+	ChatID int64
+}
+
+func newTelegramBot() telegramBot {
+	return telegramBot{
+		Token:  "",
+		ChatID: 0,
+	}
 }
 
 func newKafkaConfig() kafkaConfig {

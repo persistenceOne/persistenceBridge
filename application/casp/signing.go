@@ -6,7 +6,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	caspResponses "github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"time"
 )
 
@@ -34,12 +34,11 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 			if err.Error() == constants.OPERATION_ID_NOT_FOUND {
 				return caspResponses.SignOperationResponse{}, fmt.Errorf("operation id not found")
 			}
-			log.Printf("Error while getting sign operation %v\n", err)
-			time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
-			continue
+			logging.Error("CASP sign operation:", operationID, " Error:", err)
+			return caspResponses.SignOperationResponse{}, err
 		}
-		if signOperationResponse.Status == "PENDING" {
-			log.Printf("CASP signing operation pending for %s\n", operationID)
+		if signOperationResponse.Status == constants.PENDING {
+			logging.Info("CASP signing operation pending for", operationID)
 			time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
 			continue
 		}

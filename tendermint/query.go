@@ -2,9 +2,10 @@ package tendermint
 
 import (
 	"context"
+
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func AddressIsDelegatorToValidator(delegatorAddress, validatorAddress string, chain *relayer.Chain) bool {
@@ -22,7 +23,7 @@ func QueryValidatorDelegator(delegatorAddress, validatorAddress string, chain *r
 		ValidatorAddr: validatorAddress,
 	})
 	if err != nil {
-		log.Printf("Delegator delegations not found, Error: %v\n", err)
+		logging.Error("Delegator's validator not found, Error:", err)
 		return stakingTypes.Validator{}, err
 	}
 	return stakingRes.GetValidator(), err
@@ -35,7 +36,7 @@ func QueryDelegatorValidatorDelegations(delegatorAddress, validatorAddress strin
 		ValidatorAddr: validatorAddress,
 	})
 	if err != nil {
-		log.Printf("Delegator delegations not found, Error: %v\n", err)
+		logging.Error("Delegator validator delegation not found, Error:", err)
 		return stakingTypes.DelegationResponse{}, err
 	}
 	return *stakingRes.DelegationResponse, err
@@ -47,7 +48,7 @@ func QueryDelegatorDelegations(delegatorAddress string, chain *relayer.Chain) (s
 		DelegatorAddr: delegatorAddress,
 	})
 	if err != nil {
-		log.Printf("Delegator delegations not found, Error: %v\n", err)
+		logging.Info("Delegator delegations not found, Error:", err)
 		return nil, err
 	}
 	return stakingRes.DelegationResponses, err
