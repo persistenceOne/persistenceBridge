@@ -60,7 +60,8 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 		var errResponse casp.ErrorResponse
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {
-			logging.Fatal("CASP SIGNING ERROR (Unknown response type):", err)
+			logging.Error("CASP SIGNING ERROR (Unknown response type):", err)
+			return response, false, err
 		}
 		if errResponse.Title == constants.VAULT_BUSY {
 			return response, true, nil

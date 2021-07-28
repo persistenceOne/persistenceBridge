@@ -77,7 +77,9 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
-				logging.Fatal("ERROR setting tendermint status:", err)
+				logging.Error("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
+				shutdown.SetTMStopped(true)
+				return
 			}
 
 		}

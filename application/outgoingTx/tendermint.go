@@ -39,7 +39,10 @@ func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight
 // Timeout height should be greater than current block height or set it 0 for none.
 func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	if tmPublicKey == nil {
-		setTMPublicKey()
+		err := setTMPublicKey()
+		if err != nil {
+			return nil, err
+		}
 	}
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmPublicKey, msgs, memo, timeoutHeight)
 	if err != nil {
@@ -169,18 +172,20 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	return signature, nil
 }
 
-func setTMPublicKey() {
+func setTMPublicKey() error {
 	if tmPublicKey != nil {
 		logging.Warn("outgoingTx: casp tendermint public key already set to.", tmPublicKey.String(), "To change update config and restart.")
-		return
+		return nil
 	}
 	logging.Info("outgoingTx: setting tendermint casp public key")
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {
-		logging.Fatal(err)
+		return err
 	}
 	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		logging.Fatal(err)
+		logging.Error("no tendermint public keys got from casp")
+		return err
 	}
 	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	return nil
 }

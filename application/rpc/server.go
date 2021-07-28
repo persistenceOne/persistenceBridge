@@ -1,11 +1,12 @@
 package rpc
 
 import (
+	"net/http"
+	"net/rpc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"net/http"
-	"net/rpc"
 )
 
 type ValidatorRPC struct{}
@@ -56,8 +57,8 @@ func StartServer(rpcEndpoint string) {
 	logging.Info("Starting RPC server on:", rpcEndpoint)
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/validators", validators)
-	err = http.ListenAndServe(rpcEndpoint, nil)
 
+	err = http.ListenAndServe(rpcEndpoint, nil)
 	if err != nil {
 		logging.Fatal("rpc server:", err)
 	}

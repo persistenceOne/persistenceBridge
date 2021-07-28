@@ -4,11 +4,12 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"io/ioutil"
-	"net/http"
 )
 
 func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
@@ -41,7 +42,8 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 		var errResponse casp.ErrorResponse
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {
-			logging.Fatal("CASP SignOperation ERROR (Unknown response struct type):", err)
+			logging.Error("CASP SignOperation ERROR (Unknown response struct type):", err)
+			return response, err
 		}
 		return response, fmt.Errorf(errResponse.Title)
 	}

@@ -67,12 +67,14 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 			err = db.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
-				logging.Fatal("setting ethereum status:", err)
+				logging.Error("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
+				shutdown.SetETHStopped(true)
+				return
 			}
 
 			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
 			if err != nil {
-				logging.Error("Stopping ethereum Listener, onNewBlock error:", err)
+				logging.Error("Stopping Ethereum Listener, onNewBlock error:", err)
 				shutdown.SetETHStopped(true)
 				return
 			}

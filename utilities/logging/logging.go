@@ -9,6 +9,11 @@ import (
 )
 
 var bot *tb.Bot
+var errorPrefix = []interface{}{"[ERROR]"}
+var warnPrefix = []interface{}{"[WARNING]"}
+var infoPrefix = []interface{}{"[INFO]"}
+var debugPrefix = []interface{}{"[DEBUG]"}
+var fatalPrefix = []interface{}{"[FATAL]"}
 
 func InitializeBot() (err error) {
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
@@ -28,26 +33,26 @@ func InitializeBot() (err error) {
 }
 
 func Error(err ...interface{}) {
-	log.Println(append([]interface{}{"[ERROR]"}, err...)...)
+	log.Println(append(errorPrefix, err...)...)
 	_ = sendMessage("ERROR:\n" + fmt.Sprintln(err...))
 }
 
 func Warn(warn ...interface{}) {
-	log.Println(append([]interface{}{"[WARN]"}, warn...)...)
+	log.Println(append(warnPrefix, warn...)...)
 	_ = sendMessage("WARNING:\n" + fmt.Sprintln(warn...))
 }
 
 func Info(info ...interface{}) {
-	log.Println(append([]interface{}{"[INFO]"}, info...)...)
+	log.Println(append(infoPrefix, info...)...)
 }
 
 func Debug(debug ...interface{}) {
-	log.Println(append([]interface{}{"[DEBUG]"}, debug...)...)
+	log.Println(append(debugPrefix, debug...)...)
 }
 
 func Fatal(err ...interface{}) {
 	_ = sendMessage("FATAL:\n" + fmt.Sprintln(err...))
-	log.Println(append([]interface{}{"[FATAL]"}, err...)...)
+	log.Fatalln(append(fatalPrefix, err...)...)
 }
 
 func sendMessage(message string) error {

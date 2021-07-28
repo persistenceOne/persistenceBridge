@@ -6,6 +6,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -18,8 +20,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/spf13/cobra"
 	tendermintClient "github.com/tendermint/tendermint/libs/cli"
-
-	"os"
 )
 
 const flagInvalidCheckPeriod = "invalid-check-period"

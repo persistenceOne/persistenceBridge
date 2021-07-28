@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"math/big"
 	"strings"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 var ethBridgeAdmin common.Address
@@ -52,7 +52,10 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
 	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
-		setEthBridgeAdmin()
+		err := setEthBridgeAdmin()
+		if err != nil {
+			return common.Hash{}, err
+		}
 	}
 	nonce, err := client.PendingNonceAt(ctx, ethBridgeAdmin)
 	if err != nil {
@@ -117,19 +120,21 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, e
 	return signature, signatureResponse.V[0], nil
 }
 
-func setEthBridgeAdmin() {
+func setEthBridgeAdmin() error {
 	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
 		logging.Warn("outgoingTx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
-		return
+		return nil
 	}
 	logging.Info("outgoingTx: setting ethereum bridge admin from casp")
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
-		logging.Fatal(err)
+		return err
 	}
 	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		logging.Fatal("no eth public keys got from casp")
+		logging.Error("no eth public keys got from casp")
+		return err
 	}
 	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
 	ethBridgeAdmin = crypto.PubkeyToAddress(publicKey)
+	return nil
 }
