@@ -2,13 +2,14 @@ package handler
 
 import (
 	"errors"
+
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/tendermint"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
@@ -17,7 +18,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			log.Printf("failed to close producer in topic: %v\n", utils.EthUnbond)
+			logging.Error("failed to close producer in topic: EthUnbond, error:", err)
 		}
 	}()
 	var kafkaMsg *sarama.ConsumerMessage
@@ -39,13 +40,13 @@ ConsumerLoop:
 			var msg sdk.Msg
 			err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 			if err != nil {
-				log.Printf("proto failed to unmarshal\n")
+				return err
 			}
 			switch txMsg := msg.(type) {
 			case *stakingTypes.MsgUndelegate:
 				sum = sum.Add(txMsg.Amount.Amount)
 			default:
-				log.Printf("Unexpected type found in topic: %v\n", utils.EthUnbond)
+				logging.Error("Unexpected type found in topic: EthUnbond")
 			}
 		default:
 			break ConsumerLoop
@@ -59,7 +60,7 @@ ConsumerLoop:
 		}
 		totalDelegations := TotalDelegations(delegatorDelegations)
 		if sum.GT(totalDelegations) {
-			return errors.New("Unbondings requested are greater than delegated tokens")
+			return errors.New("unbondings requested are greater than delegated tokens")
 		}
 		ratio := sum.ToDec().Quo(totalDelegations.ToDec())
 		unbondings := sdk.ZeroInt()
@@ -69,7 +70,7 @@ ConsumerLoop:
 			if unbondingShare.LT(delegation.Balance.Amount) {
 				unbondings = unbondings.Add(unbondingShare)
 			} else {
-				log.Printf("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
+				logging.Error("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
 			}
 			unbondMsg := &stakingTypes.MsgUndelegate{
 				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
@@ -107,7 +108,7 @@ ConsumerLoop:
 
 			err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
 			if err != nil {
-				log.Printf("failed to produce message from topic %v to %v\n", utils.EthUnbond, utils.MsgUnbond)
+				logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
 				return err
 			}
 		}

@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"log"
 	"net/http"
 )
 
@@ -24,11 +23,13 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		return
 	}
@@ -38,11 +39,13 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		return
 	}
@@ -52,11 +55,13 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		return
 	}
@@ -68,12 +73,13 @@ func status(w http.ResponseWriter, r *http.Request) {
 	}
 	b, err := json.Marshal(status)
 	if err != nil {
-		log.Println(err)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	_, err = w.Write(b)
 	if err != nil {
-		log.Println(err)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	return
 

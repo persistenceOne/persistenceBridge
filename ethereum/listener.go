@@ -3,7 +3,6 @@ package ethereum
 import (
 	"context"
 	"github.com/Shopify/sarama"
-	"log"
 	"math/big"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func StartListening(client *ethclient.Client, sleepDuration time.Duration, brokers []string, protoCodec *codec.ProtoCodec) {
@@ -20,15 +20,14 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
-			log.Println(err)
-			return
+			logging.Error(err)
 		}
 	}(kafkaProducer)
 
 	for {
 		if shutdown.GetBridgeStopSignal() {
 			if shutdown.GetKafkaConsumerClosed() {
-				log.Println("Stopping Ethereum Listener!!!")
+				logging.Info("Stopping Ethereum Listener!!!")
 				shutdown.SetETHStopped(true)
 				return
 			}
@@ -38,42 +37,47 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 		latestEthHeight, err := client.BlockNumber(ctx)
 		if err != nil {
-			log.Printf("Error while fetching latest block height: %s\n", err.Error())
+			logging.Error("Unable to fetch ethereum latest block height:", err)
 			time.Sleep(sleepDuration)
 			continue
 		}
 
 		ethStatus, err := db.GetEthereumStatus()
 		if err != nil {
-			panic(err)
+			logging.Error("Stopping Ethereum Listener, unable to get status, Error:", err)
+			shutdown.SetETHStopped(true)
+			return
 		}
 
 		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
-			log.Printf("ETH: %d\n", processHeight)
+			logging.Info("Ethereum Block:", processHeight)
 
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
-				// TODO NOTIFY, will lead to stuck state
-				log.Printf("ERROR getting ETH height %d: %s\n", processHeight, err.Error())
+				logging.Error("Unable to fetch ethereum block:", processHeight, "Error:", err)
 				time.Sleep(sleepDuration)
 				continue
 			}
 
 			err = handleBlock(client, &ctx, block, &kafkaProducer, protoCodec)
 			if err != nil {
-				log.Fatalf("Eth listener unable to handleBlock: %s\n", err.Error())
+				logging.Error("Unable to fetch handle ethereum block:", processHeight, "Error:", err)
+				time.Sleep(sleepDuration)
+				continue
 			}
 
 			err = db.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
-				log.Fatalf("ERROR setting ethereum status: %s\n", err.Error())
+				logging.Error("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
+				shutdown.SetETHStopped(true)
+				return
 			}
 
 			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
 			if err != nil {
-				// TODO NOTIFY, will lead to stuck state
-				log.Printf("Stopping ethereum Listener, onNewBlock err: %v\n", err)
+				logging.Error("Stopping Ethereum Listener, onNewBlock error:", err)
+				shutdown.SetETHStopped(true)
 				return
 			}
 		}

@@ -27,6 +27,8 @@ const (
 	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
 	FlagRPCEndpoint           = "rpc-endpoint"
 	FlagMinimumWrapAmount     = "minWrapAmt"
+	FlagTelegramBotToken      = "botToken"
+	FlagTelegramChatID        = "botChatID"
 )
 
 var (

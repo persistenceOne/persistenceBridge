@@ -3,6 +3,7 @@ package outgoingTx
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -14,8 +15,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/tendermint/tendermint/crypto"
-	"log"
 )
 
 var tmPublicKey cryptotypes.PubKey
@@ -31,14 +32,17 @@ func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight
 			msgsTypes = msgsTypes + msg.Type() + " "
 		}
 	}
-	log.Println("Messages to tendermint: " + msgsTypes)
+	logging.Info("Messages to tendermint:", msgsTypes)
 	return tendermintSignAndBroadcastMsgs(chain, msgs, "pStake@PersistenceOne", timeoutHeight)
 }
 
 // Timeout height should be greater than current block height or set it 0 for none.
 func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	if tmPublicKey == nil {
-		setTMPublicKey()
+		err := setTMPublicKey()
+		if err != nil {
+			return nil, err
+		}
 	}
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmPublicKey, msgs, memo, timeoutHeight)
 	if err != nil {
@@ -168,18 +172,20 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	return signature, nil
 }
 
-func setTMPublicKey() {
+func setTMPublicKey() error {
 	if tmPublicKey != nil {
-		log.Printf("outgoingTx: casp tendermint public key already set to %s To change update config and restart.\n", tmPublicKey.String())
-		return
+		logging.Warn("outgoingTx: casp tendermint public key already set to.", tmPublicKey.String(), "To change update config and restart.")
+		return nil
 	}
-	log.Println("outgoingTx: setting tendermint casp public key")
+	logging.Info("outgoingTx: setting tendermint casp public key")
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 	if len(uncompressedPublicKeys.PublicKeys) == 0 {
-		log.Fatalln(err)
+		logging.Error("no tendermint public keys got from casp")
+		return err
 	}
 	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	return nil
 }

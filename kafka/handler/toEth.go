@@ -8,7 +8,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"log"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"time"
 )
 
@@ -54,14 +54,14 @@ ConsumerLoop:
 }
 
 func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingTx.WrapTokenMsg, error) {
-	var msgs []outgoingTx.WrapTokenMsg
-	for _, kafkaMsg := range kafkaMsgs {
+	msgs := make([]outgoingTx.WrapTokenMsg, len(kafkaMsgs))
+	for i, kafkaMsg := range kafkaMsgs {
 		var msg outgoingTx.WrapTokenMsg
 		err := json.Unmarshal(kafkaMsg.Value, &msg)
 		if err != nil {
 			return nil, err
 		}
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 	return msgs, nil
 }
@@ -72,24 +72,25 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	if err != nil {
 		return err
 	}
-	log.Printf("batched messages to send to ETH: %v\n", msgs)
+	logging.Info("batched messages to send to ETH:", msgs)
 
 	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
-		log.Printf("error occuerd in sending eth transaction %s, error : %v, adding messages agin to kafka\n", hash.String(), err)
+		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 		defer func() {
 			err := producer.Close()
 			if err != nil {
-				log.Printf("failed to close producer in topic: SendBatchToEth\n")
+				logging.Error("failed to close producer in topic: SendBatchToEth, err:", err)
 			}
 		}()
 
-		for _, kafkaMsg := range kafkaMsgs {
+		for i, kafkaMsg := range kafkaMsgs {
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToEth, producer)
 			if err != nil {
-				log.Printf("Failed to add msg to kafka queue: %s\n", err.Error())
+				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "error:", err)
+				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.
 			}
 		}
 		return err
@@ -99,6 +100,6 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			panic(err)
 		}
 	}
-	log.Printf("Broadcasted Eth Tx hash: %s\n", hash.String())
+	logging.Info("Broadcast Eth Tx hash:", hash.String())
 	return nil
 }

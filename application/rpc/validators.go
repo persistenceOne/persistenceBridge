@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"log"
 	"net/http"
 )
 
@@ -18,11 +17,13 @@ func validators(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			log.Println(err)
+			w.Write([]byte(err.Error()))
+			return
 		}
 		return
 	}
@@ -30,12 +31,13 @@ func validators(w http.ResponseWriter, r *http.Request) {
 	validatorResponse := validatorResponse{Validators: validators}
 	b, err := json.Marshal(validatorResponse)
 	if err != nil {
-		log.Println(err)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	_, err = w.Write(b)
 	if err != nil {
-		log.Println(err)
+		w.Write([]byte(err.Error()))
+		return
 	}
 	return
 
