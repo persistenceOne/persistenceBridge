@@ -59,6 +59,6 @@ after that not adding it will start checking from last checked height + 1
 `--ethPrivateKey` private key of account which will do txs to eth
 
 * First time start
-`persistenceBridge start chain.json "wage thunder live sense resemble foil apple course spin horse glass mansion midnight laundry acoustic rhythm loan scale talent push green direct brick please" --tmStart 1 --ethStart 4772131 --ethPrivateKey [ETH_ACC_PRIVATE_KEY]`
+`persistenceBridge start chain.json "wage thunder live sense resemble foil apple course spin horse glass mansion midnight laundry acoustic rhythm loan scale talent push green direct brick please" --tmStart 1 --ethStart 4772131 
 
 >Note: Remove `--tmStart  --ethStart` when starting next time
