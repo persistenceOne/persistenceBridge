@@ -61,7 +61,7 @@ after that not adding it will start checking from last checked height + 1
 
 `persistenceBridge add [validator_address] [validator_name]`
 
-Update the config file generated (CASP server, vault and public keys) (Telegram configuration is not compulsoory).
+Update the config file generated (CASP server, vault and public keys) (Telegram configuration is not compulsory).
 
 `persistenceBridge start chain.json --tmStart 1 --ethStart 4772131` 
 
