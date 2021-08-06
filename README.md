@@ -56,9 +56,13 @@ after that not adding it will start checking from last checked height + 1
 `path_to_chain_json` json file for tendermint chain, same as the relayer format -
 `{"key":"acc_0","chain-id":"test","rpc-addr":"http://192.168.1.4:26657","account-prefix":"cosmos","gas-adjustment":1.5,"gas-prices":"0.025stake","trusting-period":"336h"`
 
-`--ethPrivateKey` private key of account which will do txs to eth
-
 * First time start
-`persistenceBridge start chain.json "wage thunder live sense resemble foil apple course spin horse glass mansion midnight laundry acoustic rhythm loan scale talent push green direct brick please" --tmStart 1 --ethStart 4772131 
+`persistenceBridge init`
 
->Note: Remove `--tmStart  --ethStart` when starting next time
+`persistenceBridge add [validator_address] [validator_name]`
+
+Update the config file generated (CASP server, vault and public keys) (Telegram configuration is not compulsoory).
+
+`persistenceBridge start chain.json --tmStart 1 --ethStart 4772131 
+
+>IMPORTANT NOTE: Remove `--tmStart  --ethStart` when starting next time
