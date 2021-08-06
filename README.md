@@ -63,6 +63,6 @@ after that not adding it will start checking from last checked height + 1
 
 Update the config file generated (CASP server, vault and public keys) (Telegram configuration is not compulsoory).
 
-`persistenceBridge start chain.json --tmStart 1 --ethStart 4772131 
+`persistenceBridge start chain.json --tmStart 1 --ethStart 4772131` 
 
 >IMPORTANT NOTE: Remove `--tmStart  --ethStart` when starting next time
