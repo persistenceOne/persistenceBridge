@@ -1,7 +1,6 @@
 package casp
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/stretchr/testify/require"
@@ -21,17 +20,14 @@ func Test_getUncompressedPublicKeys(t *testing.T) {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
 
-
 	funcResponse, err := getUncompressedPublicKeys(118)
-	pubKey := configuration.GetAppConfig().CASP.EthereumPublicKey
-	fmt.Println(pubKey)
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "tendermint")
+	require.Equal(t, 1, len(funcResponse.PublicKeys))
 
 
 	funcResponse, err = getUncompressedPublicKeys(60)
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "ethereum")
-	//require.Equal(t, funcResponse.PublicKeys, )
 
 }
