@@ -139,7 +139,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 				logging.Error("Consumer group.Consume for EthUnbond:", err)
 			}
 
-			err = db2.SetUnboundEpochTime(time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
+			err = db2.SetUnboundEpochTime(nextEpochTime.Epoch + configuration.GetAppConfig().Kafka.EthUnbondCycleTime.Milliseconds()/1000)
 			if err != nil {
 				logging.Fatal(err)
 			}
