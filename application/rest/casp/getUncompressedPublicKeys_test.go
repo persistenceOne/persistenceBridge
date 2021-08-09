@@ -6,14 +6,17 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/stretchr/testify/require"
 	"log"
+	"os"
 	"path/filepath"
 	"testing"
 )
 
 
 func Test_getUncompressedPublicKeys(t *testing.T) {
+	dirname, err := os.UserHomeDir()
+
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/gokuls/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	_, err = toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
