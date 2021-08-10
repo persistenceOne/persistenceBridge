@@ -1,26 +1,19 @@
 package casp
 
 import (
-	"github.com/BurntSushi/toml"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/utilities/config"
 	"github.com/stretchr/testify/require"
-	"log"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
 var ethBridgeAdmin common.Address
 
 func TestGetSignOperation(t *testing.T) {
-	dirname, err := os.UserHomeDir()
-
-	pStakeConfig := configuration.InitConfig()
-	_, err = toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appconfig := config.SetConfig()
+	configuration.SetConfig(&appconfig)
 
 	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"
 	reponseRecieved, err := GetSignOperation(operationID)
