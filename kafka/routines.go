@@ -143,7 +143,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			if err != nil {
 				logging.Fatal(err)
 			}
-			ticker := time.Tick(configuration.GetAppConfig().Kafka.EthUnbondCycleTime)
+			ticker := time.Tick(10 * time.Second)
 			select {
 			case <-end:
 				logging.Info("Stopping Unbondings Consumer!!!")
@@ -153,7 +153,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 				logging.Debug("Next Routine Unbond")
 			}
 		} else {
-			ticker := time.Tick(time.Duration(nextEpochTime.Epoch - time.Now().UnixNano()))
+			ticker := time.Tick(10 * time.Second)
 			select {
 			case <-end:
 				logging.Info("Stopping Unbondings Consumer!!!")
