@@ -51,6 +51,8 @@ func TestContracts(t *testing.T) {
 	tx, _, _ := ethereumClient.TransactionByHash(ctx, common.HexToHash("8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
 
 	method, arguments, err := contract.GetMethodAndArguments(tx.Data())
+	require.Equal(t, nil, err)
+	require.Equal(t, "stake", method.Name)
 	fmt.Println(method,arguments)
 
 }
