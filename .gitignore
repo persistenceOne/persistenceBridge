@@ -8,5 +8,4 @@ target/
 build/
 release/
 .script/kafka_*
-chain.json
 kafka_*

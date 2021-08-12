@@ -1,115 +1,183 @@
 package outgoingTx
 
 import (
+	"encoding/json"
 	"github.com/BurntSushi/toml"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/relayer/helpers"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"log"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestLogMessagesAndBroadcast(t *testing.T) {
-	type args struct {
-		chain         *relayer.Chain
-		msgs          []sdk.Msg
-		timeoutHeight uint64
+	pStakeConfig := configuration.InitConfig()
+	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *sdk.TxResponse
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	tenderMintAddress, errorTm := casp.GetTendermintAddress()
+	if errorTm != nil {
+		t.Errorf("Error getting Tendermint address")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := LogMessagesAndBroadcast(tt.args.chain, tt.args.msgs, tt.args.timeoutHeight)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("LogMessagesAndBroadcast() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("LogMessagesAndBroadcast() got = %v, want %v", got, tt.want)
-			}
-		})
+	configuration.SetPStakeAddress(tenderMintAddress)
+	chain := &relayer.Chain{}
+	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	if err != nil {
+		t.Errorf("No config files found")
 	}
+	json.Unmarshal(byte, chain)
+	to, err := time.ParseDuration("200")
+	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	if err != nil {
+		return
+	}
+	if chain.KeyExists(chain.Key) {
+		logging.Info("deleting old key", chain.Key)
+		err = chain.Keybase.Delete(chain.Key)
+		if err != nil {
+			return
+		}
+	}
+	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	if err != nil {
+		return
+	}
+
+	logging.Info("Relayer Chain Keys added [NOT TO BE USED]:", ko.Address)
+	msg := &bankTypes.MsgSend{
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin("validatortoken",1)),
+	}
+	msgs := []sdk.Msg{msg}
+	loggedmessage, errr := LogMessagesAndBroadcast(chain ,msgs,200)
+	if errr != nil {
+		t.Errorf("Error logging messaged: %v",errr)
+	}
+	require.NotNil(t, loggedmessage)
 }
 
 func Test_broadcastTMTx(t *testing.T) {
-	type args struct {
-		chain         *relayer.Chain
-		fromPublicKey types.PubKey
-		sigBytes      []byte
-		txBuilder     client.TxBuilder
-		txFactory     tx.Factory
+	pStakeConfig := configuration.InitConfig()
+	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *sdk.TxResponse
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmAddress, err := casp.GetTendermintAddress()
+	configuration.SetPStakeAddress(tmAddress)
+	chain := &relayer.Chain{}
+	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	if err != nil {
+		t.Errorf("No config files found")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := broadcastTMTx(tt.args.chain, tt.args.fromPublicKey, tt.args.sigBytes, tt.args.txBuilder, tt.args.txFactory)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("broadcastTMTx() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("broadcastTMTx() got = %v, want %v", got, tt.want)
-			}
-		})
+	json.Unmarshal(byte, chain)
+	to, err := time.ParseDuration("200")
+	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	if err != nil {
+		return
 	}
+	if chain.KeyExists(chain.Key) {
+		logging.Info("deleting old key", chain.Key)
+		err = chain.Keybase.Delete(chain.Key)
+		if err != nil {
+			return
+		}
+	}
+	_, erroKey := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	if erroKey != nil {
+		t.Errorf("Key error!")
+	}
+
+	msg := &bankTypes.MsgSend{
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin("validatortoken",1)),
+	}
+	msgs := []sdk.Msg{msg}
+
+	tendermintPublicKeyError := setTMPublicKey()
+	if tendermintPublicKeyError != nil {
+		t.Errorf("Error setting tenderMintpublic Key: %v",tendermintPublicKeyError)
+	}
+	bytesToSign, txB, txF, errTmBytesToSign := getTMBytesToSign(chain,tmpPubKey,msgs,"pStake@PersistenceOne",200)
+	if errTmBytesToSign != nil {
+		t.Errorf("Error Signing TM bytes: %v", errTmBytesToSign)
+	}
+	signature, errTmSign := getTMSignature(bytesToSign)
+	if errTmSign != nil {
+		t.Errorf("Error getting TM sign: %v",errTmSign)
+	}
+	broadcastTMmsg, errBroadcastTMTx := broadcastTMTx(chain,tmpPubKey,signature,txB,txF)
+	if errBroadcastTMTx != nil {
+		t.Errorf("Error Broadcasting TM sign: %v",errBroadcastTMTx)
+	}
+	require.NotNil(t, broadcastTMmsg)
 }
 
 func Test_getTMBytesToSign(t *testing.T) {
-	type args struct {
-		chain         *relayer.Chain
-		fromPublicKey types.PubKey
-		msgs          []sdk.Msg
-		memo          string
-		timeoutHeight uint64
+	pStakeConfig := configuration.InitConfig()
+	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []byte
-		want1   client.TxBuilder
-		want2   tx.Factory
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmAddress, err := casp.GetTendermintAddress()
+	configuration.SetPStakeAddress(tmAddress)
+	chain := &relayer.Chain{}
+	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	if err != nil {
+		t.Errorf("No config files found")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1, got2, err := getTMBytesToSign(tt.args.chain, tt.args.fromPublicKey, tt.args.msgs, tt.args.memo, tt.args.timeoutHeight)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("getTMBytesToSign() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getTMBytesToSign() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("getTMBytesToSign() got1 = %v, want %v", got1, tt.want1)
-			}
-			if !reflect.DeepEqual(got2, tt.want2) {
-				t.Errorf("getTMBytesToSign() got2 = %v, want %v", got2, tt.want2)
-			}
-		})
+	json.Unmarshal(byte, chain)
+	to, err := time.ParseDuration("200")
+	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	if err != nil {
+		return
 	}
+	if chain.KeyExists(chain.Key) {
+		logging.Info("deleting old key", chain.Key)
+		err = chain.Keybase.Delete(chain.Key)
+		if err != nil {
+			return
+		}
+	}
+	_, erroKey := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	if erroKey != nil {
+		t.Errorf("Key error!")
+	}
+
+	msg := &bankTypes.MsgSend{
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin("validatortoken",1)),
+	}
+	msgs := []sdk.Msg{msg}
+
+	tendermintPublicKeyError := setTMPublicKey()
+	if tendermintPublicKeyError != nil {
+		t.Errorf("Error setting tenderMintpublic Key: %v",tendermintPublicKeyError)
+	}
+	tmBytesSignBytes, txBuilder, txFactory, errorGettingTMBytes := getTMBytesToSign(chain,tmpPubKey,msgs,"pStake@PersistenceOne",200)
+	if errorGettingTMBytes != nil {
+		t.Errorf("Error Getting TM Bytes to Sign: %v",errorGettingTMBytes)
+	}
+	require.NotNil(t, tmBytesSignBytes)
+	require.NotNil(t, txBuilder)
+	require.NotNil(t, txFactory)
 }
 
 func Test_getTMSignature(t *testing.T) {
@@ -126,51 +194,67 @@ func Test_getTMSignature(t *testing.T) {
 	}
 	require.NotNil(t, tmSignature)
 	require.Equal(t, 64, len(tmSignature))
-	//fmt.Println(tmSignature)
-
 }
 
 func Test_setTMPublicKey(t *testing.T) {
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	pStakeConfig := configuration.InitConfig()
+	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := setTMPublicKey(); (err != nil) != tt.wantErr {
-				t.Errorf("setTMPublicKey() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+	tendermintPublicKey := setTMPublicKey()
+	if tendermintPublicKey != nil {
+		t.Errorf("Error setting Tendermint publickey: %v",tendermintPublicKey)
 	}
+	require.NotNil(t, tmPublicKey)
+	require.Equal(t, 20,len(tmPublicKey.Address()))
 }
 
 func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
-	type args struct {
-		chain         *relayer.Chain
-		msgs          []sdk.Msg
-		memo          string
-		timeoutHeight uint64
+	pStakeConfig := configuration.InitConfig()
+	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *sdk.TxResponse
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	tmAddress, err := casp.GetTendermintAddress()
+	configuration.SetPStakeAddress(tmAddress)
+	chain := &relayer.Chain{}
+	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	if err != nil {
+		t.Errorf("No config files found")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tendermintSignAndBroadcastMsgs(tt.args.chain, tt.args.msgs, tt.args.memo, tt.args.timeoutHeight)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("tendermintSignAndBroadcastMsgs() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("tendermintSignAndBroadcastMsgs() got = %v, want %v", got, tt.want)
-			}
-		})
+	json.Unmarshal(byte, chain)
+	to, err := time.ParseDuration("200")
+	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	if err != nil {
+		return
 	}
+	if chain.KeyExists(chain.Key) {
+		logging.Info("deleting old key", chain.Key)
+		err = chain.Keybase.Delete(chain.Key)
+		if err != nil {
+			return
+		}
+	}
+	_, erroKey := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	if erroKey != nil {
+		t.Errorf("Key error!")
+	}
+
+	msg := &bankTypes.MsgSend{
+		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin("validatortoken",1)),
+	}
+	msgs := []sdk.Msg{msg}
+
+	tendermintPublicKeyError := setTMPublicKey()
+	if tendermintPublicKeyError != nil {
+		t.Errorf("Error setting tenderMintpublic Key: %v",tendermintPublicKeyError)
+	}
+	tmSignAndBroadcastMsg, errSingAndBroadcast := tendermintSignAndBroadcastMsgs(chain,msgs,"",200)
+	if errSingAndBroadcast != nil {
+		t.Errorf("Error signing and Broadcasting msgs: %v",errSingAndBroadcast)
+	}
+	require.NotNil(t, tmSignAndBroadcastMsg)
 }
