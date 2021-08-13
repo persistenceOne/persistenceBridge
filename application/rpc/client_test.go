@@ -18,6 +18,8 @@ func TestRemoveValidator(t *testing.T) {
 	require.Equal(t, nil, err)
 	validatorName := "binance"
 	rpcEndpoint := "127.0.0.1:4040"
+	go StartServer(rpcEndpoint)
+
 	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
 	defer database.Close()
 
