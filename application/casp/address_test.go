@@ -1,42 +1,42 @@
 package casp
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/stretchr/testify/require"
 	"log"
+	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 )
 
 func TestGetEthAddress(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
 	ethAddress, err := GetEthAddress()
-	if err != nil {
-		log.Fatalf("An error Occured %v",err)
-	}
-	fmt.Println(ethAddress)
+	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
+	require.Nil(t, err)
 	require.NotNil(t,ethAddress)
-	fmt.Println(ethAddress.Bytes())
 	require.Equal(t,20,len(ethAddress))
+	require.Equal(t,true,re.MatchString(ethAddress.String()) )
 }
 
 func TestGetTendermintAddress(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
 	tenderMintAddress, error := GetTendermintAddress()
-	if error != nil {
-		t.Errorf("Failed to get tindermint Address")
-	}
-	fmt.Println(tenderMintAddress)
+	re := regexp.MustCompile(`^cosmos[0-9a-zA-Z]{39}$`)
+	require.Nil(t, error,"Error Getting Tendermint address")
+	require.Equal(t, true,re.MatchString(tenderMintAddress.String()))
 	require.NotNil(t, tenderMintAddress)
 	require.Equal(t, 20, len(tenderMintAddress))
 }
