@@ -14,7 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
+	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -22,7 +25,8 @@ import (
 
 func TestLogMessagesAndBroadcast(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
@@ -63,14 +67,20 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	msgs := []sdk.Msg{msg}
 	loggedmessage, errr := LogMessagesAndBroadcast(chain ,msgs,200)
 	if errr != nil {
-		t.Errorf("Error logging messaged: %v",errr)
+		t.Errorf("Error logging messaged" +
+			": %v",errr)
 	}
+	re := regexp.MustCompile(`^[0-9a-fA-f]{64}`)
 	require.NotNil(t, loggedmessage)
+	require.Equal(t, true,re.MatchString(loggedmessage.TxHash))
+	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}),reflect.TypeOf(loggedmessage))
+	require.Equal(t, reflect.TypeOf(""),reflect.TypeOf(loggedmessage.String()))
 }
 
 func Test_broadcastTMTx(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
@@ -129,7 +139,8 @@ func Test_broadcastTMTx(t *testing.T) {
 
 func Test_getTMBytesToSign(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
@@ -182,7 +193,8 @@ func Test_getTMBytesToSign(t *testing.T) {
 
 func Test_getTMSignature(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
@@ -198,7 +210,8 @@ func Test_getTMSignature(t *testing.T) {
 
 func Test_setTMPublicKey(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
@@ -212,7 +225,8 @@ func Test_setTMPublicKey(t *testing.T) {
 
 func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	_, err := toml.DecodeFile(filepath.Join("/Users/ankitkumar/.persistenceBridge/", "config.toml"), &pStakeConfig)
+	dirname, _ := os.UserHomeDir()
+	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
