@@ -36,13 +36,13 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	}
 	configuration.SetPStakeAddress(tenderMintAddress)
 	chain := &relayer.Chain{}
-	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
 	if err != nil {
 		t.Errorf("No config files found")
 	}
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
-	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	err = chain.Init(dirname, to, nil, true)
 	if err != nil {
 		return
 	}
@@ -89,13 +89,13 @@ func Test_broadcastTMTx(t *testing.T) {
 	tmAddress, err := casp.GetTendermintAddress()
 	configuration.SetPStakeAddress(tmAddress)
 	chain := &relayer.Chain{}
-	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
 	if err != nil {
 		t.Errorf("No config files found")
 	}
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
-	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	err = chain.Init(dirname, to, nil, true)
 	if err != nil {
 		return
 	}
@@ -134,7 +134,11 @@ func Test_broadcastTMTx(t *testing.T) {
 	if errBroadcastTMTx != nil {
 		t.Errorf("Error Broadcasting TM sign: %v",errBroadcastTMTx)
 	}
+	re := regexp.MustCompile(`^[0-9a-fA-F]`)
+	require.Equal(t, true,re.MatchString(broadcastTMmsg.TxHash))
+	require.Equal(t, 66, broadcastTMmsg.Size())
 	require.NotNil(t, broadcastTMmsg)
+	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}),reflect.TypeOf(broadcastTMmsg))
 }
 
 func Test_getTMBytesToSign(t *testing.T) {
@@ -149,13 +153,13 @@ func Test_getTMBytesToSign(t *testing.T) {
 	tmAddress, err := casp.GetTendermintAddress()
 	configuration.SetPStakeAddress(tmAddress)
 	chain := &relayer.Chain{}
-	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
 	if err != nil {
 		t.Errorf("No config files found")
 	}
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
-	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	err = chain.Init(dirname, to, nil, true)
 	if err != nil {
 		return
 	}
@@ -186,6 +190,9 @@ func Test_getTMBytesToSign(t *testing.T) {
 	if errorGettingTMBytes != nil {
 		t.Errorf("Error Getting TM Bytes to Sign: %v",errorGettingTMBytes)
 	}
+	require.Equal(t, reflect.TypeOf(byte),reflect.TypeOf(tmBytesSignBytes))
+	require.Equal(t, 290, len(tmBytesSignBytes))
+	require.Equal(t, "pStake@PersistenceOne", txFactory.Memo())
 	require.NotNil(t, tmBytesSignBytes)
 	require.NotNil(t, txBuilder)
 	require.NotNil(t, txFactory)
@@ -204,6 +211,8 @@ func Test_getTMSignature(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error getting TM signature: \n %v",err)
 	}
+	require.Equal(t, 64,len(tmSignature))
+	require.Equal(t, reflect.TypeOf([]byte{}),reflect.TypeOf(tmSignature))
 	require.NotNil(t, tmSignature)
 	require.Equal(t, 64, len(tmSignature))
 }
@@ -233,13 +242,14 @@ func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
 	tmAddress, err := casp.GetTendermintAddress()
 	configuration.SetPStakeAddress(tmAddress)
 	chain := &relayer.Chain{}
-	byte,err := ioutil.ReadFile("/Users/ankitkumar/Desktop/persistence/persistenceBridge/chain.json")
+	//change file Name Type
+	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
 	if err != nil {
 		t.Errorf("No config files found")
 	}
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
-	err = chain.Init("/Users/ankitkumar/Desktop/persistence/persistenceBridge/", to, nil, true)
+	err = chain.Init(dirname, to, nil, true)
 	if err != nil {
 		return
 	}
@@ -270,5 +280,8 @@ func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
 	if errSingAndBroadcast != nil {
 		t.Errorf("Error signing and Broadcasting msgs: %v",errSingAndBroadcast)
 	}
+	re := regexp.MustCompile(`^[0-9a-fA-F]{64}`)
+	require.Equal(t, true,re.MatchString(tmSignAndBroadcastMsg.TxHash))
+	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}),reflect.TypeOf(tmSignAndBroadcastMsg))
 	require.NotNil(t, tmSignAndBroadcastMsg)
 }
