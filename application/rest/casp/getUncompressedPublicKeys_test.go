@@ -2,7 +2,7 @@ package casp
 
 import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/utilities/config"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -11,7 +11,7 @@ import (
 func Test_getUncompressedPublicKeys(t *testing.T) {
 
 	configuration.InitConfig()
-	appconfig := config.SetConfig()
+	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
 	funcResponse, err := getUncompressedPublicKeys(118)
 	require.Equal(t, nil, err)

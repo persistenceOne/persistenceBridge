@@ -3,7 +3,7 @@ package casp
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/utilities/config"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -12,7 +12,7 @@ var ethBridgeAdmin common.Address
 
 func TestGetSignOperation(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := config.SetConfig()
+	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
 
 	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"

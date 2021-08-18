@@ -4,7 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/utilities/config"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
@@ -12,7 +12,7 @@ import (
 
 func Test_onWithdrawUTokens(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := config.SetConfig()
+	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)

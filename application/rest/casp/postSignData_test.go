@@ -2,14 +2,14 @@ package casp
 
 import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/utilities/config"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestSignData(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := config.SetConfig()
+	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 	description := "eth"

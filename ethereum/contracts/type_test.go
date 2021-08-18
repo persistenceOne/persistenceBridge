@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/utilities/config"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
@@ -21,7 +21,7 @@ func TestContracts(t *testing.T) {
 	cABI := contract.GetABI()
 	cMethods := contract.GetSDKMsgAndSender()
 	configuration.InitConfig()
-	appconfig := config.SetConfig()
+	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
 
 

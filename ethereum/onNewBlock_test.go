@@ -9,7 +9,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"github.com/persistenceOne/persistenceBridge/utilities/config"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"os"
@@ -19,7 +19,7 @@ import (
 
 func Test_onNewBlock(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	appconfig := config.SetConfig()
+	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
