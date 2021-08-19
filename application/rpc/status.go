@@ -23,13 +23,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
+			_, _ = w.Write([]byte(err.Error()))
 		}
 		return
 	}
@@ -39,12 +38,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		return
@@ -55,12 +54,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		return
@@ -73,12 +72,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 	}
 	b, err := json.Marshal(status)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	_, err = w.Write(b)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	return
