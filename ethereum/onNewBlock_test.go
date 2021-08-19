@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
@@ -17,7 +18,7 @@ import (
 	"testing"
 )
 
-func Test_onNewBlock(t *testing.T) {
+func TestOnNewBlock(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
 	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
@@ -37,8 +38,10 @@ func Test_onNewBlock(t *testing.T) {
 	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
 	defer database.Close()
 
-	TxhashSuccess := common.BytesToHash([]byte("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
-	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
+	fmt.Println(latestEthHeight)
+	TxhashFail := common.HexToHash("0xb96560e8ef15a0d86f8156daddf6f2421d962f5a37dd8e2ba212b05eddaf0b59")
+
+	Address := common.BytesToAddress([]byte("0xce3f57a8de9aa69da3289871b5fee5e77ffcf480"))
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg := outgoingTx.WrapTokenMsg{
@@ -48,7 +51,7 @@ func Test_onNewBlock(t *testing.T) {
 	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   TxhashSuccess,
+		TxHash:   TxhashFail,
 		Messages: txd,
 	}
 
@@ -57,9 +60,8 @@ func Test_onNewBlock(t *testing.T) {
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
 	require.Equal(t, nil, err)
 
-
-	TxhashFail := common.BytesToHash([]byte("0x46140d38701c9e3d3a174a26734dc138480fd1d50773b942b140dbb1669cfae0"))
-	Address = common.BytesToAddress([]byte("0xce3f57a8de9aa69da3289871b5fee5e77ffcf480"))
+	TxhashSuccess :=  common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
+	Address = common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	amt = new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg = outgoingTx.WrapTokenMsg{
@@ -69,7 +71,7 @@ func Test_onNewBlock(t *testing.T) {
 	txd = []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction = db.EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   TxhashFail,
+		TxHash:   TxhashSuccess,
 		Messages: txd,
 	}
 
@@ -77,5 +79,6 @@ func Test_onNewBlock(t *testing.T) {
 	require.Equal(t, nil, err)
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
 	require.Equal(t, nil, err)
+
 
 }

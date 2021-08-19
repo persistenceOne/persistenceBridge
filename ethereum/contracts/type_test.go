@@ -48,7 +48,7 @@ func TestContracts(t *testing.T) {
 
 	// Test tx in block interupted
 	ctx, _ := context.WithCancel(context.Background())
-	tx, _, _ := ethereumClient.TransactionByHash(ctx, common.HexToHash("8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
+	tx, _, _ := ethereumClient.TransactionByHash(ctx, common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
 
 	method, arguments, err := contract.GetMethodAndArguments(tx.Data())
 	require.Equal(t, nil, err)

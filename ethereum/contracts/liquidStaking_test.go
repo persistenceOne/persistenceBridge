@@ -12,7 +12,7 @@ import (
 
 
 
-func Test_onStake(t *testing.T) {
+func TestOnStake(t *testing.T) {
 	configuration.InitConfig()
 	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
@@ -31,7 +31,7 @@ func Test_onStake(t *testing.T) {
 	require.NotNil(t, stakeMsgString)
 }
 
-func Test_onUnStake(t *testing.T) {
+func TestOnUnStake(t *testing.T) {
 	configuration.InitConfig()
 	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)

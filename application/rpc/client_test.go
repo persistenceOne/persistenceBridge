@@ -18,13 +18,24 @@ func TestRemoveValidator(t *testing.T) {
 	require.Equal(t, nil, err)
 	validatorName := "binance"
 	rpcEndpoint := "127.0.0.1:4040"
-	go StartServer(rpcEndpoint)
 
 	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
 	defer database.Close()
 
 	require.Equal(t, nil, err)
 	validators, err2 := AddValidator(db.Validator{
+		Address: validatorAddress,
+		Name:   validatorName ,
+	}, rpcEndpoint)
+	require.Equal(t, "dial tcp "+rpcEndpoint + ": connect: connection refused", err2.Error())
+	validators, err2 = RemoveValidator(validatorAddress, rpcEndpoint)
+	require.Equal(t, "dial tcp "+rpcEndpoint + ": connect: connection refused", err2.Error())
+
+
+	go StartServer(rpcEndpoint)
+
+	require.Equal(t, nil, err)
+	validators, err2 = AddValidator(db.Validator{
 		Address: validatorAddress,
 		Name:   validatorName ,
 	}, rpcEndpoint)
@@ -36,7 +47,6 @@ func TestRemoveValidator(t *testing.T) {
 
 	require.Equal(t, nil, err2)
 	require.Equal(t, validators, validatorsGet)
-
 }
 
 func TestShowValidators(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func Test_onWithdrawUTokens(t *testing.T) {
+func TestOnWithdrawUTokens(t *testing.T) {
 	configuration.InitConfig()
 	appconfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appconfig)
@@ -27,4 +27,8 @@ func Test_onWithdrawUTokens(t *testing.T) {
 	require.Equal(t, common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")).String(), ercAddress.String())
 	sendCoinMsgString := sendCoinMsg.String()
 	require.NotNil(t, sendCoinMsgString)
+
+	arr = []interface{}{common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),  i, ""}
+	sendCoinMsg, ercAddress, err = onWithdrawUTokens(arr)
+	require.Equal(t, "empty address string is not allowed", err.Error())
 }
