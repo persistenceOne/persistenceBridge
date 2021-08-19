@@ -1,11 +1,11 @@
-package config
+package testing
 
 import (
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/spf13/cobra"
 )
 
-func SetConfig() cobra.Command{
+func GetCmdWithConfig() cobra.Command{
 	var cmd cobra.Command
 
 	cmd.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
