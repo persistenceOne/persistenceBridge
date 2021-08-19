@@ -16,7 +16,7 @@ type errorResponse struct {
 	Message string
 }
 
-func status(w http.ResponseWriter, r *http.Request) {
+func status(w http.ResponseWriter, _ *http.Request) {
 	var errResponse errorResponse
 	cosmosStatus, err := db.GetCosmosStatus()
 	if err != nil {
