@@ -10,6 +10,7 @@ type statusResponse struct {
 	EthBlockHeight   int64
 	TendermintHeight int64
 	NextEpoch        int64
+	TotalWrapped     string
 }
 
 type errorResponse struct {
@@ -65,10 +66,27 @@ func status(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	totalWrapped, err := db.GetTotalTokensWrapped()
+	if err != nil {
+		errResponse.Message = err.Error()
+		b, err := json.Marshal(errResponse)
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		_, err = w.Write(b)
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		return
+	}
+
 	status := statusResponse{
 		EthBlockHeight:   ethStatus.LastCheckHeight,
 		TendermintHeight: cosmosStatus.LastCheckHeight,
 		NextEpoch:        unboundEpoch.Epoch,
+		TotalWrapped:     totalWrapped.String(),
 	}
 	b, err := json.Marshal(status)
 	if err != nil {

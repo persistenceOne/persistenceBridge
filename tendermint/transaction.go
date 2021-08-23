@@ -103,11 +103,20 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 			if err != nil {
 				logging.Fatal(err)
 			}
-			accountLimiter, totalAccounts := db.GetAccountLimiterAndTotal(fromAddress)
-			if totalAccounts >= getMaxLimit() {
-				logging.Info("Reverting Tendermint Tx [MAX Account Limit Reached]:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
-				revertCoins(wrapOrRevertMsg.msg.FromAddress, wrapOrRevertMsg.msg.Amount, kafkaProducer, protoCodec)
+			totalWrappedAmount, err := db.GetTotalTokensWrapped()
+			if err != nil {
+				logging.Fatal(err)
+			}
+			if totalWrappedAmount.GTE(getMaxLimit()) {
+				logging.Info("Reverting Tendermint Tx [MAX Amount Reached]:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
+				refundCoins = refundCoins.Add(sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount))
+				revertCoins(wrapOrRevertMsg.msg.FromAddress, refundCoins, kafkaProducer, protoCodec)
+				refundCoins = sdk.NewCoins()
 				continue
+			}
+			accountLimiter, err := db.GetAccountLimiter(fromAddress)
+			if err != nil {
+				logging.Fatal(err)
 			}
 			sendAmt, refundAmt := beta(accountLimiter, amount)
 			if refundAmt.GT(sdk.ZeroInt()) {
@@ -161,33 +170,37 @@ func beta(limiter db.AccountLimiter, amount sdk.Int) (sendAmount sdk.Int, refund
 	return sendAmount, refundAmt
 }
 
-func getMaxLimit() int {
+func getMaxLimit() sdk.Int {
 	currentTime := time.Now()
-	// 19th July, 2021
+	// 19th July 2021
 	if currentTime.Unix() < 1626696000 {
-		return 50000
+		return sdk.NewInt(50000000000)
 	}
-	// 26th July, 2021
+	// 26th July 2021
 	if currentTime.Unix() < 1627300800 {
-		return 65000
+		return sdk.NewInt(65000000000)
 	}
-	// 2nd August, 2021
+	// 2nd August 2021
 	if currentTime.Unix() < 1627905600 {
-		return 80000
+		return sdk.NewInt(80000000000)
 	}
-	// 9th August, 2021
+	// 9th August 2021
 	if currentTime.Unix() < 1628510400 {
-		return 95000
+		return sdk.NewInt(95000000000)
 	}
-	// 16th August, 2021
+	// 16th August 2021
 	if currentTime.Unix() < 1629115200 {
-		return 110000
+		return sdk.NewInt(110000000000)
 	}
 	// 23rd August, 2021
 	if currentTime.Unix() < 1629720000 {
-		return 125000
+		return sdk.NewInt(125000000000)
 	}
-	return 2147483646
+	// 30th August 2021
+	if currentTime.Unix() < 1630324800 {
+		return sdk.NewInt(140000000000)
+	}
+	return sdk.NewInt(1000000000000000)
 }
 
 func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
