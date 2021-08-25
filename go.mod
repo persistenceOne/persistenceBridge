@@ -9,7 +9,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.42.6
 	github.com/cosmos/relayer v0.9.3
 	github.com/dgraph-io/badger/v3 v3.2011.1
-	github.com/ethereum/go-ethereum v1.10.7
+	github.com/ethereum/go-ethereum v1.10.8
 	github.com/gorilla/mux v1.8.0
 	github.com/gravity-devs/liquidity v1.2.9
 	github.com/spf13/cobra v1.1.3
