@@ -20,29 +20,19 @@ import (
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
-type tmWrapOrRevert struct {
-	txHash   string
-	msgIndex int
-	msg      *banktypes.MsgSend
-	memo     string
-}
-
 func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
-	var allTxsWrapOrRevert []tmWrapOrRevert
 	for _, transaction := range resultTxs {
-		tmWrapOrReverts, err := collectAllWrapAndRevertTxs(clientCtx, transaction)
+		err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
 			return err
 		}
-		allTxsWrapOrRevert = append(allTxsWrapOrRevert, tmWrapOrReverts...)
 	}
-	wrapOrRevert(allTxsWrapOrRevert, kafkaProducer, protoCodec)
+	wrapOrRevert(kafkaProducer, protoCodec)
 	return nil
 }
 
-func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx) ([]tmWrapOrRevert, error) {
-	var tmWrapOrReverts []tmWrapOrRevert
+func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx) error {
 	if txQueryResult.TxResult.GetCode() == 0 {
 		// Should be used if txQueryResult.Tx is string
 		//decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)
@@ -52,12 +42,12 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 
 		txInterface, err := clientCtx.TxConfig.TxDecoder()(txQueryResult.Tx)
 		if err != nil {
-			return tmWrapOrReverts, err
+			return err
 		}
 
 		transaction, ok := txInterface.(signing.Tx)
 		if !ok {
-			return tmWrapOrReverts, err
+			return err
 		}
 
 		memo := strings.TrimSpace(transaction.GetMemo())
@@ -66,40 +56,50 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
 				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetPStakeAddress() {
-					t := tmWrapOrRevert{
-						txHash:   txQueryResult.Hash.String(),
-						msgIndex: i,
-						msg:      txMsg,
-						memo:     memo,
+					exists := db.CheckTendermintIncomingTxProduced(txQueryResult.Hash, uint(i))
+					if !exists {
+						err = db.SetTendermintIncomingTx(db.TendermintIncomingTx{
+							TxHash:          txQueryResult.Hash,
+							MsgIndex:        uint(i),
+							ProducedToKafka: false,
+							Msg:             *txMsg,
+							Memo:            memo,
+						})
+						if err != nil {
+							return err
+						}
 					}
-					tmWrapOrReverts = append(tmWrapOrReverts, t)
 				}
 			default:
 			}
 		}
 	}
-	return tmWrapOrReverts, nil
+	return nil
 }
 
-func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
-	for _, wrapOrRevertMsg := range tmWrapOrReverts {
-		validEthMemo := goEthCommon.IsHexAddress(wrapOrRevertMsg.memo)
+func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
+	txs, err := db.GetProduceToKafkaTendermintTxs()
+	if err != nil {
+		logging.Fatal(err)
+	}
+	for _, tx := range txs {
+		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
 		var ethAddress goEthCommon.Address
 		if validEthMemo {
-			ethAddress = goEthCommon.HexToAddress(wrapOrRevertMsg.memo)
+			ethAddress = goEthCommon.HexToAddress(tx.Memo)
 		}
 
-		if wrapOrRevertMsg.memo != "DO_NOT_REVERT" {
+		if tx.Memo != "DO_NOT_REVERT" {
 			amount := sdk.ZeroInt()
 			refundCoins := sdk.NewCoins()
-			for _, coin := range wrapOrRevertMsg.msg.Amount {
+			for _, coin := range tx.Msg.Amount {
 				if coin.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom {
 					amount = coin.Amount
 				} else {
 					refundCoins = refundCoins.Add(coin)
 				}
 			}
-			fromAddress, err := sdk.AccAddressFromBech32(wrapOrRevertMsg.msg.FromAddress)
+			fromAddress, err := sdk.AccAddressFromBech32(tx.Msg.FromAddress)
 			if err != nil {
 				logging.Fatal(err)
 			}
@@ -108,9 +108,9 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				logging.Fatal(err)
 			}
 			if totalWrappedAmount.GTE(getMaxLimit()) {
-				logging.Info("Reverting Tendermint Tx [MAX Amount Reached]:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
+				logging.Info("Reverting Tendermint Tx [MAX Amount Reached]:", tx.TxHash, "MsgBytes Index:", tx.MsgIndex)
 				refundCoins = refundCoins.Add(sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount))
-				revertCoins(wrapOrRevertMsg.msg.FromAddress, refundCoins, kafkaProducer, protoCodec)
+				revertCoins(tx.Msg.FromAddress, refundCoins, kafkaProducer, protoCodec)
 				refundCoins = sdk.NewCoins()
 				continue
 			}
@@ -123,7 +123,7 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				refundCoins = refundCoins.Add(sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, refundAmt))
 			}
 			if sendAmt.GT(sdk.ZeroInt()) && validEthMemo {
-				logging.Info("Received Tendermint Wrap Tx:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
+				logging.Info("Received Tendermint Wrap Tx:", tx.TxHash, "MsgBytes Index:", tx.MsgIndex)
 				ethTxMsg := outgoingTx.WrapTokenMsg{
 					Address: ethAddress,
 					Amount:  sendAmt.BigInt(),
@@ -137,6 +137,11 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				if err != nil {
 					logging.Fatal("Failed to add msg to kafka queue ToEth [TM Listener]:", err)
 				}
+				tx.ProducedToKafka = true
+				err = db.SetTendermintIncomingTx(tx)
+				if err != nil {
+					logging.Fatal(err)
+				}
 				accountLimiter.Amount = accountLimiter.Amount.Add(sendAmt)
 				err = db.SetAccountLimiter(accountLimiter)
 				if err != nil {
@@ -144,11 +149,11 @@ func wrapOrRevert(tmWrapOrReverts []tmWrapOrRevert, kafkaProducer *sarama.SyncPr
 				}
 			}
 			if len(refundCoins) > 0 {
-				logging.Info("Reverting left over coins: TxHash:", wrapOrRevertMsg.txHash, "Msg Index:", wrapOrRevertMsg.msgIndex)
-				revertCoins(wrapOrRevertMsg.msg.FromAddress, refundCoins, kafkaProducer, protoCodec)
+				logging.Info("Reverting left over coins: TxHash:", tx.TxHash, "MsgBytes Index:", tx.MsgIndex)
+				revertCoins(tx.Msg.FromAddress, refundCoins, kafkaProducer, protoCodec)
 			}
 		} else {
-			logging.Info("Deposited to wrap address, TxHash:", wrapOrRevertMsg.txHash, "amount:", wrapOrRevertMsg.msg.Amount.String())
+			logging.Info("Deposited to wrap address, TxHash:", tx.TxHash, "amount:", tx.Msg.Amount.String())
 		}
 	}
 }

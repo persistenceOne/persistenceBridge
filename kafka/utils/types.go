@@ -14,14 +14,14 @@ type Ticket string
 
 //// KafkaMsg : is a store that can be stored in kafka queues
 //type KafkaMsg struct {
-//	Msg      sdk.Msg `json:"msg"`
+//	MsgBytes      sdk.MsgBytes `json:"msg"`
 //	TicketID Ticket  `json:"ticketID"`
 //}
 //
 //// NewKafkaMsgFromRest : makes a msg to send to kafka queue
-//func NewKafkaMsgFromRest(msg sdk.Msg, ticketID Ticket) KafkaMsg {
+//func NewKafkaMsgFromRest(msg sdk.MsgBytes, ticketID Ticket) KafkaMsg {
 //	return KafkaMsg{
-//		Msg:      msg,
+//		MsgBytes:      msg,
 //		TicketID: ticketID,
 //	}
 //}
