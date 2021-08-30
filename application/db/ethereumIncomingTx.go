@@ -59,11 +59,21 @@ func GetEthereumIncomingTx(txHash common.Hash, producedToKafka bool) (EthereumIn
 	return ethInTx, err
 }
 
-func SetEthereumIncomingTx(a EthereumIncomingTx) error {
-	return set(&a)
+func AddToPendingEthereumIncomingTx(t EthereumIncomingTx) error {
+	return set(&t)
 }
 
-func GetProduceToKafkaEthereumTx() ([]EthereumIncomingTx, error) {
+func SetEthereumIncomingTxProduced(t EthereumIncomingTx) error {
+	t.ProducedToKafka = false
+	err := deleteKV(t.Key())
+	if err != nil {
+		return err
+	}
+	t.ProducedToKafka = true
+	return set(&t)
+}
+
+func GetProduceToKafkaEthereumIncomingTx() ([]EthereumIncomingTx, error) {
 	var result []EthereumIncomingTx
 	err := iterateKeyValues(ethereumIncomingTxPrefix.GenerateStoreKey([]byte{byte(0)}), func(key []byte, value []byte) error {
 		var e EthereumIncomingTx

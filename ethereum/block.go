@@ -65,7 +65,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 				if err != nil {
 					return err
 				}
-				err = db.SetEthereumIncomingTx(db.EthereumIncomingTx{
+				err = db.AddToPendingEthereumIncomingTx(db.EthereumIncomingTx{
 					TxHash:          transaction.Hash(),
 					ProducedToKafka: false,
 					MsgBytes:        msgBytes,
@@ -82,7 +82,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 }
 
 func produceToKafka(kafkaProducer *sarama.SyncProducer) {
-	ethInTxs, err := db.GetProduceToKafkaEthereumTx()
+	ethInTxs, err := db.GetProduceToKafkaEthereumIncomingTx()
 	if err != nil {
 		logging.Fatal(err)
 	}
@@ -103,8 +103,7 @@ func produceToKafka(kafkaProducer *sarama.SyncProducer) {
 		if err != nil {
 			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
 		}
-		ethTxToTM.ProducedToKafka = true
-		err := db.SetEthereumIncomingTx(ethTxToTM)
+		err := db.SetEthereumIncomingTxProduced(ethTxToTM)
 		if err != nil {
 			logging.Fatal(err)
 		}
