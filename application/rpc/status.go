@@ -10,26 +10,26 @@ type statusResponse struct {
 	EthBlockHeight   int64
 	TendermintHeight int64
 	NextEpoch        int64
+	TotalWrapped     string
 }
 
 type errorResponse struct {
 	Message string
 }
 
-func status(w http.ResponseWriter, r *http.Request) {
+func status(w http.ResponseWriter, _ *http.Request) {
 	var errResponse errorResponse
 	cosmosStatus, err := db.GetCosmosStatus()
 	if err != nil {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
+			_, _ = w.Write([]byte(err.Error()))
 		}
 		return
 	}
@@ -39,12 +39,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		return
@@ -55,12 +55,28 @@ func status(w http.ResponseWriter, r *http.Request) {
 		errResponse.Message = err.Error()
 		b, err := json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		return
+	}
+
+	totalWrapped, err := db.GetTotalTokensWrapped()
+	if err != nil {
+		errResponse.Message = err.Error()
+		b, err := json.Marshal(errResponse)
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		_, err = w.Write(b)
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		return
@@ -70,15 +86,16 @@ func status(w http.ResponseWriter, r *http.Request) {
 		EthBlockHeight:   ethStatus.LastCheckHeight,
 		TendermintHeight: cosmosStatus.LastCheckHeight,
 		NextEpoch:        unboundEpoch.Epoch,
+		TotalWrapped:     totalWrapped.String(),
 	}
 	b, err := json.Marshal(status)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	_, err = w.Write(b)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 	return
