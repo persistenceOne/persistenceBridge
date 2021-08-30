@@ -29,6 +29,7 @@ const (
 	FlagMinimumWrapAmount     = "minWrapAmt"
 	FlagTelegramBotToken      = "botToken"
 	FlagTelegramChatID        = "botChatID"
+	FlagShowDebugLog          = "debug"
 )
 
 var (

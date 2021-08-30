@@ -39,6 +39,12 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 				log.Fatalln(err)
 			}
 
+			showDebugLog, err := cmd.Flags().GetBool(constants2.FlagShowDebugLog)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			logging.ShowDebugLog(showDebugLog)
+
 			pStakeConfig := configuration.InitConfig()
 			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
 			if err != nil {
@@ -156,6 +162,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	}
 	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	pBridgeCommand.Flags().Bool(constants2.FlagShowDebugLog, false, "show debug logs")
 	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, "", "ethereum orchestrator to connect")
 	pBridgeCommand.Flags().String(constants2.FlagKafkaPorts, "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	pBridgeCommand.Flags().Int(constants2.FlagTendermintSleepTime, constants2.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
