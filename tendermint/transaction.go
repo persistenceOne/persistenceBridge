@@ -200,6 +200,18 @@ func getMaxLimit() sdk.Int {
 	if currentTime.Unix() < 1630324800 {
 		return sdk.NewInt(140000000000)
 	}
+	// 6th September 2021
+	if currentTime.Unix() < 1630929600 {
+		return sdk.NewInt(155000000000)
+	}
+	// 13th September 2021
+	if currentTime.Unix() < 1631534400 {
+		return sdk.NewInt(170000000000)
+	}
+	// 20th September 2021
+	if currentTime.Unix() < 1632139200 {
+		return sdk.NewInt(185000000000)
+	}
 	return sdk.NewInt(1000000000000000)
 }
 
