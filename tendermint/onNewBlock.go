@@ -18,7 +18,7 @@ import (
 )
 
 func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Chain, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
-	return db.IterateTmTx(func(key []byte, value []byte) error {
+	return db.IterateBroadcastedTmTx(func(key []byte, value []byte) error {
 		var tmTx db.TendermintBroadcastedTransaction
 		err := json.Unmarshal(value, &tmTx)
 		if err != nil {
@@ -63,7 +63,7 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 			} else {
 				logging.Info("Broadcast tendermint tx successful. Hash:", tmTx.TxHash, "Block:", txResult.Height)
 			}
-			return db.DeleteTendermintTx(tmTx.TxHash)
+			return db.DeleteBroadcastedTendermintTx(tmTx.TxHash)
 		}
 	})
 }

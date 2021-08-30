@@ -3,7 +3,6 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 )
@@ -39,23 +38,14 @@ func (ethTx *EthereumBroadcastedWrapTokenTransaction) Validate() error {
 	return nil
 }
 
-func DeleteEthereumTx(txHash common.Hash) error {
+func DeleteBroadcastedEthereumTx(txHash common.Hash) error {
 	return deleteKV(ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey(txHash.Bytes()))
 }
 
-func SetEthereumTx(ethTransaction EthereumBroadcastedWrapTokenTransaction) error {
+func SetBroadcastedEthereumTx(ethTransaction EthereumBroadcastedWrapTokenTransaction) error {
 	return set(&ethTransaction)
 }
 
-func IterateEthTx(operation func(key []byte, value []byte) error) error {
+func IterateBroadcastedEthTx(operation func(key []byte, value []byte) error) error {
 	return iterateKeyValues(ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey([]byte{}), operation)
-}
-
-func GetTotalEthBroadcastedTx() (int, error) {
-	total := 0
-	err := iterateKeys(ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
-		total = total + 1
-		return nil
-	})
-	return total, err
 }

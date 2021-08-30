@@ -107,7 +107,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 				}
 				return nil
 			} else {
-				err = db.SetTendermintTx(db.NewTMTransaction(response.TxHash))
+				err = db.SetBroadcastedTendermintTx(db.NewTMTransaction(response.TxHash))
 				if err != nil {
 					logging.Fatal(err)
 				}

@@ -14,7 +14,7 @@ import (
 )
 
 func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient.Client, kafkaProducer *sarama.SyncProducer) error {
-	return db.IterateEthTx(func(key []byte, value []byte) error {
+	return db.IterateBroadcastedEthTx(func(key []byte, value []byte) error {
 		var ethTx db.EthereumBroadcastedWrapTokenTransaction
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
@@ -53,7 +53,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 				}
 			}
 			if deleteTx {
-				return db.DeleteEthereumTx(ethTx.TxHash)
+				return db.DeleteBroadcastedEthereumTx(ethTx.TxHash)
 			}
 			return nil
 		}
