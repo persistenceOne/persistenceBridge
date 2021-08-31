@@ -33,9 +33,9 @@ func TestGetTendermintAddress(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 	}
-	tenderMintAddress, error := GetTendermintAddress()
+	tenderMintAddress, errTMA := GetTendermintAddress()
 	re := regexp.MustCompile(`^cosmos[0-9a-zA-Z]{39}$`)
-	require.Nil(t, error,"Error Getting Tendermint address")
+	require.Nil(t, errTMA,"Error Getting Tendermint address")
 	require.Equal(t, true,re.MatchString(tenderMintAddress.String()))
 	require.NotNil(t, tenderMintAddress)
 	require.Equal(t, 20, len(tenderMintAddress))

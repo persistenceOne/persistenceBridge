@@ -23,8 +23,8 @@ func TestGetCASPSignature(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error getting OperationId")
 	}
-	caspSignature, error := GetCASPSignature(operationID)
-	if error != nil {
+	caspSignature, errCS := GetCASPSignature(operationID)
+	if errCS != nil {
 		t.Errorf("Error getting casp Signature")
 	}
 	require.Equal(t, caspSignature.IsApproved,true)

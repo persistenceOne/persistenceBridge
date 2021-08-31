@@ -40,8 +40,8 @@ func TestEthereumWrapToken(t *testing.T) {
 	if errorInClient != nil {
 		t.Errorf("Error getting ETH client!")
 	}
-	ethWrapToken, error := EthereumWrapToken(ethereumClient,wrapTokenMsg)
-	if error != nil {
+	ethWrapToken, errEthWT := EthereumWrapToken(ethereumClient,wrapTokenMsg)
+	if errEthWT != nil {
 		t.Errorf("Failed getting ETH wrap token for: %v",ethaddress)
 	}
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
