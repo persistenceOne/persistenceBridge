@@ -31,7 +31,7 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 		ProviderData:            "",
 		Details:                 "",
 		PublicKeys:              publicKeys,
-		AllowConcurrentKeyUsage: true,
+		AllowConcurrentKeyUsage: configuration.GetAppConfig().CASP.AllowConcurrentKeyUsage,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	client := &http.Client{Transport: &http.Transport{

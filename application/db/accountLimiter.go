@@ -39,9 +39,14 @@ func (a *AccountLimiter) Validate() error {
 func GetAccountLimiter(address sdk.AccAddress) (AccountLimiter, error) {
 	var acc AccountLimiter
 	acc.AccountAddress = address
+	acc.Amount = sdk.ZeroInt()
 	b, err := get(acc.Key())
 	if err != nil {
-		return acc, err
+		if err == badger.ErrKeyNotFound {
+			return acc, nil
+		} else {
+			return acc, err
+		}
 	}
 	err = json.Unmarshal(b, &acc)
 	return acc, err
@@ -49,6 +54,20 @@ func GetAccountLimiter(address sdk.AccAddress) (AccountLimiter, error) {
 
 func SetAccountLimiter(a AccountLimiter) error {
 	return set(&a)
+}
+
+func GetTotalTokensWrapped() (sdk.Int, error) {
+	total := sdk.ZeroInt()
+	err := iterateKeyValues(accountLimiterPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
+		var acc AccountLimiter
+		jsonErr := json.Unmarshal(value, &acc)
+		if jsonErr != nil {
+			return jsonErr
+		}
+		total = total.Add(acc.Amount)
+		return nil
+	})
+	return total, err
 }
 
 func GetAccountLimiterAndTotal(address sdk.AccAddress) (AccountLimiter, int) {

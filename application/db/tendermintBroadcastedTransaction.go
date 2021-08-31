@@ -31,15 +31,15 @@ func (tmTx *TendermintBroadcastedTransaction) Validate() error {
 	return nil
 }
 
-func DeleteTendermintTx(txHash string) error {
+func DeleteBroadcastedTendermintTx(txHash string) error {
 	return deleteKV(tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte(txHash)))
 }
 
-func SetTendermintTx(tmTransaction TendermintBroadcastedTransaction) error {
+func SetBroadcastedTendermintTx(tmTransaction TendermintBroadcastedTransaction) error {
 	return set(&tmTransaction)
 }
 
-func IterateTmTx(operation func(key []byte, value []byte) error) error {
+func IterateBroadcastedTmTx(operation func(key []byte, value []byte) error) error {
 	return iterateKeyValues(tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte{}), operation)
 }
 

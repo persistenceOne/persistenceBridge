@@ -10,7 +10,9 @@ const (
 	tendermintBroadcastedTransactionPrefix
 	ethereumBroadcastedWrapTokenTransactionPrefix
 	unboundEpochTimePrefix
-	accountLimiterPrefix
+	accountLimiterPrefix // Beta feature DO NOT REMOVE
+	tendermintIncomingTxPrefix
+	ethereumIncomingTxPrefix
 )
 
 func (storeKeyPrefix storeKeyPrefix) GenerateStoreKey(key []byte) []byte {
