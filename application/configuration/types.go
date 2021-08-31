@@ -65,6 +65,7 @@ type caspConfig struct {
 	SignatureWaitTime       time.Duration
 	APIToken                string
 	AllowConcurrentKeyUsage bool
+	MaxGetSignatureAttempts int
 }
 
 func newCASPConfig() caspConfig {
@@ -76,6 +77,7 @@ func newCASPConfig() caspConfig {
 		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
 		APIToken:                "",
 		AllowConcurrentKeyUsage: true,
+		MaxGetSignatureAttempts: constants.DefaultCASPMaxGetSignatureAttempt,
 	}
 }
 

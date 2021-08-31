@@ -132,6 +132,16 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		appConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
 
+		caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants2.FlagCASPMaxGetSignatureAttempts)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if caspMaxGetSignatureAttempts > 0 {
+			appConfig.CASP.MaxGetSignatureAttempts = caspMaxGetSignatureAttempts
+		} else if appConfig.CASP.SignatureWaitTime < 0 {
+			log.Fatalln("invalid casp MaxGetSignatureAttempts")
+		}
+
 		bridgeRPCEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 		if err != nil {
 			log.Fatalln(err)

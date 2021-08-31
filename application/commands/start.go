@@ -178,6 +178,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, -1, "csap siganture wait time")
+	pBridgeCommand.Flags().Int(constants2.FlagCASPMaxGetSignatureAttempts, 0, "casp max attempts to fetch operation id")
 	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
 	pBridgeCommand.Flags().Int64(constants2.FlagMinimumWrapAmount, -1, "minimum amount in send coin tx to wrap onto eth")
 	pBridgeCommand.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")

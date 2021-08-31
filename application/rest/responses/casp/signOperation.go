@@ -1,6 +1,9 @@
 package casp
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type SignOperationResponse struct {
 	OperationID string    `json:"operationID"`
@@ -45,4 +48,29 @@ type SignOperationResponse struct {
 		CollectionComplete   bool          `json:"collectionComplete"`
 		DataCollectionGroups []interface{} `json:"dataCollectionGroups"`
 	} `json:"collectedData"`
+}
+
+func (response SignOperationResponse) GetPendingParticipantsApprovals() error {
+	result := "OperationID: " + response.OperationID
+	if len(response.Groups) == 0 {
+		return fmt.Errorf("no groups found")
+	}
+	for _, group := range response.Groups {
+		totalApproval := 0
+		membersAwaiting := ""
+		for _, member := range group.Members {
+			if member.ApprovedAt == "" {
+				membersAwaiting = membersAwaiting + member.Name + ", "
+			} else {
+				totalApproval++
+			}
+		}
+		if totalApproval < group.RequiredApprovals {
+			result = result + fmt.Sprintf("\nGroup: %s (%d) have pending %d more approvals from members [%s]", group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
+		}
+	}
+	if result != "" {
+		return fmt.Errorf(result)
+	}
+	return nil
 }

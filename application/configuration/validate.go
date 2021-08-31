@@ -87,6 +87,9 @@ func (config caspConfig) validate() error {
 	if config.EthereumPublicKey == "" {
 		return fmt.Errorf("casp tendermint public empty")
 	}
+	if config.MaxGetSignatureAttempts <= 0 {
+		return fmt.Errorf("casp MaxGetSignatureAttempts cannot be less than or equal to 0")
+	}
 	return nil
 }
 
