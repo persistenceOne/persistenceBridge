@@ -55,7 +55,7 @@ func TestOnNewBlock(t *testing.T) {
 		Messages: txd,
 	}
 
-	err = db.SetEthereumTx(ethTransaction)
+	err = db.SetBroadcastedEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
 	require.Equal(t, nil, err)
@@ -75,7 +75,7 @@ func TestOnNewBlock(t *testing.T) {
 		Messages: txd,
 	}
 
-	err = db.SetEthereumTx(ethTransaction)
+	err = db.SetBroadcastedEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
 	require.Equal(t, nil, err)

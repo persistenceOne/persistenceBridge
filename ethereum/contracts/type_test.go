@@ -34,7 +34,6 @@ func TestContracts(t *testing.T) {
 	require.Equal(t, contractABI, contract.GetABI())
 	i:=0
 	for k := range cMethods {
-		fmt.Println(k)
 		if i == 1 {
 			require.Equal(t, "unStake", k)
 		}else{
