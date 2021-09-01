@@ -2,7 +2,6 @@ package ethereum
 
 import (
 	"context"
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
@@ -20,8 +19,8 @@ import (
 
 func TestOnNewBlock(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
@@ -38,7 +37,6 @@ func TestOnNewBlock(t *testing.T) {
 	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
 	defer database.Close()
 
-	fmt.Println(latestEthHeight)
 	TxhashFail := common.HexToHash("0xb96560e8ef15a0d86f8156daddf6f2421d962f5a37dd8e2ba212b05eddaf0b59")
 
 	Address := common.BytesToAddress([]byte("0xce3f57a8de9aa69da3289871b5fee5e77ffcf480"))

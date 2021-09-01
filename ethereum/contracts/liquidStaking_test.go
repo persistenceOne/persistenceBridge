@@ -14,8 +14,8 @@ import (
 
 func TestOnStake(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
@@ -33,8 +33,8 @@ func TestOnStake(t *testing.T) {
 
 func TestOnUnStake(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 

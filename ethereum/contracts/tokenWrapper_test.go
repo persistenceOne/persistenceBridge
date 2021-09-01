@@ -12,8 +12,8 @@ import (
 
 func TestOnWithdrawUTokens(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 

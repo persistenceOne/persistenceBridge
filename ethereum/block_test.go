@@ -28,8 +28,8 @@ import (
 
 func TestCollectEthTx(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
@@ -81,8 +81,8 @@ func TestCollectEthTx(t *testing.T) {
 
 func TestHandleBlock(t *testing.T){
 	pStakeConfig := configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
@@ -127,8 +127,8 @@ func TestHandleBlock(t *testing.T){
 
 func TestProduceToKafka(t *testing.T){
 	pStakeConfig := configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 

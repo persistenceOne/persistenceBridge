@@ -16,17 +16,17 @@ import (
 
 func TestContracts(t *testing.T) {
 	contract := LiquidStaking
-	cName := contract.GetName()
-	cAddress := contract.GetAddress()
+	contractName := contract.GetName()
+	contractAddress := contract.GetAddress()
 	cABI := contract.GetABI()
 	cMethods := contract.GetSDKMsgAndSender()
 	configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 
 
-	require.Equal(t, "LIQUID_STAKING", cName)
-	require.Equal(t, common.HexToAddress(constants2.LiquidStakingAddress), cAddress)
+	require.Equal(t, "LIQUID_STAKING", contractName)
+	require.Equal(t, common.HexToAddress(constants2.LiquidStakingAddress), contractAddress)
 	require.Equal(t, abi.ABI{}, cABI)
 	contract.SetABI(constants2.LiquidStakingABI)
 	contractABI, err := abi.JSON(strings.NewReader(constants2.LiquidStakingABI))

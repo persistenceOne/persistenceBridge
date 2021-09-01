@@ -9,8 +9,8 @@ import (
 
 func TestGetSignOperation(t *testing.T) {
 	configuration.InitConfig()
-	appconfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appconfig)
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 
 	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"
 	responseRecieved, err := GetSignOperation(operationID)
