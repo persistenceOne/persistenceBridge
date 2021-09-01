@@ -6,12 +6,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 )
 
 func TestAddValidator(t *testing.T) {
-	var wg sync.WaitGroup
 	validatorAddress, err := sdk.ValAddressFromBech32("cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf")
 	dirName, err := os.UserHomeDir()
 
@@ -35,7 +33,6 @@ func TestAddValidator(t *testing.T) {
 	validatorsGet, err2 := db.GetValidators()
 	require.Equal(t, validators, validatorsGet)
 	require.Equal(t, nil, err2)
-	wg.Wait()
 
 }
 
