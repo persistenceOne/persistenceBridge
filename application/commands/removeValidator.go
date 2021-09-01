@@ -2,7 +2,6 @@ package commands
 
 import (
 	"errors"
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -14,9 +13,9 @@ import (
 	"time"
 )
 
-func RemoveCommand(initClientCtx client.Context) *cobra.Command {
+func RemoveCommand() *cobra.Command {
 	removeCommand := &cobra.Command{
-		Use:   "remove [ValoperAddress]",
+		Use:   "remove [validatorOperatorAddress]",
 		Short: "Remove validator address to signing group",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -62,9 +62,9 @@ func main() {
 		"Assert registered invariants every N blocks",
 	)
 	rootCommand.AddCommand(commands.StartCommand(initClientCtx))
-	rootCommand.AddCommand(commands.AddCommand(initClientCtx))
-	rootCommand.AddCommand(commands.RemoveCommand(initClientCtx))
-	rootCommand.AddCommand(commands.ShowCommand(initClientCtx))
+	rootCommand.AddCommand(commands.AddCommand())
+	rootCommand.AddCommand(commands.RemoveCommand())
+	rootCommand.AddCommand(commands.ShowCommand())
 	rootCommand.AddCommand(commands.InitCommand())
 
 	if err := serverCmd.Execute(rootCommand, constants.DefaultPBridgeHome); err != nil {

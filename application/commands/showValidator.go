@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
@@ -9,10 +8,10 @@ import (
 	"log"
 )
 
-func ShowCommand(initClientCtx client.Context) *cobra.Command {
+func ShowCommand() *cobra.Command {
 	showCommand := &cobra.Command{
 		Use:   "show",
-		Short: "show validator address to signing group",
+		Short: "show validators address to signing group",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {

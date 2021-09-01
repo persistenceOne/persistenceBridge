@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -10,9 +9,9 @@ import (
 	"log"
 )
 
-func AddCommand(initClientCtx client.Context) *cobra.Command {
+func AddCommand() *cobra.Command {
 	addCommand := &cobra.Command{
-		Use:   "add [ValoperAddress] [name]",
+		Use:   "add [validatorOperatorAddress] [name]",
 		Short: "Add validator address to signing group",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
