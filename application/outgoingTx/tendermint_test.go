@@ -2,7 +2,6 @@ package outgoingTx
 
 import (
 	"encoding/json"
-	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/relayer/helpers"
@@ -11,11 +10,10 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
-	"log"
 	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -24,12 +22,10 @@ import (
 )
 
 func TestLogMessagesAndBroadcast(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
 	tenderMintAddress, errorTm := casp.GetTendermintAddress()
 	if errorTm != nil {
 		t.Errorf("Error getting Tendermint address")
@@ -78,12 +74,10 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 }
 
 func Test_broadcastTMTx(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
 	tmAddress, err := casp.GetTendermintAddress()
@@ -142,12 +136,10 @@ func Test_broadcastTMTx(t *testing.T) {
 }
 
 func Test_getTMBytesToSign(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
 	tmAddress, err := casp.GetTendermintAddress()
@@ -199,12 +191,10 @@ func Test_getTMBytesToSign(t *testing.T) {
 }
 
 func Test_getTMSignature(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 	bytesToSign :=[]byte(strings.Join(dataToSign,""))
 	tmSignature, err := getTMSignature(bytesToSign)
@@ -218,12 +208,10 @@ func Test_getTMSignature(t *testing.T) {
 }
 
 func Test_setTMPublicKey(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	tendermintPublicKey := setTMPublicKey()
 	if tendermintPublicKey != nil {
 		t.Errorf("Error setting Tendermint publickey: %v",tendermintPublicKey)
@@ -233,12 +221,10 @@ func Test_setTMPublicKey(t *testing.T) {
 }
 
 func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
 	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
 	tmAddress, err := casp.GetTendermintAddress()
 	configuration.SetPStakeAddress(tmAddress)
 	chain := &relayer.Chain{}

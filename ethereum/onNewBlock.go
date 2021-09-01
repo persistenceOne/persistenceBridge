@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/Shopify/sarama"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"

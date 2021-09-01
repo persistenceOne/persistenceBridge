@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"log"
 	"math/big"
@@ -18,12 +19,10 @@ import (
 )
 
 func TestGetTMPubKey(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
 		t.Errorf("Failed to get casp Response")
@@ -37,12 +36,10 @@ func TestGetTMPubKey(t *testing.T) {
 }
 
 func TestGetEthPubKey(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
 		t.Errorf("Failed to get casp Response")
@@ -57,12 +54,10 @@ func TestGetEthPubKey(t *testing.T) {
 }
 
 func TestGetXY(t *testing.T)  {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
 		t.Errorf("Failed to get casp Response")

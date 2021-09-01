@@ -14,12 +14,10 @@ import (
 )
 
 func Test_beta(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	limiter := db.AccountLimiter{AccountAddress: sdk.AccAddress("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n"), Amount: sdk.NewInt(int64(1))}
 	sendAmount, refundAmt := beta(limiter,sdk.NewInt(int64(200)))
 	require.Equal(t,reflect.TypeOf(sdk.Int{}) ,reflect.TypeOf(sendAmount))

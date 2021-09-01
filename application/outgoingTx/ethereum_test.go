@@ -11,6 +11,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"math/big"
 	"os"
 	"reflect"
@@ -24,12 +25,10 @@ import (
 )
 
 func TestEthereumWrapToken(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	ethaddress, _ := casp.GetEthAddress()
 	wrapTokenMsg := []WrapTokenMsg{{
 		Address: ethaddress,
@@ -53,12 +52,10 @@ func TestEthereumWrapToken(t *testing.T) {
 }
 
 func Test_sendTxToEth(t *testing.T){
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	ethclientClient, errorInClient := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
 	if errorInClient != nil {
 		t.Errorf("Error getting ETH client!")
@@ -86,12 +83,10 @@ func Test_sendTxToEth(t *testing.T){
 }
 
 func Test_getEthSignature(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	ethclientClient, errorInClient := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
 	if errorInClient != nil {
 		t.Errorf("Error getting ETH client!")
@@ -134,12 +129,10 @@ func Test_getEthSignature(t *testing.T) {
 
 
 func Test_setEthBridgeAdmin(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	dirname, _ := os.UserHomeDir()
-	_, err := toml.DecodeFile(filepath.Join(dirname, "/.persistenceBridge/config.toml"), &pStakeConfig)
-	if err != nil {
-		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-	}
+	configuration.InitConfig()
+	appConfig := test.GetCmdWithConfig()
+	configuration.SetConfig(&appConfig)
+	
 	ethBridgeAdminErro := setEthBridgeAdmin()
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true,re.MatchString(ethBridgeAdmin.String()))
