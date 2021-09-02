@@ -77,7 +77,7 @@ ConsumerLoop:
 				ValidatorAddress: delegation.Delegation.ValidatorAddress,
 				Amount: sdk.Coin{
 					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
-					Amount: sum,
+					Amount: unbondingShare,
 				},
 			}
 			unbondMsgs = append(unbondMsgs, unbondMsg)
