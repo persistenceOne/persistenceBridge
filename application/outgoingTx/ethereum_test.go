@@ -115,7 +115,6 @@ func Test_getEthSignature(t *testing.T) {
 	require.Equal(t, reflect.TypeOf([]byte{}),reflect.TypeOf(ethSignature))
 	require.Equal(t, reflect.TypeOf(0),reflect.TypeOf(signatureResponse))
 	require.Equal(t, 64, len(ethSignature))
-	//require.Equal(t, 0,signatureResponse,"Wrong Signature Response") //signatureResponseVaries 0/1
 	require.NotEqual(t, -1,signatureResponse)
 	require.NotNil(t,ethSignature )
 }
