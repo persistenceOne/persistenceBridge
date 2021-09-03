@@ -69,7 +69,7 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	require.Equal(t, reflect.TypeOf(""),reflect.TypeOf(loggedmessage.String()))
 }
 
-func Test_broadcastTMTx(t *testing.T) {
+func TestBroadcastTMTx(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
@@ -126,7 +126,7 @@ func Test_broadcastTMTx(t *testing.T) {
 	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}),reflect.TypeOf(broadcastTMmsg))
 }
 
-func Test_getTMBytesToSign(t *testing.T) {
+func TestGetTMBytesToSign(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
@@ -177,7 +177,7 @@ func Test_getTMBytesToSign(t *testing.T) {
 	require.NotNil(t, txFactory)
 }
 
-func Test_getTMSignature(t *testing.T) {
+func TestGetTMSignature(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
@@ -194,7 +194,7 @@ func Test_getTMSignature(t *testing.T) {
 	require.Equal(t, 64, len(tmSignature))
 }
 
-func Test_setTMPublicKey(t *testing.T) {
+func TestSetTMPublicKey(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
@@ -207,7 +207,7 @@ func Test_setTMPublicKey(t *testing.T) {
 	require.Equal(t, 20,len(tmPublicKey.Address()))
 }
 
-func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
+func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)

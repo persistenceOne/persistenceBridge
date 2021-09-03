@@ -46,7 +46,7 @@ func TestEthereumWrapToken(t *testing.T) {
 	require.Equal(t,32, len(ethWrapToken))
 }
 
-func Test_sendTxToEth(t *testing.T){
+func TestSendTxToEth(t *testing.T){
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
@@ -75,7 +75,7 @@ func Test_sendTxToEth(t *testing.T){
 	require.Equal(t, 32, len(txToETHhash))
 }
 
-func Test_getEthSignature(t *testing.T) {
+func TestGetEthSignature(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
@@ -120,7 +120,7 @@ func Test_getEthSignature(t *testing.T) {
 }
 
 
-func Test_setEthBridgeAdmin(t *testing.T) {
+func TestSetEthBridgeAdmin(t *testing.T) {
 	configuration.InitConfig()
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)

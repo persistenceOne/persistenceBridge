@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func Test_getAllTxResults(t *testing.T) {
+func TestGetAllTxResults(t *testing.T) {
 	homedir, _ := os.UserHomeDir()
 	fileName := strings.Join([]string{homedir,"/.persistenceBridge/chain.json"},"")
 	chain, _ := InitializeAndStartChain(fileName, "336h", homedir)

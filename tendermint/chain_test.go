@@ -23,7 +23,7 @@ func TestInitializeAndStartChain(t *testing.T) {
 	require.NotNil(t,initAndStartChain )
 }
 
-func Test_fileInputAdd(t *testing.T) {
+func TestFileInputAdd(t *testing.T) {
 	dirname, _ := os.UserHomeDir()
 	fileName := strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},"")
 	fileIPadd, err := fileInputAdd(fileName)
