@@ -10,8 +10,6 @@ import (
 )
 
 func TestInitCommand(t *testing.T) {
-	t.Logf("Testing init command")
-
 	dirname, _ := os.UserHomeDir()
 	cmd := InitCommand()
 	cmd.SetArgs([]string{dirname + "/Documents/GitHub/persistenceBridge"})

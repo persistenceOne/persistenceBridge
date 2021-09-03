@@ -10,8 +10,6 @@ import (
 )
 
 func TestAddCommand(t *testing.T) {
-	t.Logf("Testing AddCommand command")
-
 	dirname, _ := os.UserHomeDir()
 
 	validatorName := "Binance"
