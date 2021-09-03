@@ -32,7 +32,9 @@ func TestRemoveCommand(t *testing.T) {
 	validatorAddress2 := "cosmosvaloper18r9630ruvesw76h2qand6pvdzjctpp6q4dlgm5"
 
 	valAddress1, err := sdk.ValAddressFromBech32(validatorAddress1)
+	require.Nil(t, err)
 	valAddress2, err := sdk.ValAddressFromBech32(validatorAddress2)
+	require.Nil(t, err)
 
 	_, err = rpc.AddValidator(db.Validator{
 		Address: valAddress1,
