@@ -15,13 +15,9 @@ func TestGetCASPSignature(t *testing.T) {
 	
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 	operationID, err := GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
-	if err != nil {
-		t.Errorf("Error getting OperationId")
-	}
+	require.Nil(t, err,"Error getting OperationId")
 	caspSignature, errCS := GetCASPSignature(operationID)
-	if errCS != nil {
-		t.Errorf("Error getting casp Signature")
-	}
+	require.Nil(t, errCS,"Error getting casp Signature")
 	require.Equal(t, caspSignature.IsApproved,true)
 	require.Equal(t, caspSignature.Description,"eth")
 	require.NotEqual(t, caspSignature.Description,"")
@@ -40,9 +36,7 @@ func TestGetCASPSigningOperationID(t *testing.T) {
 	configuration.SetConfig(&appConfig)
 	
 	caspSignatureOperationID, err := GetCASPSigningOperationID(dataToSign, publickey, description)
-	if err != nil {
-		t.Errorf("Error getting casp sigining OperationID")
-	}
+	require.Nil(t, err,"Error getting casp sigining OperationID")
 	require.NotNil(t, caspSignatureOperationID)
 	require.Equal(t, reflect.TypeOf(""),reflect.TypeOf(caspSignatureOperationID))
 	require.NotEqual(t,"", caspSignatureOperationID,"Empty OperationID")

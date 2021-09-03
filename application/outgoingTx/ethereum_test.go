@@ -3,7 +3,6 @@ package outgoingTx
 import (
 	"context"
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -13,14 +12,11 @@ import (
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"math/big"
-	"os"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/stretchr/testify/require"
-	"log"
-	"path/filepath"
 	"testing"
 )
 
@@ -35,14 +31,13 @@ func TestEthereumWrapToken(t *testing.T) {
 		Amount:  &big.Int{}},
 	}
 
-	ethereumClient, errorInClient := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
-	if errorInClient != nil {
-		t.Errorf("Error getting ETH client!")
-	}
+	ethereumClient, errorInClient := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
+	require.Nil(t, errorInClient,"Error getting ETH client!")
 	ethWrapToken, errEthWT := EthereumWrapToken(ethereumClient,wrapTokenMsg)
 	if errEthWT != nil {
 		t.Errorf("Failed getting ETH wrap token for: %v",ethaddress)
 	}
+	//require.Nil(t, errEthWT,fmt.Sprintf("Failed getting ETH wrap token for: %v",ethaddress))
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, ethWrapToken)
 	require.Equal(t, true, re.MatchString(ethWrapToken.String()))
@@ -56,10 +51,8 @@ func Test_sendTxToEth(t *testing.T){
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
 	
-	ethclientClient, errorInClient := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
-	if errorInClient != nil {
-		t.Errorf("Error getting ETH client!")
-	}
+	ethclientClient, errorInClient := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
+	require.Nil(t, errorInClient,"Error getting ETH client!")
 	ethaddress, _ := casp.GetEthAddress()
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
 	addresses := make([]common.Address, 1)
@@ -87,16 +80,18 @@ func Test_getEthSignature(t *testing.T) {
 	appConfig := test.GetCmdWithConfig()
 	configuration.SetConfig(&appConfig)
 	
-	ethclientClient, errorInClient := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
-	if errorInClient != nil {
-		t.Errorf("Error getting ETH client!")
-	}
+	ethclientClient, errorInClient := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
+	require.Nil(t, errorInClient,"Error getting ETH client!")
 	address, _ := casp.GetEthAddress()
 	ctx := context.Background()
-	chainID, err := ethclientClient.ChainID(ctx)
-	gasPrice, err := ethclientClient.SuggestGasPrice(ctx)
-	nonce, err := ethclientClient.PendingNonceAt(ctx, ethBridgeAdmin)
-	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	chainID, errC := ethclientClient.ChainID(ctx)
+	require.Nil(t, errC,"Error getting chainID")
+	gasPrice, errP := ethclientClient.SuggestGasPrice(ctx)
+	require.Nil(t, errP,"Error getting gas price")
+	nonce, errN := ethclientClient.PendingNonceAt(ctx, ethBridgeAdmin)
+	require.Nil(t, errN,"Error getting nonce")
+	tokenWrapperABI, errTWABI := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	require.Nil(t, errTWABI,"Error getting token Wrapper ABI!")
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
 	addresses[0] = address
@@ -115,9 +110,7 @@ func Test_getEthSignature(t *testing.T) {
 	})
 	signer := types.NewEIP155Signer(chainID)
 	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx,signer)
-	if errorGettingSignature != nil {
-		t.Errorf("")
-	}
+	require.Nil(t, errorGettingSignature,"Error getting signature response")
 	fmt.Println(signatureResponse)
 	require.Equal(t, reflect.TypeOf([]byte{}),reflect.TypeOf(ethSignature))
 	require.Equal(t, reflect.TypeOf(0),reflect.TypeOf(signatureResponse))

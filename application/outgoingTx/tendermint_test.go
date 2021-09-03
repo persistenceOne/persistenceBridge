@@ -27,15 +27,11 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	configuration.SetConfig(&appConfig)
 	dirname, _ := os.UserHomeDir()
 	tenderMintAddress, errorTm := casp.GetTendermintAddress()
-	if errorTm != nil {
-		t.Errorf("Error getting Tendermint address")
-	}
+	require.Nil(t, errorTm,"Error getting Tendermint address")
 	configuration.SetPStakeAddress(tenderMintAddress)
 	chain := &relayer.Chain{}
 	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
-	if err != nil {
-		t.Errorf("No config files found")
-	}
+	require.Nil(t, err,"No config files found")
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
 	err = chain.Init(dirname, to, nil, true)
@@ -84,9 +80,7 @@ func Test_broadcastTMTx(t *testing.T) {
 	configuration.SetPStakeAddress(tmAddress)
 	chain := &relayer.Chain{}
 	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
-	if err != nil {
-		t.Errorf("No config files found")
-	}
+	require.Nil(t, err,"No config files found")
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
 	err = chain.Init(dirname, to, nil, true)
@@ -101,10 +95,7 @@ func Test_broadcastTMTx(t *testing.T) {
 		}
 	}
 	_, erroKey := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
-	if erroKey != nil {
-		t.Errorf("Key error!")
-	}
-
+	require.Nil(t, erroKey,"Key error!")
 	msg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
@@ -146,9 +137,7 @@ func Test_getTMBytesToSign(t *testing.T) {
 	configuration.SetPStakeAddress(tmAddress)
 	chain := &relayer.Chain{}
 	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
-	if err != nil {
-		t.Errorf("No config files found")
-	}
+	require.Nil(t, err,"No config files found")
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
 	err = chain.Init(dirname, to, nil, true)
@@ -163,9 +152,7 @@ func Test_getTMBytesToSign(t *testing.T) {
 		}
 	}
 	_, erroKey := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
-	if erroKey != nil {
-		t.Errorf("Key error!")
-	}
+	require.Nil(t, erroKey,"Key error!")
 
 	msg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
@@ -230,9 +217,7 @@ func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
 	chain := &relayer.Chain{}
 	//change file Name Type
 	byte,err := ioutil.ReadFile(strings.Join([]string{dirname,"/.persistenceBridge/chain.json"},""))
-	if err != nil {
-		t.Errorf("No config files found")
-	}
+	require.Nil(t, err,"No config files found")
 	json.Unmarshal(byte, chain)
 	to, err := time.ParseDuration("200")
 	err = chain.Init(dirname, to, nil, true)
@@ -247,9 +232,7 @@ func Test_tendermintSignAndBroadcastMsgs(t *testing.T) {
 		}
 	}
 	_, erroKey := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
-	if erroKey != nil {
-		t.Errorf("Key error!")
-	}
+	require.Nil(t, erroKey,"Key error!")
 
 	msg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
