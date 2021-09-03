@@ -2,7 +2,6 @@ package outgoingTx
 
 import (
 	"context"
-	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -37,7 +36,6 @@ func TestEthereumWrapToken(t *testing.T) {
 	if errEthWT != nil {
 		t.Errorf("Failed getting ETH wrap token for: %v",ethaddress)
 	}
-	//require.Nil(t, errEthWT,fmt.Sprintf("Failed getting ETH wrap token for: %v",ethaddress))
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, ethWrapToken)
 	require.Equal(t, true, re.MatchString(ethWrapToken.String()))
@@ -111,7 +109,6 @@ func TestGetEthSignature(t *testing.T) {
 	signer := types.NewEIP155Signer(chainID)
 	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx,signer)
 	require.Nil(t, errorGettingSignature,"Error getting signature response")
-	fmt.Println(signatureResponse)
 	require.Equal(t, reflect.TypeOf([]byte{}),reflect.TypeOf(ethSignature))
 	require.Equal(t, reflect.TypeOf(0),reflect.TypeOf(signatureResponse))
 	require.Equal(t, 64, len(ethSignature))

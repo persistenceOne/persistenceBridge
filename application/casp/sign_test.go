@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -46,7 +45,6 @@ func TestSignTx(t *testing.T) {
 	}
 	request.Header.Set("authorization", API_TOKEN)
 	request.Header.Set("Content-Type", "application/json")
-	fmt.Println(request.Header)
 	//Read the response body
 	resp, err := client.Do(request)
 	if err != nil {

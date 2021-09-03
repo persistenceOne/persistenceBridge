@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"context"
-	"fmt"
 	"github.com/stretchr/testify/require"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"os"
@@ -20,6 +19,5 @@ func TestGetAllTxResults(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error getting all Tx Results: %v",err)
 	}
-	fmt.Println(result)
 	require.Equal(t, reflect.TypeOf([]*coretypes.ResultTx{}) , reflect.TypeOf(result))
 }
