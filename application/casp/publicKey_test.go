@@ -55,8 +55,8 @@ func TestGetXY(t *testing.T)  {
 	x, y := getXY(uncompressedPublicKeys.PublicKeys[0])
 	require.Equal(t, 32, len(y.Bytes()))
 	require.Equal(t, 32, len(y.Bytes()))
-	require.Equal(t, reflect.TypeOf(big.Int{}),x)
-	require.Equal(t, reflect.TypeOf(big.Int{}),y)
+	require.Equal(t, reflect.TypeOf(big.Int{}),reflect.TypeOf(x))
+	require.Equal(t, reflect.TypeOf(big.Int{}),reflect.TypeOf(y))
 	require.NotNil(t, x)
 	require.NotNil(t, y)
 }
