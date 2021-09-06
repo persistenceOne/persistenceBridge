@@ -84,8 +84,8 @@ func TestGetValidators(t *testing.T) {
 }
 
 func TestValidatorKey(t *testing.T) {
-	var validatorName string = "Binance"
-	var valoperAddress string = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	validatorName := "Binance"
+	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
@@ -102,8 +102,8 @@ func TestValidatorKey(t *testing.T) {
 }
 
 func TestValidatorPrefix(t *testing.T) {
-	var validatorName string = "Binance"
-	var valoperAddress string = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	validatorName := "Binance"
+	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
@@ -119,8 +119,8 @@ func TestValidatorPrefix(t *testing.T) {
 }
 
 func TestValidatorValue(t *testing.T) {
-	var validatorName string = "Binance"
-	var valoperAddress string = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	validatorName := "Binance"
+	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)

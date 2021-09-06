@@ -47,13 +47,7 @@ func TestGetStatus(t *testing.T) {
 }
 
 func TestStatusKey(t *testing.T) {
-	Name := "tx1"
-	var LastCheckHeight int64 = 4772132
-
-	status := Status{
-		Name,
-		LastCheckHeight,
-	}
+	status := Status{}
 	expectedKey := status.prefix().GenerateStoreKey([]byte(status.Name))
 	key := status.Key()
 
@@ -61,13 +55,8 @@ func TestStatusKey(t *testing.T) {
 }
 
 func TestStatusValue(t *testing.T) {
-	Name := "tx1"
-	var LastCheckHeight int64 = 4772132
+	status := Status{}
 
-	status := Status{
-		Name,
-		LastCheckHeight,
-	}
 	expectedValue, err := json.Marshal(status)
 	require.Nil(t, err)
 
@@ -79,13 +68,8 @@ func TestStatusValue(t *testing.T) {
 }
 
 func TestStatusPrefix(t *testing.T) {
-	Name := "tx1"
-	var LastCheckHeight int64 = 4772132
+	status := Status{}
 
-	status := Status{
-		Name,
-		LastCheckHeight,
-	}
 	Prefix := status.prefix()
 
 	require.Equal(t, reflect.TypeOf(statusPrefix), reflect.TypeOf(Prefix))
