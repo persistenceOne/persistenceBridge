@@ -23,7 +23,7 @@ func GetCmdWithConfig() cobra.Command {
 	cmd.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 	cmd.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc Endpoint for server")
 	cmd.Flags().Int64(constants2.FlagMinimumWrapAmount, constants2.DefaultMinimumWrapAmount, "minimum amount in send coin tx to wrap onto eth")
-	cmd.Flags().String(constants2.FlagTelegramBotToken, "xyz", "telegram bot token")
+	cmd.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")
 	cmd.Flags().Int64(constants2.FlagTelegramChatID, 0, "telegram chat id")
 	cmd.Flags().Int(constants2.FlagCASPMaxGetSignatureAttempts, constants2.DefaultCASPMaxGetSignatureAttempt, "max attempts for getting signature")
 
