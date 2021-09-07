@@ -5,7 +5,6 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -66,7 +65,6 @@ func StartCommand() *cobra.Command {
 
 			configuration.SetPStakeAddress(tmAddress)
 			configuration.ValidateAndSeal()
-			setBech32Prefixes()
 
 			err = logging.InitializeBot()
 			if err != nil {
@@ -122,6 +120,8 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
+			tendermint2.SetBech32Prefixes()
 
 			ethereumClient, err := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
 			if err != nil {
@@ -204,22 +204,4 @@ func StartCommand() *cobra.Command {
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 
 	return pBridgeCommand
-}
-
-func setBech32Prefixes() {
-	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
-		panic("account prefix is empty")
-	}
-	bech32PrefixAccAddr := configuration.GetAppConfig().Tendermint.AccountPrefix
-	bech32PrefixAccPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixPublic
-	bech32PrefixValAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
-	bech32PrefixValPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
-	bech32PrefixConsAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
-	bech32PrefixConsPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
-
-	bech32Configuration := sdkTypes.GetConfig()
-	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
-	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
-	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
-	bech32Configuration.Seal()
 }

@@ -1,11 +1,12 @@
 package tendermint
 
 import (
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"time"
 
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/relayer/helpers"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 )
@@ -53,4 +54,22 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 		}
 	}
 	return chain, nil
+}
+
+func SetBech32Prefixes() {
+	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
+		panic("account prefix is empty")
+	}
+	bech32PrefixAccAddr := configuration.GetAppConfig().Tendermint.AccountPrefix
+	bech32PrefixAccPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixPublic
+	bech32PrefixValAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
+	bech32PrefixValPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
+	bech32PrefixConsAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
+	bech32PrefixConsPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
+
+	bech32Configuration := sdkTypes.GetConfig()
+	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
+	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
+	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
+	// Do not seal the config.
 }

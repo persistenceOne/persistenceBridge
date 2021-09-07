@@ -38,7 +38,7 @@ const (
 
 var (
 	DefaultTimeout                    = "10s"
-	DefaultEthereumEndPoint           = "wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14"
+	DefaultEthereumEndPoint           = "wss://ropsten.infura.io/ws/v3/b21966541db246d398fb31402eec2c14"
 	DefaultTendermintSleepTime        = 3000     //ms
 	DefaultEthereumSleepTime          = 4500     //ms
 	DefaultTendermintStartHeight      = int64(0) // 0 will not change the db at start
