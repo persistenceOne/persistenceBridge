@@ -20,8 +20,8 @@ func InitConfig() *config {
 	return appConfig
 }
 
-func GetAppConfig() *config {
-	return appConfig
+func GetAppConfig() config {
+	return *appConfig
 }
 
 func SetPStakeAddress(tmAddress sdk.AccAddress) {
@@ -38,6 +38,14 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		if denom != "" {
 			appConfig.Tendermint.PStakeDenom = denom
+		}
+
+		accountPrefix, err := cmd.Flags().GetString(constants2.FlagAccountPrefix)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if accountPrefix != "" {
+			appConfig.Tendermint.AccountPrefix = accountPrefix
 		}
 
 		ethereumEndPoint, err := cmd.Flags().GetString(constants2.FlagEthereumEndPoint)

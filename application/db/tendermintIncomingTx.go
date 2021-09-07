@@ -45,6 +45,28 @@ func (t *TendermintIncomingTx) Validate() error {
 	if len(t.TxHash.Bytes()) == 0 {
 		return fmt.Errorf("empty tx hash")
 	}
+	if len(t.TxHash.Bytes()) != 64 {
+		return fmt.Errorf("invalid tx hash")
+	}
+	if t.Denom == "" {
+		return fmt.Errorf("empty denom")
+	}
+	if err := sdk.ValidateDenom(t.Denom); err != nil {
+		return err
+	}
+	if t.FromAddress == "" {
+		return fmt.Errorf("from address empty")
+	}
+	_, err := sdk.AccAddressFromBech32(t.FromAddress)
+	if err != nil {
+		return fmt.Errorf("invalid from address")
+	}
+	if t.Amount.IsNil() {
+		return fmt.Errorf("amount is nil")
+	}
+	if t.Amount.LT(sdk.ZeroInt()) {
+		return fmt.Errorf("amount less than 0")
+	}
 	return nil
 }
 
@@ -81,6 +103,7 @@ func CheckTendermintIncomingTxProduced(txHash tmBytes.HexBytes, msgIndex uint, d
 }
 
 func AddToPendingTendermintIncomingTx(t TendermintIncomingTx) error {
+	t.ProducedToKafka = false
 	return set(&t)
 }
 

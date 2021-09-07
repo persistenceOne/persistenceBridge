@@ -3,19 +3,15 @@ package db
 import (
 	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 )
 
 func TestSetValidators(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
-	if err != nil {
-		t.Fatalf("error %s", err.Error())
-	}
+	database, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
 
 	validatorName := "Binance"
 	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
@@ -29,16 +25,12 @@ func TestSetValidators(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	db.Close()
+	database.Close()
 }
 
 func TestGetValidators(t *testing.T) {
-
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
-	if err != nil {
-		t.Fatalf("error %s", err.Error())
-	}
+	database, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
 
 	validatorName := "Binance"
 	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
@@ -80,7 +72,7 @@ func TestGetValidators(t *testing.T) {
 	require.Equal(t, reflect.TypeOf(validatorSlice), reflect.TypeOf(testValidators))
 	require.Equal(t, validatorSlice, testValidators)
 
-	db.Close()
+	database.Close()
 }
 
 func TestValidatorKey(t *testing.T) {
@@ -136,4 +128,48 @@ func TestValidatorValue(t *testing.T) {
 	require.Nil(t, err)
 
 	require.Equal(t, expectedValue, value)
+}
+
+func TestDeleteValidator(t *testing.T) {
+	database, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
+
+	validatorName := "StakingFund"
+	valoperAddress := "cosmosvaloper1000ya26q2cmh399q4c5aaacd9lmmdqp90kw2jn"
+
+	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
+	require.Nil(t, err)
+
+	err = SetValidator(Validator{
+		Address: validatorAddress,
+		Name:    validatorName,
+	})
+	require.Nil(t, err)
+
+	err = DeleteValidator(validatorAddress)
+	require.Nil(t, err)
+
+	database.Close()
+}
+
+func TestDeleteAllValidators(t *testing.T) {
+	database, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
+
+	validatorName := "StakingFund"
+	valoperAddress := "cosmosvaloper1000ya26q2cmh399q4c5aaacd9lmmdqp90kw2jn"
+
+	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
+	require.Nil(t, err)
+
+	err = SetValidator(Validator{
+		Address: validatorAddress,
+		Name:    validatorName,
+	})
+	require.Nil(t, err)
+
+	err = DeleteAllValidators()
+	require.Nil(t, err)
+
+	database.Close()
 }

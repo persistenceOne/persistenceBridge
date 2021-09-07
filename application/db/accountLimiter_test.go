@@ -3,34 +3,40 @@ package db
 import (
 	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 )
 
 func TestGetAccountLimiter(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address1, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address2, _ := sdk.AccAddressFromBech32("cosmos17p5lujc4d68w5s4usydy60lnh9wx0rrd9ws7mp")
 
 	acc := AccountLimiter{
-		AccountAddress: Address,
+		AccountAddress: address1,
 		Amount:         sdk.OneInt(),
 	}
 
 	err = SetAccountLimiter(acc)
 	require.Nil(t, err)
 
-	opaddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
-	newAccountLimiter, err := GetAccountLimiter(opaddress)
-	require.Equal(t, acc, newAccountLimiter)
+	newAccountLimiter1, err := GetAccountLimiter(address1)
+	require.Equal(t, acc, newAccountLimiter1)
 	require.Nil(t, err)
 
+	newAccountLimiter2, err := GetAccountLimiter(address2)
+	require.Nil(t, err)
+	require.Equal(t, newAccountLimiter2.AccountAddress, address2)
+	require.Equal(t, true, newAccountLimiter2.Amount.Equal(sdk.ZeroInt()))
+
 	db.Close()
+
+	newAccountLimiter2, err = GetAccountLimiter(address2)
+	require.Equal(t, "DB Closed", err.Error())
 }
 
 func TestAccountLimiterKey(t *testing.T) {
@@ -66,8 +72,9 @@ func TestAccountLimiterValidate(t *testing.T) {
 }
 
 func TestAccountLimiterValue(t *testing.T) {
+	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	acc := AccountLimiter{
-		AccountAddress: sdk.AccAddress(""),
+		AccountAddress: Address,
 		Amount:         sdk.OneInt(),
 	}
 
@@ -78,19 +85,15 @@ func TestAccountLimiterValue(t *testing.T) {
 }
 
 func TestAccountLimiterPrefix(t *testing.T) {
-	acc := AccountLimiter{
-		AccountAddress: sdk.AccAddress(""),
-		Amount:         sdk.OneInt(),
-	}
+	acc := AccountLimiter{}
 
-	storeKeyPrefix := acc.prefix()
-	require.Equal(t, storeKeyPrefix, accountLimiterPrefix)
-	require.NotEqual(t, nil, storeKeyPrefix)
+	prefix := acc.prefix()
+	require.Equal(t, prefix, accountLimiterPrefix)
+	require.NotEqual(t, nil, prefix)
 }
 
 func TestSetAccountLimiter(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
@@ -102,6 +105,31 @@ func TestSetAccountLimiter(t *testing.T) {
 
 	err = SetAccountLimiter(acc)
 	require.Nil(t, err)
+
+	db.Close()
+}
+
+func TestGetTotalTokensWrapped(t *testing.T) {
+	db, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
+
+	address1, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address2, _ := sdk.AccAddressFromBech32("cosmos1ezd6qrpjjj7mgpk8dq2tulnmvzc7mggv7a3ejt")
+
+	acc := AccountLimiter{
+		AccountAddress: address1,
+		Amount:         sdk.OneInt(),
+	}
+	err = SetAccountLimiter(acc)
+	require.Nil(t, err)
+
+	acc.AccountAddress = address2
+	err = SetAccountLimiter(acc)
+	require.Nil(t, err)
+
+	total, err := GetTotalTokensWrapped()
+	require.Nil(t, err)
+	require.Equal(t, sdk.NewInt(2), total)
 
 	db.Close()
 }

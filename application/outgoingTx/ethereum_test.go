@@ -21,53 +21,44 @@ import (
 
 func TestEthereumWrapToken(t *testing.T) {
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
-	
-	ethaddress, _ := casp.GetEthAddress()
+	configuration.SetConfig(test.GetCmdWithConfig())
+
+	ethAddress, _ := casp.GetEthAddress()
 	wrapTokenMsg := []WrapTokenMsg{{
-		Address: ethaddress,
+		Address: ethAddress,
 		Amount:  &big.Int{}},
 	}
 
-	ethereumClient, errorInClient := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
-	require.Nil(t, errorInClient,"Error getting ETH client!")
-	ethWrapToken, errEthWT := EthereumWrapToken(ethereumClient,wrapTokenMsg)
-	if errEthWT != nil {
-		t.Errorf("Failed getting ETH wrap token for: %v",ethaddress)
-	}
+	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
+	require.Equal(t, nil, err)
+	txHash, err := EthereumWrapToken(ethereumClient, wrapTokenMsg)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
-	require.NotNil(t, ethWrapToken)
-	require.Equal(t, true, re.MatchString(ethWrapToken.String()))
-	require.Equal(t, reflect.TypeOf(common.Hash{}),reflect.TypeOf(ethWrapToken))
-	require.NotEqual(t, nil,ethWrapToken)
-	require.Equal(t,32, len(ethWrapToken))
+	require.NotNil(t, txHash)
+	require.Equal(t, true, re.MatchString(txHash.String()))
+	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txHash))
+	require.NotEqual(t, nil, txHash)
+	require.Equal(t, 32, len(txHash))
 }
 
-func TestSendTxToEth(t *testing.T){
+func TestSendTxToEth(t *testing.T) {
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
-	
-	ethclientClient, errorInClient := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
-	require.Nil(t, errorInClient,"Error getting ETH client!")
-	ethaddress, _ := casp.GetEthAddress()
+	configuration.SetConfig(test.GetCmdWithConfig())
+
+	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
+	require.Nil(t, errorInClient, "Error getting ETH client!")
+	ethAddress, _ := casp.GetEthAddress()
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
-	addresses[0] = ethaddress
+	addresses[0] = ethAddress
 	amounts[0] = big.NewInt(1)
-	txdata, error_txdata := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
-	if error_txdata != nil {
-		t.Errorf("Error generating TX data with error: \n %v",error_txdata)
-	}
-	txToETHhash, err := sendTxToEth(ethclientClient,&ethaddress,nil, txdata)
-	if err != nil {
-		t.Errorf("Error sending TX to ETH with error: \n %v",err)
-	}
+	txdata, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
+	require.Equal(t, nil, err)
+	txToETHhash, err := sendTxToEth(ethClient, &ethAddress, nil, txdata)
+	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(txToETHhash.String()))
-	require.Equal(t, reflect.TypeOf(common.Hash{}),reflect.TypeOf(txToETHhash))
+	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txToETHhash))
 	require.NotNil(t, txToETHhash)
 	require.LessOrEqual(t, 0, len(txToETHhash))
 	require.Equal(t, 32, len(txToETHhash))
@@ -75,29 +66,27 @@ func TestSendTxToEth(t *testing.T){
 
 func TestGetEthSignature(t *testing.T) {
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
-	
-	ethclientClient, errorInClient := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
-	require.Nil(t, errorInClient,"Error getting ETH client!")
+	configuration.SetConfig(test.GetCmdWithConfig())
+
+	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
+	require.Nil(t, errorInClient, "Error getting ETH client!")
 	address, _ := casp.GetEthAddress()
 	ctx := context.Background()
-	chainID, errC := ethclientClient.ChainID(ctx)
-	require.Nil(t, errC,"Error getting chainID")
-	gasPrice, errP := ethclientClient.SuggestGasPrice(ctx)
-	require.Nil(t, errP,"Error getting gas price")
-	nonce, errN := ethclientClient.PendingNonceAt(ctx, ethBridgeAdmin)
-	require.Nil(t, errN,"Error getting nonce")
-	tokenWrapperABI, errTWABI := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
-	require.Nil(t, errTWABI,"Error getting token Wrapper ABI!")
+	chainID, err := ethClient.ChainID(ctx)
+	require.Equal(t, nil, err)
+	gasPrice, err := ethClient.SuggestGasPrice(ctx)
+	require.Equal(t, nil, err)
+	nonce, err := ethClient.PendingNonceAt(ctx, ethBridgeAdmin)
+	require.Equal(t, nil, err)
+	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	require.Equal(t, nil, err)
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
 	addresses[0] = address
 	amounts[0] = big.NewInt(1)
-	txdata, error_txdata := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
-	if error_txdata != nil {
-		t.Errorf("Error generating TX data with error: \n %v",error_txdata)
-	}
+	txdata, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
+	require.Equal(t, nil, err)
+
 	tx := types.NewTx(&types.LegacyTx{
 		Nonce:    nonce,
 		Value:    nil,
@@ -107,25 +96,22 @@ func TestGetEthSignature(t *testing.T) {
 		To:       &address,
 	})
 	signer := types.NewEIP155Signer(chainID)
-	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx,signer)
-	require.Nil(t, errorGettingSignature,"Error getting signature response")
-	require.Equal(t, reflect.TypeOf([]byte{}),reflect.TypeOf(ethSignature))
-	require.Equal(t, reflect.TypeOf(0),reflect.TypeOf(signatureResponse))
+	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx, signer)
+	require.Nil(t, errorGettingSignature, "Error getting signature response")
+	require.Equal(t, reflect.TypeOf([]byte{}), reflect.TypeOf(ethSignature))
+	require.Equal(t, reflect.TypeOf(0), reflect.TypeOf(signatureResponse))
 	require.Equal(t, 64, len(ethSignature))
-	require.NotEqual(t, -1,signatureResponse)
-	require.NotNil(t,ethSignature )
+	require.NotEqual(t, -1, signatureResponse)
+	require.NotNil(t, ethSignature)
 }
-
 
 func TestSetEthBridgeAdmin(t *testing.T) {
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
-	
-	ethBridgeAdminErro := setEthBridgeAdmin()
+	configuration.SetConfig(test.GetCmdWithConfig())
+
+	err := setEthBridgeAdmin()
+	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
-	require.Equal(t, true,re.MatchString(ethBridgeAdmin.String()))
-	require.Nil(t, nil,ethBridgeAdminErro,"Eth Admin setting failed")
-	require.NotEqual(t, "0x0000000000000000000000000000000000000000",ethBridgeAdmin,"ETH Bridge Admin alreadu set")
-	require.Equal(t, nil,ethBridgeAdminErro)
+	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
+	require.NotEqual(t, "0x0000000000000000000000000000000000000000", ethBridgeAdmin, "ETH Bridge Admin alreadu set")
 }

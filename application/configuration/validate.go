@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"net/url"
 )
 
 // Validate :panics if config is not valid
@@ -47,7 +48,21 @@ func (config tendermintConfig) validate() error {
 	if err != nil {
 		return err
 	}
-
+	if config.AccountPrefix == "" {
+		return fmt.Errorf("account prefix cannot be empty")
+	}
+	if config.PStakeDenom == "" {
+		return fmt.Errorf("denom cannot be empty")
+	}
+	if config.MinimumWrapAmount < 0 {
+		return fmt.Errorf("minimum wrap amount cannot be less than 0")
+	}
+	if config.ChainID == "" {
+		return fmt.Errorf("chain id cannot be empty")
+	}
+	if _, err := url.ParseRequestURI(config.Node); err != nil {
+		return fmt.Errorf("invalid tendermint node: %v", err)
+	}
 	if !(config.BroadcastMode == flags.BroadcastAsync || config.BroadcastMode == flags.BroadcastSync || config.BroadcastMode == flags.BroadcastBlock) {
 		return fmt.Errorf("invalid broadcast mode")
 	}

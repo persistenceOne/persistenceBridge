@@ -2,27 +2,24 @@ package db
 
 import (
 	"encoding/json"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 )
 
 func TestSetUnboundEpochTime(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	database, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	var epochTime int64 = 4772132
 	err = SetUnboundEpochTime(epochTime)
 	require.Nil(t, err)
 
-	db.Close()
+	database.Close()
 }
 func TestGetUnboundEpochTime(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	database, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	var epochTime int64 = 4772132
@@ -43,7 +40,7 @@ func TestGetUnboundEpochTime(t *testing.T) {
 	require.Equal(t, reflect.TypeOf(epochTime), reflect.TypeOf(newUnboundEpochTime.Epoch))
 	require.Equal(t, newUnboundEpochTime.Epoch, epochTime)
 
-	db.Close()
+	database.Close()
 }
 
 func TestUnboundEpochTimeKey(t *testing.T) {

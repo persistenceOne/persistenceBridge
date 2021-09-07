@@ -2,16 +2,14 @@ package db
 
 import (
 	"encoding/json"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 )
 
 func TestDeleteTendermintTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -26,11 +24,8 @@ func TestDeleteTendermintTx(t *testing.T) {
 }
 
 func TestGetTotalTMBroadcastedTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
-	if err != nil {
-		t.Fatalf("error %s", err.Error())
-	}
+	db, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
 
 	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 
@@ -53,8 +48,7 @@ func TestGetTotalTMBroadcastedTx(t *testing.T) {
 }
 
 func TestIterateTmTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
@@ -75,8 +69,7 @@ func TestIterateTmTx(t *testing.T) {
 }
 
 func TestNewTMTransaction(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -93,8 +86,7 @@ func TestNewTMTransaction(t *testing.T) {
 }
 
 func TestSetTendermintTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -109,7 +101,7 @@ func TestSetTendermintTx(t *testing.T) {
 
 func TestTendermintBroadcastedTransactionKey(t *testing.T) {
 	tendermintTransaction := TendermintBroadcastedTransaction{
-		TxHash: "",
+		TxHash: "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F",
 	}
 	Key := tendermintBroadcastedTransactionPrefix.GenerateStoreKey([]byte(tendermintTransaction.TxHash))
 	expectedKey := tendermintTransaction.Key()
@@ -141,13 +133,7 @@ func TestTendermintBroadcastedTransactionValue(t *testing.T) {
 }
 
 func TestTendermintBroadcastedTransactionPrefix(t *testing.T) {
-	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
-	tendermintTransaction := TendermintBroadcastedTransaction{
-		TxHash: Txhash,
-	}
-
-	Prefix := tendermintTransaction.prefix()
-
-	require.Equal(t, reflect.TypeOf(Prefix), reflect.TypeOf(tendermintBroadcastedTransactionPrefix))
-	require.Equal(t, Prefix, tendermintBroadcastedTransactionPrefix)
+	tendermintTransaction := TendermintBroadcastedTransaction{}
+	require.Equal(t, reflect.TypeOf(tendermintTransaction.prefix()), reflect.TypeOf(tendermintBroadcastedTransactionPrefix))
+	require.Equal(t, tendermintBroadcastedTransactionPrefix, tendermintTransaction.prefix())
 }

@@ -9,8 +9,7 @@ import (
 
 func TestGetSignOperation(t *testing.T) {
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
+	configuration.SetConfig(test.GetCmdWithConfig())
 
 	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"
 	responseRecieved, err := GetSignOperation(operationID)
@@ -22,6 +21,5 @@ func TestGetSignOperation(t *testing.T) {
 
 	_, err = GetSignOperation("")
 	require.Equal(t, "Operation not found", err.Error())
-
 
 }

@@ -22,25 +22,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
 func TestCollectEthTx(t *testing.T) {
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
+	configuration.SetConfig(test.GetCmdWithConfig())
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
 	configuration.SetPStakeAddress(tmAddress)
 
-	dirname, err := os.UserHomeDir()
-
-	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	database, err := db.OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
 	defer database.Close()
 
-	ethereumClient, err := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
+	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Equal(t, nil, err)
 	ctx := context.Background()
 	tx, _, _ := ethereumClient.TransactionByHash(ctx, common.HexToHash("1f5834f05a156ac8ef9ee1be17b72c1a73e149686364c8fe9509997885ae3409"))
@@ -57,7 +54,7 @@ func TestCollectEthTx(t *testing.T) {
 		WithHomeDir(constants.DefaultPBridgeHome)
 	protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 
-	TxhashSuccess :=  common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
+	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
 	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	amt := new(big.Int)
 	amt.SetInt64(1000)
@@ -79,10 +76,9 @@ func TestCollectEthTx(t *testing.T) {
 
 }
 
-func TestHandleBlock(t *testing.T){
+func TestHandleBlock(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
+	configuration.SetConfig(test.GetCmdWithConfig())
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
@@ -107,13 +103,13 @@ func TestHandleBlock(t *testing.T){
 			logging.Error(err)
 		}
 	}(kafkaProducer)
-	dirname, err := os.UserHomeDir()
 
-	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	database, err := db.OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
 	defer database.Close()
 	ethStatus, err := db.GetEthereumStatus()
 
-	ethereumClient, err := ethclient.Dial("wss://mainnet.infura.io/ws/v3/b21966541db246d398fb31402eec2c14")
+	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 	ctx := context.Background()
 
@@ -124,18 +120,16 @@ func TestHandleBlock(t *testing.T){
 
 }
 
-
-func TestProduceToKafka(t *testing.T){
+func TestProduceToKafka(t *testing.T) {
 	pStakeConfig := configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
+	configuration.SetConfig(test.GetCmdWithConfig())
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
 	configuration.SetPStakeAddress(tmAddress)
-	dirname, err := os.UserHomeDir()
 
-	database, err := db.OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	database, err := db.OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
 	defer database.Close()
 	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
 	defer func(kafkaProducer sarama.SyncProducer) {
@@ -145,7 +139,7 @@ func TestProduceToKafka(t *testing.T){
 		}
 	}(kafkaProducer)
 
-	TxhashSuccess :=  common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
+	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
 	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	amt := new(big.Int)
 	amt.SetInt64(1000)
@@ -163,7 +157,3 @@ func TestProduceToKafka(t *testing.T){
 	err = db.SetBroadcastedEthereumTx(ethTransaction)
 	produceToKafka(&kafkaProducer)
 }
-
-
-
-

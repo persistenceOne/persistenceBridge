@@ -4,25 +4,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/stretchr/testify/require"
 	"math/big"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 )
 
 func TestDeleteEthereumTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
-		Messages: []outgoingTx.WrapTokenMsg{},
+		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
+		Messages: []outgoingTx.WrapTokenMsg{{
+			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+			Amount:  big.NewInt(1),
+		}},
 	}
-	_ = SetBroadcastedEthereumTx(ethTransaction)
+	err = SetBroadcastedEthereumTx(ethTransaction)
+	require.Nil(t, err)
 
 	err = DeleteBroadcastedEthereumTx(common.Hash{})
 	require.Nil(t, err)
@@ -32,7 +34,7 @@ func TestDeleteEthereumTx(t *testing.T) {
 
 func TestEthereumBroadcastedWrapTokenTransactionKey(t *testing.T) {
 	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
+		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{},
 	}
 
@@ -50,55 +52,49 @@ func TestEthereumBroadcastedWrapTokenTransactionValidate(t *testing.T) {
 	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
+		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: tx,
 	}
 	err := ethTransaction.Validate()
 	require.Nil(t, err)
 
 	ethTransaction = EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
+		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{},
 	}
 	err = ethTransaction.Validate()
-	expectedErr := fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash)
-	require.Equal(t, expectedErr, err.Error())
+	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
+	emptyTransaction := EthereumBroadcastedWrapTokenTransaction{}
+	require.Equal(t, "tx hash is empty", emptyTransaction.Validate().Error())
 }
 
 func TestEthereumBroadcastedWrapTokenTransactionValue(t *testing.T) {
 	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
-		Messages: []outgoingTx.WrapTokenMsg{},
+		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
+		Messages: []outgoingTx.WrapTokenMsg{{
+			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+			Amount:  big.NewInt(1),
+		}},
 	}
 	expectedValue, _ := json.Marshal(ethTransaction)
 	value, err := ethTransaction.Value()
 	require.Nil(t, err)
-
 	require.Equal(t, expectedValue, value)
 }
 
 func TestEthereumBroadcastedWrapTokenTransactionPrefix(t *testing.T) {
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
-		Messages: []outgoingTx.WrapTokenMsg{},
-	}
-	Prefix := ethTransaction.prefix()
-
-	require.Equal(t, ethereumBroadcastedWrapTokenTransactionPrefix, Prefix)
+	ethTransaction := EthereumBroadcastedWrapTokenTransaction{}
+	require.Equal(t, ethereumBroadcastedWrapTokenTransactionPrefix, ethTransaction.prefix())
 }
 
 func TestIterateEthTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
-		var transactions []EthereumBroadcastedWrapTokenTransaction
 		var ethTx EthereumBroadcastedWrapTokenTransaction
 		err := json.Unmarshal(value, &ethTx)
 		require.Nil(t, err)
-
-		transactions = append(transactions, ethTx)
 		return nil
 	}
 
@@ -109,19 +105,17 @@ func TestIterateEthTx(t *testing.T) {
 }
 
 func TestNewETHTransaction(t *testing.T) {
-	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
-		Address: Address,
+	txHash := common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375")
+	messages := []outgoingTx.WrapTokenMsg{{
+		Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 		Amount:  big.NewInt(1),
-	}
-	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
-
+	}}
 	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   common.Hash{},
-		Messages: tx,
+		TxHash:   txHash,
+		Messages: messages,
 	}
 
-	EthereumBroadcastedWrapTokenTransaction := NewETHTransaction(common.Hash{}, tx)
+	EthereumBroadcastedWrapTokenTransaction := NewETHTransaction(txHash, messages)
 	err := EthereumBroadcastedWrapTokenTransaction.Validate()
 	require.Nil(t, err)
 
@@ -130,23 +124,15 @@ func TestNewETHTransaction(t *testing.T) {
 }
 
 func TestSetEthereumTx(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	Txhash := common.BytesToHash([]byte("0x800b423ae1dfaf59de9e31fa45ebe0f57268949a8849fc2bd5f054b7c40eb18a"))
-	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
-	amt := new(big.Int)
-	amt.SetInt64(1000)
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
-	}
-	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
-
 	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
-		TxHash:   Txhash,
-		Messages: tx,
+		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
+		Messages: []outgoingTx.WrapTokenMsg{{
+			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+			Amount:  big.NewInt(1),
+		}},
 	}
 	err = SetBroadcastedEthereumTx(ethTransaction)
 	require.Nil(t, err)

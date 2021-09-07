@@ -15,7 +15,7 @@ import (
 func InitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "init root command",
+		Short: "creates config.toml file",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			configuration.InitConfig()
@@ -46,6 +46,9 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	cmd.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	cmd.Flags().String(constants2.FlagDenom, constants2.DefaultDenom, "denom name")
+	cmd.Flags().String(constants2.FlagAccountPrefix, constants2.DefaultAccountPrefix, "account prefix on tendermint chains")
+	cmd.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
+	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "chain id of tendermint node")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
 	cmd.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")

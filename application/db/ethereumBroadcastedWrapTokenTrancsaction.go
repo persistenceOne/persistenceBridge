@@ -31,7 +31,9 @@ func (ethTx *EthereumBroadcastedWrapTokenTransaction) Value() ([]byte, error) {
 }
 
 func (ethTx *EthereumBroadcastedWrapTokenTransaction) Validate() error {
-	// TODO
+	if ethTx.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+		return fmt.Errorf("tx hash is empty")
+	}
 	if len(ethTx.Messages) == 0 {
 		return fmt.Errorf("number of messages for ethHash %s is 0", ethTx.TxHash)
 	}

@@ -82,7 +82,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 }
 
 func produceToKafka(kafkaProducer *sarama.SyncProducer) {
-	ethInTxs, err := db.GetProduceToKafkaEthereumIncomingTx()
+	ethInTxs, err := db.GetProduceToKafkaEthereumIncomingTxs()
 	if err != nil {
 		logging.Fatal(err)
 	}

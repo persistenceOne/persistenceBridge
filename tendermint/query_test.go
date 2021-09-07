@@ -2,41 +2,33 @@ package tendermint
 
 import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"os"
 	"reflect"
 	"regexp"
-	"strings"
 	"testing"
 )
 
-
 func TestAddressIsDelegatorToValidator(t *testing.T) {
-	homedir, _ := os.UserHomeDir()
-	fileName := strings.Join([]string{homedir,"/.persistenceBridge/chain.json"},"")
-	chain, _ := InitializeAndStartChain(fileName, "336h", homedir)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
 	delegatorToValidator := AddressIsDelegatorToValidator("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", "cosmosvaloper1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d76ktteq", chain)
 	require.Equal(t, true, delegatorToValidator)
 }
 
 func TestQueryDelegatorDelegations(t *testing.T) {
-	homedir, _ := os.UserHomeDir()
-	fileName := strings.Join([]string{homedir,"/.persistenceBridge/chain.json"},"")
-	chain, _ := InitializeAndStartChain(fileName, "336h", homedir)
-	queryResponse, err := QueryDelegatorDelegations("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n",chain)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	queryResponse, err := QueryDelegatorDelegations("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", chain)
 	if err != nil {
-		t.Errorf("Error querying Delegator Delegations: %v",err)
+		t.Errorf("Error querying Delegator Delegations: %v", err)
 	}
 	require.Equal(t, reflect.TypeOf(types.DelegationResponses{}), reflect.TypeOf(queryResponse))
 }
 
 func TestQueryDelegatorValidatorDelegations(t *testing.T) {
-	homedir, _ := os.UserHomeDir()
-	fileName := strings.Join([]string{homedir,"/.persistenceBridge/chain.json"},"")
-	chain, _ := InitializeAndStartChain(fileName, "336h", homedir)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
 	query, err := QueryDelegatorValidatorDelegations("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", "cosmosvaloper1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d76ktteq", chain)
 	if err != nil {
-		t.Errorf("Error quering delegator validation delegations: %v",err)
+		t.Errorf("Error quering delegator validation delegations: %v", err)
 	}
 	reDelegator := regexp.MustCompile(`^cosmos[0-9a-fA-F]`)
 	reValidator := regexp.MustCompile(`^cosmosvaloper[0-9a-fA-F]`)
@@ -47,12 +39,10 @@ func TestQueryDelegatorValidatorDelegations(t *testing.T) {
 }
 
 func TestQueryValidatorDelegator(t *testing.T) {
-	homedir, _ := os.UserHomeDir()
-	fileName := strings.Join([]string{homedir,"/.persistenceBridge/chain.json"},"")
-	chain, _ := InitializeAndStartChain(fileName, "336h", homedir)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
 	query, err := QueryValidatorDelegator("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", "cosmosvaloper1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d76ktteq", chain)
 	if err != nil {
-		t.Errorf("Error Quering Validator Delegator: %v",err)
+		t.Errorf("Error Quering Validator Delegator: %v", err)
 	}
 	re := regexp.MustCompile(`^cosmosvaloper[0-9a-fA-F]`)
 	require.Equal(t, true, re.MatchString(query.OperatorAddress))

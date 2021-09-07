@@ -1,9 +1,7 @@
 package tendermint
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"time"
 
 	"github.com/cosmos/relayer/helpers"
@@ -12,8 +10,16 @@ import (
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 )
 
-func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*relayer.Chain, error) {
-	chain, err := fileInputAdd(chainConfigJsonPath)
+func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
+	chain := &relayer.Chain{}
+	chain.Key = "unusedKey"
+	chain.ChainID = configuration.GetAppConfig().Tendermint.ChainID
+	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
+	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
+	chain.GasAdjustment = 1.5
+	chain.GasPrices = "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom
+	chain.TrustingPeriod = "21h"
+
 	to, err := time.ParseDuration(timeout)
 	if err != nil {
 		return chain, err
@@ -47,23 +53,4 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*re
 		}
 	}
 	return chain, nil
-}
-
-func fileInputAdd(file string) (*relayer.Chain, error) {
-	// If the user passes in a file, attempt to read the chain configuration from that file
-	c := &relayer.Chain{}
-	if _, err := os.Stat(file); err != nil {
-		return c, err
-	}
-
-	byt, err := ioutil.ReadFile(file)
-	if err != nil {
-		return c, err
-	}
-
-	if err = json.Unmarshal(byt, c); err != nil {
-		return c, err
-	}
-
-	return c, nil
 }

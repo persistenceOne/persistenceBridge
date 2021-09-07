@@ -1,19 +1,20 @@
 package db
 
 import (
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
 func TestInitializeDB(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	dbPath := (filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	configuration.InitConfig()
+	configuration.SetConfig(test.GetCmdWithConfig())
 
 	var ethStart int64 = 4772131
 	var tmStart int64 = 1
-	_, err := InitializeDB(dbPath, tmStart, ethStart)
+	database, err := InitializeDB(constants.TestHomeDir, tmStart, ethStart)
 	require.Nil(t, err)
 	ethStatus, err := GetEthereumStatus()
 	require.Nil(t, err)
@@ -22,16 +23,26 @@ func TestInitializeDB(t *testing.T) {
 	ethHeight := ethStatus.LastCheckHeight + 1
 	cosmosHeight := cosmosLastCheckHeight.LastCheckHeight + 1
 	require.Equal(t, ethStart, ethHeight)
-	require.Equal(t, tmStart, cosmosHeight )
+	require.Equal(t, tmStart, cosmosHeight)
+	database.Close()
 
-	db.Close()
+	database, err = OpenDB(constants.TestHomeDir)
+	err = deleteKV(unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime)))
+	require.Nil(t, err)
+	database.Close()
+	database, err = InitializeDB(constants.TestHomeDir, tmStart, ethStart)
+	require.Nil(t, err)
+	database.Close()
 
 }
 
 func TestOpenDB(t *testing.T) {
-	dirname, _ := os.UserHomeDir()
-	db, err := OpenDB(filepath.Join(dirname, "/persistence/persistenceBridge/application") + "/db")
+	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
+
+	newDb, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, newDb)
+	require.Equal(t, "Cannot acquire directory lock on \""+constants.TestDbDir+"\".  Another process is using this Badger database. error: resource temporarily unavailable", err.Error())
 
 	db.Close()
 }

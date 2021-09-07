@@ -11,7 +11,7 @@ import (
 
 type ValidatorRPC struct{}
 
-func (a *ValidatorRPC) GetValidators(empty string, result *[]db.Validator) error {
+func (a *ValidatorRPC) GetValidators(_ string, result *[]db.Validator) error {
 	r, err := db.GetValidators()
 	*result = r
 	return err

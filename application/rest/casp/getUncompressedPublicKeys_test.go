@@ -7,12 +7,9 @@ import (
 	"testing"
 )
 
-
 func TestGetUncompressedPublicKeys(t *testing.T) {
-
 	configuration.InitConfig()
-	appConfig := test.GetCmdWithConfig()
-	configuration.SetConfig(&appConfig)
+	configuration.SetConfig(test.GetCmdWithConfig())
 	funcResponse, err := GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "tendermint")

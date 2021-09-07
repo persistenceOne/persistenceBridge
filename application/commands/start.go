@@ -5,8 +5,11 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
@@ -27,11 +30,10 @@ import (
 	"time"
 )
 
-func StartCommand(initClientCtx client.Context) *cobra.Command {
+func StartCommand() *cobra.Command {
 	pBridgeCommand := &cobra.Command{
-		Use:   "start [path_to_chain_json]",
-		Short: "Start persistenceBridge",
-		Args:  cobra.ExactArgs(1),
+		Use:   "start",
+		Short: "starts persistenceBridge",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
@@ -64,6 +66,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 
 			configuration.SetPStakeAddress(tmAddress)
 			configuration.ValidateAndSeal()
+			setBech32Prefixes()
 
 			err = logging.InitializeBot()
 			if err != nil {
@@ -115,7 +118,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			}
 			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
-			chain, err := tendermint2.InitializeAndStartChain(args[0], timeout, homePath)
+			chain, err := tendermint2.InitializeAndStartChain(timeout, homePath)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -124,6 +127,17 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", pStakeConfig.Ethereum.EthereumEndPoint, err.Error())
 			}
+
+			encodingConfig := application.MakeEncodingConfig()
+			initClientCtx := client.Context{}.
+				WithJSONMarshaler(encodingConfig.Marshaler).
+				WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+				WithTxConfig(encodingConfig.TransactionConfig).
+				WithLegacyAmino(encodingConfig.Amino).
+				WithInput(os.Stdin).
+				WithAccountRetriever(authTypes.AccountRetriever{}).
+				WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode).
+				WithHomeDir(homePath)
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
@@ -137,7 +151,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
-			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint2.StartListening(initClientCtx, chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -161,6 +175,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 		},
 	}
 	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
+	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	pBridgeCommand.Flags().Bool(constants2.FlagShowDebugLog, false, "show debug logs")
 	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, "", "ethereum orchestrator to connect")
@@ -170,6 +185,9 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, constants2.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
 	pBridgeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, constants2.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
 	pBridgeCommand.Flags().String(constants2.FlagDenom, "", "denom name")
+	pBridgeCommand.Flags().String(constants2.FlagAccountPrefix, "", "account prefix on tendermint chains")
+	pBridgeCommand.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
+	pBridgeCommand.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "tendermint rpc node url")
 	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, 0, "Gas limit for eth txs")
 	pBridgeCommand.Flags().String(constants2.FlagBroadcastMode, "", "broadcast mode for tendermint")
 	pBridgeCommand.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
@@ -187,4 +205,22 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 
 	return pBridgeCommand
+}
+
+func setBech32Prefixes() {
+	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
+		panic("account prefix is empty")
+	}
+	bech32PrefixAccAddr := configuration.GetAppConfig().Tendermint.AccountPrefix
+	bech32PrefixAccPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixPublic
+	bech32PrefixValAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
+	bech32PrefixValPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
+	bech32PrefixConsAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
+	bech32PrefixConsPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
+
+	bech32Configuration := sdkTypes.GetConfig()
+	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
+	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
+	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
+	bech32Configuration.Seal()
 }

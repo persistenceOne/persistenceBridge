@@ -11,7 +11,7 @@ const (
 
 type Status struct {
 	Name            string
-	LastCheckHeight int64 //TODO change it to Index
+	LastCheckHeight int64
 }
 
 var _ DBI = &Status{}
@@ -29,7 +29,6 @@ func (status *Status) Value() ([]byte, error) {
 }
 
 func (status *Status) Validate() error {
-	// TODO
 	return nil
 }
 
