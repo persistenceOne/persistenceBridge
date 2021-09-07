@@ -175,7 +175,6 @@ func StartCommand() *cobra.Command {
 		},
 	}
 	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
-	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	pBridgeCommand.Flags().Bool(constants2.FlagShowDebugLog, false, "show debug logs")
 	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, "", "ethereum orchestrator to connect")
