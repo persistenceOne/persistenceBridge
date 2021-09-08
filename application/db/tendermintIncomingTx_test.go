@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
@@ -133,7 +134,8 @@ func TestTendermintIncomingTxValidate(t *testing.T) {
 	require.Equal(t, "empty tx hash", tmInTx.Validate().Error())
 	tmInTx.TxHash = []byte("TendermintIncomingTx")
 	require.Equal(t, "invalid tx hash", tmInTx.Validate().Error())
-	tmInTx.TxHash = []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9")
+	h, _ := hex.DecodeString("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9")
+	tmInTx.TxHash = h
 	require.Equal(t, "empty denom", tmInTx.Validate().Error())
 	tmInTx.Denom = "a"
 	require.Equal(t, "invalid denom: a", tmInTx.Validate().Error())

@@ -53,17 +53,15 @@ func StartCommand() *cobra.Command {
 			}
 			pStakeConfig = configuration.SetConfig(cmd)
 
-			tmAddress, err := casp.GetTendermintAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
 			ethAddress, err := casp.GetEthAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			configuration.SetPStakeAddress(tmAddress)
+			tmAddress, err := tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
+			if err != nil {
+				log.Fatalln(err)
+			}
 			configuration.ValidateAndSeal()
 
 			err = logging.InitializeBot()
@@ -120,8 +118,6 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
-
-			tendermint2.SetBech32Prefixes()
 
 			ethereumClient, err := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
 			if err != nil {

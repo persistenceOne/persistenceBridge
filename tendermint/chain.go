@@ -1,9 +1,10 @@
 package tendermint
 
 import (
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"time"
 
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/relayer/helpers"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -40,12 +41,10 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	}
 
 	//118 is not being used anywhere
-	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	_, err = helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
 	if err != nil {
 		return chain, err
 	}
-
-	logging.Info("Relayer Chain Keys added [NOT TO BE USED]:", ko.Address)
 
 	if err = chain.Start(); err != nil {
 		if err != tendermintService.ErrAlreadyStarted {
@@ -56,7 +55,7 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	return chain, nil
 }
 
-func SetBech32Prefixes() {
+func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
 	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
 		panic("account prefix is empty")
 	}
@@ -72,4 +71,13 @@ func SetBech32Prefixes() {
 	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
 	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
 	// Do not seal the config.
+
+	tmAddress, err := casp.GetTendermintAddress()
+	if err != nil {
+		return sdkTypes.AccAddress{}, err
+	}
+
+	configuration.SetPStakeAddress(tmAddress)
+
+	return tmAddress, nil
 }

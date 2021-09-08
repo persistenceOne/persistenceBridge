@@ -2,7 +2,6 @@ package commands
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -28,13 +27,11 @@ func ShowCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
-			pStakeAddress, err := casp.GetTendermintAddress()
+			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
-				log.Fatalf("unable to get casp tendermint address: %v\n", err.Error())
+				log.Fatalln(err)
 			}
-			configuration.SetPStakeAddress(pStakeAddress)
 			configuration.ValidateAndSeal()
-			tendermint2.SetBech32Prefixes()
 
 			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 			if err != nil {

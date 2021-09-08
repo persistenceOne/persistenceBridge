@@ -26,7 +26,11 @@ func GetAppConfig() config {
 
 func SetPStakeAddress(tmAddress sdk.AccAddress) {
 	if !appConfig.seal {
-		appConfig.Tendermint.pStakeAddress = tmAddress.String()
+		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
+			appConfig.Tendermint.pStakeAddress = tmAddress.String()
+		} else {
+			panic(fmt.Errorf("pStake wrap address prefix (%s) and config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
+		}
 	}
 }
 

@@ -45,7 +45,7 @@ func (t *TendermintIncomingTx) Validate() error {
 	if len(t.TxHash.Bytes()) == 0 {
 		return fmt.Errorf("empty tx hash")
 	}
-	if len(t.TxHash.Bytes()) != 64 {
+	if len(t.TxHash.Bytes()) != 32 {
 		return fmt.Errorf("invalid tx hash")
 	}
 	if t.Denom == "" {
