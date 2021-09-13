@@ -114,6 +114,18 @@ func StartCommand() *cobra.Command {
 			}
 			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
+			validators, err := db2.GetValidators()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			if len(validators) == 0 {
+				log.Fatalln("no validator has been added")
+			} else {
+				for i, validator := range validators {
+					fmt.Println(fmt.Sprintf("%d. Name: %s, Address: %s", i+1, validator.Name, validator.Address))
+				}
+			}
+
 			chain, err := tendermint2.InitializeAndStartChain(timeout, homePath)
 			if err != nil {
 				log.Fatalln(err)
