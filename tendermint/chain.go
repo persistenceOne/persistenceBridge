@@ -40,8 +40,7 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 		}
 	}
 
-	//118 is not being used anywhere
-	_, err = helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	_, err = helpers.KeyAddOrRestore(chain, chain.Key, configuration.GetAppConfig().Tendermint.CoinType)
 	if err != nil {
 		return chain, err
 	}
