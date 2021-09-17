@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="first start" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="persistenceBridge" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="start --ethStart 1 --tmStart 1" />
+    <kind value="DIRECTORY" />
+    <package value="github.com/persistenceOne/persistenceBridge/" />
+    <directory value="$PROJECT_DIR$/orchestrator" />
+    <filePath value="$PROJECT_DIR$/../persistenceBridge|$PROJECT_DIR$/orchestrator/main.go|$PROJECT_DIR$/orchestrator/main.go" />
+    <option name="build_on_remote_target" value="true" />
+    <method v="2" />
+  </configuration>
+</component>
