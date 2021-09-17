@@ -38,7 +38,7 @@ GOOS = $(shell go env GOOS)
 
 .PHONY: all install build verify
 
-all: verify build
+all: verify install
 
 install:
 ifeq (${OS},Windows_NT)
