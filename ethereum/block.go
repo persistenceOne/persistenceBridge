@@ -107,7 +107,7 @@ func produceToKafka(kafkaProducer *sarama.SyncProducer) {
 		default:
 			logging.Fatal("unknown msg type [ETH Listener]")
 		}
-		logging.Info("[ETH Listener] Adding to kafka producer:'", producer, "'of txHash:", ethTxToTM.TxHash.String(), "msgType:", ethTxToTM.MsgType, "sender:", ethTxToTM.Sender.String())
+		logging.Info("[ETH Listener] Adding to kafka producer:", producer, "of txHash:", ethTxToTM.TxHash.String(), "msgType:", ethTxToTM.MsgType, "sender:", ethTxToTM.Sender.String())
 		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, *kafkaProducer)
 		if err != nil {
 			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
