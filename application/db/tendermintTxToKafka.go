@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dgraph-io/badger/v3"
 	tmBytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
@@ -29,7 +28,7 @@ func (t *TendermintTxToKafka) Key() []byte {
 }
 
 func (t *TendermintTxToKafka) Value() ([]byte, error) {
-	return []byte{}, nil
+	return json.Marshal(t)
 }
 
 func (t *TendermintTxToKafka) Validate() error {
@@ -51,9 +50,9 @@ func AddTendermintTxToKafka(t TendermintTxToKafka) error {
 
 func GetAllTendermintTxToKafka() ([]TendermintTxToKafka, error) {
 	var tmTxToKafkaList []TendermintTxToKafka
-	err := iterateKeys(tendermintTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, _ *badger.Item) error {
+	err := iterateKeyValues(tendermintTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
 		var t TendermintTxToKafka
-		err := json.Unmarshal(key, &t)
+		err := json.Unmarshal(val, &t)
 		if err != nil {
 			return err
 		}

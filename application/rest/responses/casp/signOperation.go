@@ -66,7 +66,7 @@ func (response SignOperationResponse) GetPendingParticipantsApprovals() error {
 			}
 		}
 		if totalApproval < group.RequiredApprovals {
-			result = result + fmt.Sprintf("\nGroup: %s (%d) have pending %d more approvals from members [%s]", group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
+			result = result + fmt.Sprintf(", Group: %s (Order: %d) have pending %d more approvals from members [%s]", group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
 		}
 	}
 	if result != "" {

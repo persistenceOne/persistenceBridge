@@ -3,7 +3,6 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -22,7 +21,7 @@ func (t *EthereumTxToKafka) Key() []byte {
 }
 
 func (t *EthereumTxToKafka) Value() ([]byte, error) {
-	return []byte{}, nil
+	return json.Marshal(t)
 }
 
 func (t *EthereumTxToKafka) Validate() error {
@@ -34,9 +33,9 @@ func (t *EthereumTxToKafka) Validate() error {
 
 func GetAllEthereumTxToKafka() ([]EthereumTxToKafka, error) {
 	var ethTxToKafkaList []EthereumTxToKafka
-	err := iterateKeys(ethereumTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, _ *badger.Item) error {
+	err := iterateKeyValues(ethereumTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
 		var t EthereumTxToKafka
-		err := json.Unmarshal(key, &t)
+		err := json.Unmarshal(val, &t)
 		if err != nil {
 			return err
 		}
