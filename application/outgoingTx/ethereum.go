@@ -16,7 +16,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
-	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
@@ -32,7 +31,7 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
 	}
 	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
-	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	tokenWrapperABI, err := abi.JSON(strings.NewReader(constants.TokenWrapperABI))
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -130,11 +129,11 @@ func setEthBridgeAdmin() error {
 	if err != nil {
 		return err
 	}
-	if len(uncompressedPublicKeys.PublicKeys) == 0 {
+	if len(uncompressedPublicKeys.Items) == 0 {
 		logging.Error("no eth public keys got from casp")
 		return err
 	}
-	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.PublicKeys[0])
+	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.Items[0])
 	ethBridgeAdmin = crypto.PubkeyToAddress(publicKey)
 	return nil
 }

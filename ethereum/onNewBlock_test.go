@@ -45,12 +45,12 @@ func TestOnNewBlock(t *testing.T) {
 	}
 	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
-	ethTransaction := db.EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   TxhashFail,
 		Messages: txd,
 	}
 
-	err = db.SetBroadcastedEthereumTx(ethTransaction)
+	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
 	require.Equal(t, nil, err)
@@ -65,12 +65,12 @@ func TestOnNewBlock(t *testing.T) {
 	}
 	txd = []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
-	ethTransaction = db.EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction = db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,
 		Messages: txd,
 	}
 
-	err = db.SetBroadcastedEthereumTx(ethTransaction)
+	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
 	require.Equal(t, nil, err)

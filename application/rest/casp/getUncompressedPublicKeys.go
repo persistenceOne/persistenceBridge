@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
 
 func GetUncompressedTMPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
-	return getUncompressedPublicKeys(118)
+	return getUncompressedPublicKeys(configuration.GetAppConfig().Tendermint.CoinType)
 }
 
 func GetUncompressedEthPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
@@ -22,7 +24,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	var response casp.UncompressedPublicKeysResponse
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
 		},
 	}}
 
@@ -35,7 +37,12 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	if err != nil {
 		return response, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			logging.Error(fmt.Errorf("casp error while getting UncompressedPublicKeys: %v", err))
+		}
+	}(resp.Body)
 	//Read the response body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

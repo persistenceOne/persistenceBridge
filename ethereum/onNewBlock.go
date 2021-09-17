@@ -14,11 +14,11 @@ import (
 )
 
 func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient.Client, kafkaProducer *sarama.SyncProducer) error {
-	return db.IterateBroadcastedEthTx(func(key []byte, value []byte) error {
-		var ethTx db.EthereumBroadcastedWrapTokenTransaction
+	return db.IterateOutgoingEthTx(func(key []byte, value []byte) error {
+		var ethTx db.OutgoingEthereumTransaction
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal EthereumBroadcastedWrapTokenTransaction %s [ETH onNewBlock]: %s", string(key), err.Error())
+			return fmt.Errorf("failed to unmarshal OutgoingEthereumTransaction %s [ETH onNewBlock]: %s", string(key), err.Error())
 		}
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
 		if err != nil {
@@ -53,7 +53,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 				}
 			}
 			if deleteTx {
-				return db.DeleteBroadcastedEthereumTx(ethTx.TxHash)
+				return db.DeleteOutgoingEthereumTx(ethTx.TxHash)
 			}
 			return nil
 		}

@@ -50,6 +50,7 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagDenom, constants2.DefaultDenom, "denom name")
 	cmd.Flags().String(constants2.FlagAccountPrefix, constants2.DefaultAccountPrefix, "account prefix on tendermint chains")
 	cmd.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
+	cmd.Flags().Uint32(constants2.FlagTendermintCoinType, constants2.DefaultTendermintCoinType, "tendermint address coin type")
 	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "chain id of tendermint node")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")

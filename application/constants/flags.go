@@ -15,6 +15,7 @@ const (
 	FlagTendermintStartHeight       = "tmStart"
 	FlagEthereumStartHeight         = "ethStart"
 	FlagDenom                       = "denom"
+	FlagTendermintCoinType          = "tmCoinType"
 	FlagEthGasLimit                 = "ethGasLimit"
 	FlagKafkaPorts                  = "kafkaPorts"
 	FlagBroadcastMode               = "tmBroadcastMode"
@@ -51,6 +52,7 @@ var (
 	DefaultAccountPrefix              = "cosmos"
 	DefaultTendermintNode             = "http://127.0.0.1:26657"
 	DefaultTendermintChainId          = "test"
+	DefaultTendermintCoinType         = uint32(118)
 	DefaultKafkaPorts                 = "localhost:9092"
 	DefaultCASPSignatureWaitTime      = 8 * time.Second
 	DefaultCASPMaxGetSignatureAttempt = 5

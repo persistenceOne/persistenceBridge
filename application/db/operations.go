@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/dgraph-io/badger/v3"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func get(key []byte) ([]byte, error) {
@@ -18,6 +19,21 @@ func get(key []byte) ([]byte, error) {
 		return err
 	})
 	return dbi, err
+}
+
+func keyExists(key []byte) bool {
+	err := db.View(func(txn *badger.Txn) error {
+		_, err := txn.Get(key)
+		return err
+	})
+	if err != nil {
+		if err == badger.ErrKeyNotFound {
+			return false
+		} else {
+			logging.Fatal(err)
+		}
+	}
+	return true
 }
 
 func set(dbi DBI) error {

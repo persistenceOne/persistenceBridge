@@ -182,10 +182,10 @@ func setTMPublicKey() error {
 	if err != nil {
 		return err
 	}
-	if len(uncompressedPublicKeys.PublicKeys) == 0 {
+	if len(uncompressedPublicKeys.Items) == 0 {
 		logging.Error("no tendermint public keys got from casp")
 		return err
 	}
-	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	return nil
 }

@@ -7,12 +7,14 @@ type storeKeyPrefix int16
 const (
 	statusPrefix storeKeyPrefix = iota + 1
 	validatorPrefix
-	tendermintBroadcastedTransactionPrefix
-	ethereumBroadcastedWrapTokenTransactionPrefix
+	outgoingTendermintTxPrefix
+	outgoingEthereumTxPrefix
 	unboundEpochTimePrefix
 	accountLimiterPrefix // Beta feature DO NOT REMOVE
-	tendermintIncomingTxPrefix
-	ethereumIncomingTxPrefix
+	incomingTendermintTxPrefix
+	incomingEthereumTxPrefix
+	tendermintTxToKafkaPrefix
+	ethereumTxToKafkaPrefix
 )
 
 func (storeKeyPrefix storeKeyPrefix) GenerateStoreKey(key []byte) []byte {
