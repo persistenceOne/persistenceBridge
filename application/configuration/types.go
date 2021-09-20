@@ -47,6 +47,9 @@ type tendermintConfig struct {
 	PStakeDenom       string
 	BroadcastMode     string
 	MinimumWrapAmount int64
+	AccountPrefix     string
+	Node              string
+	ChainID           string
 }
 
 func newTendermintConfig() tendermintConfig {
@@ -54,6 +57,9 @@ func newTendermintConfig() tendermintConfig {
 		PStakeDenom:       constants.DefaultDenom,
 		BroadcastMode:     constants.DefaultBroadcastMode,
 		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
+		AccountPrefix:     constants.DefaultAccountPrefix,
+		Node:              constants.DefaultTendermintNode,
+		ChainID:           constants.DefaultTendermintChainId,
 	}
 }
 
@@ -65,6 +71,7 @@ type caspConfig struct {
 	SignatureWaitTime       time.Duration
 	APIToken                string
 	AllowConcurrentKeyUsage bool
+	MaxGetSignatureAttempts int
 }
 
 func newCASPConfig() caspConfig {
@@ -76,6 +83,7 @@ func newCASPConfig() caspConfig {
 		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
 		APIToken:                "",
 		AllowConcurrentKeyUsage: true,
+		MaxGetSignatureAttempts: constants.DefaultCASPMaxGetSignatureAttempt,
 	}
 }
 

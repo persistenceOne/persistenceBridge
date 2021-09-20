@@ -20,13 +20,17 @@ func InitConfig() *config {
 	return appConfig
 }
 
-func GetAppConfig() *config {
-	return appConfig
+func GetAppConfig() config {
+	return *appConfig
 }
 
 func SetPStakeAddress(tmAddress sdk.AccAddress) {
 	if !appConfig.seal {
-		appConfig.Tendermint.pStakeAddress = tmAddress.String()
+		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
+			appConfig.Tendermint.pStakeAddress = tmAddress.String()
+		} else {
+			panic(fmt.Errorf("pStake wrap address prefix (%s) and config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
+		}
 	}
 }
 
@@ -38,6 +42,14 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		if denom != "" {
 			appConfig.Tendermint.PStakeDenom = denom
+		}
+
+		accountPrefix, err := cmd.Flags().GetString(constants2.FlagAccountPrefix)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if accountPrefix != "" {
+			appConfig.Tendermint.AccountPrefix = accountPrefix
 		}
 
 		ethereumEndPoint, err := cmd.Flags().GetString(constants2.FlagEthereumEndPoint)
@@ -131,6 +143,16 @@ func SetConfig(cmd *cobra.Command) *config {
 			log.Fatalln(err)
 		}
 		appConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
+
+		caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants2.FlagCASPMaxGetSignatureAttempts)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if caspMaxGetSignatureAttempts > 0 {
+			appConfig.CASP.MaxGetSignatureAttempts = caspMaxGetSignatureAttempts
+		} else if appConfig.CASP.SignatureWaitTime < 0 {
+			log.Fatalln("invalid casp MaxGetSignatureAttempts")
+		}
 
 		bridgeRPCEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 		if err != nil {

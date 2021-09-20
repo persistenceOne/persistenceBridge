@@ -1,19 +1,27 @@
 package tendermint
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"time"
 
 	"github.com/cosmos/relayer/helpers"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 )
 
-func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*relayer.Chain, error) {
-	chain, err := fileInputAdd(chainConfigJsonPath)
+func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
+	chain := &relayer.Chain{}
+	chain.Key = "unusedKey"
+	chain.ChainID = configuration.GetAppConfig().Tendermint.ChainID
+	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
+	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
+	chain.GasAdjustment = 1.5
+	chain.GasPrices = "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom
+	chain.TrustingPeriod = "21h"
+
 	to, err := time.ParseDuration(timeout)
 	if err != nil {
 		return chain, err
@@ -33,12 +41,10 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*re
 	}
 
 	//118 is not being used anywhere
-	ko, err := helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
+	_, err = helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
 	if err != nil {
 		return chain, err
 	}
-
-	logging.Info("Relayer Chain Keys added [NOT TO BE USED]:", ko.Address)
 
 	if err = chain.Start(); err != nil {
 		if err != tendermintService.ErrAlreadyStarted {
@@ -49,21 +55,29 @@ func InitializeAndStartChain(chainConfigJsonPath, timeout, homePath string) (*re
 	return chain, nil
 }
 
-func fileInputAdd(file string) (*relayer.Chain, error) {
-	// If the user passes in a file, attempt to read the chain configuration from that file
-	c := &relayer.Chain{}
-	if _, err := os.Stat(file); err != nil {
-		return c, err
+func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
+	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
+		panic("account prefix is empty")
 	}
+	bech32PrefixAccAddr := configuration.GetAppConfig().Tendermint.AccountPrefix
+	bech32PrefixAccPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixPublic
+	bech32PrefixValAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
+	bech32PrefixValPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
+	bech32PrefixConsAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
+	bech32PrefixConsPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
 
-	byt, err := ioutil.ReadFile(file)
+	bech32Configuration := sdkTypes.GetConfig()
+	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
+	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
+	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
+	// Do not seal the config.
+
+	tmAddress, err := casp.GetTendermintAddress()
 	if err != nil {
-		return c, err
+		return sdkTypes.AccAddress{}, err
 	}
 
-	if err = json.Unmarshal(byt, c); err != nil {
-		return c, err
-	}
+	configuration.SetPStakeAddress(tmAddress)
 
-	return c, nil
+	return tmAddress, nil
 }

@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 )
 
 type Validator struct {
@@ -64,4 +65,12 @@ func GetValidators() ([]Validator, error) {
 		return validators, err
 	}
 	return validators, nil
+}
+
+func DeleteAllValidators() error {
+	err := iterateKeys(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, item *badger.Item) error {
+		err := deleteKV(key)
+		return err
+	})
+	return err
 }

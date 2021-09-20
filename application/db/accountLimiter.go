@@ -1,13 +1,11 @@
 package db
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dgraph-io/badger/v3"
-	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 type AccountLimiter struct {
@@ -68,26 +66,4 @@ func GetTotalTokensWrapped() (sdk.Int, error) {
 		return nil
 	})
 	return total, err
-}
-
-func GetAccountLimiterAndTotal(address sdk.AccAddress) (AccountLimiter, int) {
-	total := 0
-	acc := AccountLimiter{
-		AccountAddress: address,
-		Amount:         sdk.ZeroInt(),
-	}
-	err := iterateKeys(accountLimiterPrefix.GenerateStoreKey([]byte{}), func(key []byte, item *badger.Item) error {
-		total = total + 1
-		if acc.Amount.Equal(sdk.ZeroInt()) && bytes.Equal(key, acc.Key()) {
-			err := item.Value(func(val []byte) error {
-				return json.Unmarshal(val, &acc)
-			})
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		logging.Fatal(err)
-	}
-	return acc, total
 }

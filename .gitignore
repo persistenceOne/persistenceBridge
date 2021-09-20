@@ -8,3 +8,4 @@ target/
 build/
 release/
 .script/kafka_*
+kafka_*

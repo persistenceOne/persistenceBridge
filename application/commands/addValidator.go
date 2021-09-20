@@ -1,21 +1,40 @@
 package commands
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
+	"log"
+	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
+	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/spf13/cobra"
-	"log"
 )
 
-func AddCommand(initClientCtx client.Context) *cobra.Command {
+func AddCommand() *cobra.Command {
 	addCommand := &cobra.Command{
-		Use:   "add [ValoperAddress] [name]",
+		Use:   "add [validatorOperatorAddress] [name]",
 		Short: "Add validator address to signing group",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			pStakeConfig := configuration.InitConfig()
+			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
+			if err != nil {
+				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
+			}
+			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			configuration.ValidateAndSeal()
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -23,10 +42,6 @@ func AddCommand(initClientCtx client.Context) *cobra.Command {
 
 			validatorName := args[1]
 
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
-			if err != nil {
-				log.Fatalln(err)
-			}
 			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 			if err != nil {
 				log.Fatalln(err)

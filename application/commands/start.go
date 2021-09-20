@@ -5,8 +5,10 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
@@ -27,11 +29,10 @@ import (
 	"time"
 )
 
-func StartCommand(initClientCtx client.Context) *cobra.Command {
+func StartCommand() *cobra.Command {
 	pBridgeCommand := &cobra.Command{
-		Use:   "start [path_to_chain_json]",
-		Short: "Start persistenceBridge",
-		Args:  cobra.ExactArgs(1),
+		Use:   "start",
+		Short: "starts persistenceBridge",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
@@ -52,17 +53,15 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			}
 			pStakeConfig = configuration.SetConfig(cmd)
 
-			tmAddress, err := casp.GetTendermintAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
 			ethAddress, err := casp.GetEthAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			configuration.SetPStakeAddress(tmAddress)
+			tmAddress, err := tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
+			if err != nil {
+				log.Fatalln(err)
+			}
 			configuration.ValidateAndSeal()
 
 			err = logging.InitializeBot()
@@ -115,7 +114,19 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			}
 			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
-			chain, err := tendermint2.InitializeAndStartChain(args[0], timeout, homePath)
+			validators, err := db2.GetValidators()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			if len(validators) == 0 {
+				log.Fatalln("no validator has been added")
+			} else {
+				for i, validator := range validators {
+					fmt.Println(fmt.Sprintf("%d. Name: %s, Address: %s", i+1, validator.Name, validator.Address))
+				}
+			}
+
+			chain, err := tendermint2.InitializeAndStartChain(timeout, homePath)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -124,6 +135,17 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", pStakeConfig.Ethereum.EthereumEndPoint, err.Error())
 			}
+
+			encodingConfig := application.MakeEncodingConfig()
+			initClientCtx := client.Context{}.
+				WithJSONMarshaler(encodingConfig.Marshaler).
+				WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+				WithTxConfig(encodingConfig.TransactionConfig).
+				WithLegacyAmino(encodingConfig.Amino).
+				WithInput(os.Stdin).
+				WithAccountRetriever(authTypes.AccountRetriever{}).
+				WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode).
+				WithHomeDir(homePath)
 
 			protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
@@ -137,7 +159,7 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
-			go tendermint2.StartListening(initClientCtx.WithHomeDir(homePath), chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint2.StartListening(initClientCtx, chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -160,9 +182,11 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 			return nil
 		},
 	}
+	//This will always be used from flag
 	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	pBridgeCommand.Flags().Bool(constants2.FlagShowDebugLog, false, "show debug logs")
+
 	pBridgeCommand.Flags().String(constants2.FlagEthereumEndPoint, "", "ethereum orchestrator to connect")
 	pBridgeCommand.Flags().String(constants2.FlagKafkaPorts, "", "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	pBridgeCommand.Flags().Int(constants2.FlagTendermintSleepTime, constants2.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
@@ -170,6 +194,9 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, constants2.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
 	pBridgeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, constants2.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
 	pBridgeCommand.Flags().String(constants2.FlagDenom, "", "denom name")
+	pBridgeCommand.Flags().String(constants2.FlagAccountPrefix, "", "account prefix on tendermint chains")
+	pBridgeCommand.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
+	pBridgeCommand.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "chain identifier")
 	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, 0, "Gas limit for eth txs")
 	pBridgeCommand.Flags().String(constants2.FlagBroadcastMode, "", "broadcast mode for tendermint")
 	pBridgeCommand.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
@@ -178,11 +205,11 @@ func StartCommand(initClientCtx client.Context) *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	pBridgeCommand.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
 	pBridgeCommand.Flags().Int(constants2.FlagCASPSignatureWaitTime, -1, "csap siganture wait time")
+	pBridgeCommand.Flags().Int(constants2.FlagCASPMaxGetSignatureAttempts, 0, "casp max attempts to fetch operation id")
 	pBridgeCommand.Flags().String(constants2.FlagRPCEndpoint, "", "rpc Endpoint for server")
 	pBridgeCommand.Flags().Int64(constants2.FlagMinimumWrapAmount, -1, "minimum amount in send coin tx to wrap onto eth")
 	pBridgeCommand.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")
 	pBridgeCommand.Flags().Int64(constants2.FlagTelegramChatID, 0, "telegram chat id")
-	//This will always be used from flag
 	pBridgeCommand.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 
 	return pBridgeCommand

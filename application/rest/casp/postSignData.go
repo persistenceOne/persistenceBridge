@@ -55,7 +55,7 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 		return response, false, err
 	}
 	err = json.Unmarshal(body, &response)
-	if err != nil {
+	if err != nil || response.OperationID == "" {
 		logging.Error("posting casp sign data, err:", err, "Body:", string(body))
 		var errResponse casp.ErrorResponse
 		err = json.Unmarshal(body, &errResponse)
@@ -65,6 +65,8 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 		}
 		if errResponse.Title == constants.VAULT_BUSY {
 			return response, true, nil
+		} else {
+			return response, false, errResponse
 		}
 	}
 	return response, false, err

@@ -35,8 +35,8 @@ func (t *EthereumIncomingTx) Value() ([]byte, error) {
 }
 
 func (t *EthereumIncomingTx) Validate() error {
-	if len(t.TxHash.Bytes()) == 0 {
-		return fmt.Errorf("empty tx hash")
+	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+		return fmt.Errorf("tx hash is empty")
 	}
 	if len(t.MsgBytes) == 0 {
 		return fmt.Errorf("empty MsgBytes")
@@ -60,6 +60,7 @@ func GetEthereumIncomingTx(txHash common.Hash, producedToKafka bool) (EthereumIn
 }
 
 func AddToPendingEthereumIncomingTx(t EthereumIncomingTx) error {
+	t.ProducedToKafka = false
 	return set(&t)
 }
 
@@ -73,7 +74,7 @@ func SetEthereumIncomingTxProduced(t EthereumIncomingTx) error {
 	return set(&t)
 }
 
-func GetProduceToKafkaEthereumIncomingTx() ([]EthereumIncomingTx, error) {
+func GetProduceToKafkaEthereumIncomingTxs() ([]EthereumIncomingTx, error) {
 	var result []EthereumIncomingTx
 	err := iterateKeyValues(ethereumIncomingTxPrefix.GenerateStoreKey([]byte{byte(0)}), func(key []byte, value []byte) error {
 		var e EthereumIncomingTx
