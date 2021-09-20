@@ -196,7 +196,7 @@ func StartCommand() *cobra.Command {
 	pBridgeCommand.Flags().String(constants2.FlagDenom, "", "denom name")
 	pBridgeCommand.Flags().String(constants2.FlagAccountPrefix, "", "account prefix on tendermint chains")
 	pBridgeCommand.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
-	pBridgeCommand.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "tendermint rpc node url")
+	pBridgeCommand.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "chain identifier")
 	pBridgeCommand.Flags().Uint64(constants2.FlagEthGasLimit, 0, "Gas limit for eth txs")
 	pBridgeCommand.Flags().String(constants2.FlagBroadcastMode, "", "broadcast mode for tendermint")
 	pBridgeCommand.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
