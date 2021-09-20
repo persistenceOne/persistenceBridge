@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -15,7 +16,7 @@ import (
 func ShowCommand() *cobra.Command {
 	showCommand := &cobra.Command{
 		Use:   "show",
-		Short: "show validators address to signing group",
+		Short: "show wrap address, eth bridge admin and validators",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {
@@ -32,6 +33,17 @@ func ShowCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 			configuration.ValidateAndSeal()
+
+			tmAddress, err := casp.GetTendermintAddress()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			ethAddress, err := casp.GetEthAddress()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			log.Println("Tendermint Address:", tmAddress.String())
+			log.Println("Ethereum Address:", ethAddress.String())
 
 			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 			if err != nil {

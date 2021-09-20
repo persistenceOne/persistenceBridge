@@ -12,38 +12,38 @@ import (
 	"testing"
 )
 
-func TestDeleteEthereumTx(t *testing.T) {
+func TestDeleteOutgoingEthereumTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{{
 			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 			Amount:  big.NewInt(1),
 		}},
 	}
-	err = SetBroadcastedEthereumTx(ethTransaction)
+	err = SetOutgoingEthereumTx(ethTransaction)
 	require.Nil(t, err)
 
-	err = DeleteBroadcastedEthereumTx(common.Hash{})
+	err = DeleteOutgoingEthereumTx(common.Hash{})
 	require.Nil(t, err)
 
 	db.Close()
 }
 
-func TestEthereumBroadcastedWrapTokenTransactionKey(t *testing.T) {
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
+func TestOutgoingEthereumTransactionKey(t *testing.T) {
+	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{},
 	}
 
-	expectedKey := ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey(ethTransaction.TxHash.Bytes())
+	expectedKey := outgoingEthereumTxPrefix.GenerateStoreKey(ethTransaction.TxHash.Bytes())
 	key := ethTransaction.Key()
 	require.Equal(t, expectedKey, key)
 }
 
-func TestEthereumBroadcastedWrapTokenTransactionValidate(t *testing.T) {
+func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	wrapTokenMsg := outgoingTx.WrapTokenMsg{
 		Address: Address,
@@ -51,25 +51,25 @@ func TestEthereumBroadcastedWrapTokenTransactionValidate(t *testing.T) {
 	}
 	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: tx,
 	}
 	err := ethTransaction.Validate()
 	require.Nil(t, err)
 
-	ethTransaction = EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction = OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{},
 	}
 	err = ethTransaction.Validate()
 	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
-	emptyTransaction := EthereumBroadcastedWrapTokenTransaction{}
+	emptyTransaction := OutgoingEthereumTransaction{}
 	require.Equal(t, "tx hash is empty", emptyTransaction.Validate().Error())
 }
 
-func TestEthereumBroadcastedWrapTokenTransactionValue(t *testing.T) {
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
+func TestOutgoingEthereumTransactionValue(t *testing.T) {
+	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{{
 			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
@@ -82,9 +82,9 @@ func TestEthereumBroadcastedWrapTokenTransactionValue(t *testing.T) {
 	require.Equal(t, expectedValue, value)
 }
 
-func TestEthereumBroadcastedWrapTokenTransactionPrefix(t *testing.T) {
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{}
-	require.Equal(t, ethereumBroadcastedWrapTokenTransactionPrefix, ethTransaction.prefix())
+func TestOutgoingEthereumTransactionPrefix(t *testing.T) {
+	ethTransaction := OutgoingEthereumTransaction{}
+	require.Equal(t, outgoingEthereumTxPrefix, ethTransaction.prefix())
 }
 
 func TestIterateEthTx(t *testing.T) {
@@ -92,13 +92,13 @@ func TestIterateEthTx(t *testing.T) {
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
-		var ethTx EthereumBroadcastedWrapTokenTransaction
+		var ethTx OutgoingEthereumTransaction
 		err := json.Unmarshal(value, &ethTx)
 		require.Nil(t, err)
 		return nil
 	}
 
-	err = IterateBroadcastedEthTx(function)
+	err = IterateOutgoingEthTx(function)
 	require.Nil(t, err)
 
 	db.Close()
@@ -110,31 +110,31 @@ func TestNewETHTransaction(t *testing.T) {
 		Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 		Amount:  big.NewInt(1),
 	}}
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   txHash,
 		Messages: messages,
 	}
 
-	EthereumBroadcastedWrapTokenTransaction := NewETHTransaction(txHash, messages)
-	err := EthereumBroadcastedWrapTokenTransaction.Validate()
+	outgoingEthereumTransaction := NewOutgoingETHTransaction(txHash, messages)
+	err := outgoingEthereumTransaction.Validate()
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(ethTransaction), reflect.TypeOf(EthereumBroadcastedWrapTokenTransaction))
-	require.Equal(t, ethTransaction, EthereumBroadcastedWrapTokenTransaction)
+	require.Equal(t, reflect.TypeOf(ethTransaction), reflect.TypeOf(outgoingEthereumTransaction))
+	require.Equal(t, ethTransaction, outgoingEthereumTransaction)
 }
 
 func TestSetEthereumTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	ethTransaction := EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: []outgoingTx.WrapTokenMsg{{
 			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 			Amount:  big.NewInt(1),
 		}},
 	}
-	err = SetBroadcastedEthereumTx(ethTransaction)
+	err = SetOutgoingEthereumTx(ethTransaction)
 	require.Nil(t, err)
 
 	db.Close()

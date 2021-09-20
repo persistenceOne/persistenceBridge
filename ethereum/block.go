@@ -59,21 +59,26 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 			if err != nil {
 				return fmt.Errorf("failed to process arguments of contract: %s method: %s for TX: %s Error: %s", contract.GetName(), method.RawName, transaction.Hash().String(), err.Error())
 			}
-			exists := db.CheckEthereumIncomingTxProduced(transaction.Hash())
-			if !exists {
+			// Do not check for EthereumTxToKafka exists.
+			if !db.CheckIncomingEthereumTxExists(transaction.Hash()) {
 				msgBytes, err := protoCodec.MarshalInterface(msg)
 				if err != nil {
 					return err
 				}
-				err = db.AddToPendingEthereumIncomingTx(db.EthereumIncomingTx{
-					TxHash:          transaction.Hash(),
-					ProducedToKafka: false,
-					MsgBytes:        msgBytes,
-					Sender:          sender,
-					MsgType:         msg.Type(),
+				err = db.AddIncomingEthereumTx(db.IncomingEthereumTx{
+					TxHash:   transaction.Hash(),
+					MsgBytes: msgBytes,
+					Sender:   sender,
+					MsgType:  msg.Type(),
 				})
 				if err != nil {
 					return err
+				}
+				err = db.AddEthereumTxToKafka(db.EthereumTxToKafka{
+					TxHash: transaction.Hash(),
+				})
+				if err != nil {
+					return fmt.Errorf("added to IncomingEthereumTx but NOT to EthereumTxToKafka failed. Tx won't be added to kafka: %v", err)
 				}
 			}
 		}
@@ -82,11 +87,15 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 }
 
 func produceToKafka(kafkaProducer *sarama.SyncProducer) {
-	ethInTxs, err := db.GetProduceToKafkaEthereumIncomingTxs()
+	ethTxToKafkaList, err := db.GetAllEthereumTxToKafka()
 	if err != nil {
 		logging.Fatal(err)
 	}
-	for _, ethTxToTM := range ethInTxs {
+	for _, tx := range ethTxToKafkaList {
+		ethTxToTM, err := db.GetIncomingEthereumTx(tx.TxHash)
+		if err != nil {
+			logging.Fatal(err)
+		}
 		producer := ""
 		switch ethTxToTM.MsgType {
 		case bankTypes.TypeMsgSend:
@@ -98,12 +107,12 @@ func produceToKafka(kafkaProducer *sarama.SyncProducer) {
 		default:
 			logging.Fatal("unknown msg type [ETH Listener]")
 		}
-		logging.Info("[ETH Listener] Adding to kafka producer:'", producer, "'of txHash:", ethTxToTM.TxHash.String(), "msgType:", ethTxToTM.MsgType, "sender:", ethTxToTM.Sender.String())
+		logging.Info("[ETH Listener] Adding to kafka producer:", producer, "of txHash:", ethTxToTM.TxHash.String(), "msgType:", ethTxToTM.MsgType, "sender:", ethTxToTM.Sender.String())
 		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, *kafkaProducer)
 		if err != nil {
 			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
 		}
-		err := db.SetEthereumIncomingTxProduced(ethTxToTM)
+		err = db.DeleteEthereumTxToKafka(ethTxToTM.TxHash)
 		if err != nil {
 			logging.Fatal(err)
 		}

@@ -11,7 +11,6 @@ import (
 var bot *tb.Bot
 var showDebug bool
 var errorPrefix = []interface{}{"[ERROR]"}
-var shutDownWithErrorPrefix = []interface{}{"[SHUTDOWN_WITH_ERROR]"}
 var warnPrefix = []interface{}{"[WARNING]"}
 var infoPrefix = []interface{}{"[INFO]"}
 var debugPrefix = []interface{}{"[DEBUG]"}
@@ -41,11 +40,6 @@ func ShowDebugLog(d bool) {
 func Error(err ...interface{}) {
 	log.Println(append(errorPrefix, err...)...)
 	_ = sendMessage("ERROR:\n" + fmt.Sprintln(err...))
-}
-
-func ShutdownWithError(err ...interface{}) {
-	log.Println(append(shutDownWithErrorPrefix, err...)...)
-	_ = sendMessage("SHUTDOWN_WITH_ERROR:\n" + fmt.Sprintln(err...))
 }
 
 func Warn(warn ...interface{}) {

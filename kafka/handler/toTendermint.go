@@ -71,7 +71,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		return err
 	}
 
-	countPendingTx, err := db.GetTotalTMBroadcastedTx()
+	countPendingTx, err := db.CountTotalOutgoingTendermintTx()
 	if err != nil {
 		logging.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 				}
 				return nil
 			} else {
-				err = db.SetBroadcastedTendermintTx(db.NewTMTransaction(response.TxHash))
+				err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
 				if err != nil {
 					logging.Fatal(err)
 				}
@@ -117,7 +117,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		} else {
 			logging.Info("cannot broadcast yet, tendermint txs pending")
 			time.Sleep(4 * time.Second)
-			countPendingTx, err = db.GetTotalTMBroadcastedTx()
+			countPendingTx, err = db.CountTotalOutgoingTendermintTx()
 			if err != nil {
 				logging.Fatal(err)
 			}

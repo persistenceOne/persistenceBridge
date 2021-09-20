@@ -50,6 +50,7 @@ type tendermintConfig struct {
 	AccountPrefix     string
 	Node              string
 	ChainID           string
+	CoinType          uint32
 }
 
 func newTendermintConfig() tendermintConfig {
@@ -60,6 +61,7 @@ func newTendermintConfig() tendermintConfig {
 		AccountPrefix:     constants.DefaultAccountPrefix,
 		Node:              constants.DefaultTendermintNode,
 		ChainID:           constants.DefaultTendermintChainId,
+		CoinType:          constants.DefaultTendermintCoinType,
 	}
 }
 
@@ -72,6 +74,7 @@ type caspConfig struct {
 	APIToken                string
 	AllowConcurrentKeyUsage bool
 	MaxGetSignatureAttempts int
+	TLSInsecureSkipVerify   bool
 }
 
 func newCASPConfig() caspConfig {
@@ -84,6 +87,7 @@ func newCASPConfig() caspConfig {
 		APIToken:                "",
 		AllowConcurrentKeyUsage: true,
 		MaxGetSignatureAttempts: constants.DefaultCASPMaxGetSignatureAttempt,
+		TLSInsecureSkipVerify:   true,
 	}
 }
 

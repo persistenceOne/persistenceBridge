@@ -15,7 +15,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
-	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -59,19 +58,26 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetPStakeAddress() {
 					if memo != "DO_NOT_REVERT" {
 						for _, coin := range txMsg.Amount {
-							produced := db.CheckTendermintIncomingTxProduced(txQueryResult.Hash, uint(i), coin.Denom)
-							if !produced {
-								err = db.AddToPendingTendermintIncomingTx(db.TendermintIncomingTx{
-									TxHash:          txQueryResult.Hash,
-									MsgIndex:        uint(i),
-									ProducedToKafka: false,
-									Denom:           coin.Denom,
-									FromAddress:     txMsg.FromAddress,
-									Amount:          coin.Amount,
-									Memo:            memo,
+							// Do not check for TendermintTxToKafka exists.
+							if !db.CheckIncomingTendermintTxExists(txQueryResult.Hash, uint(i), coin.Denom) {
+								err = db.AddIncomingTendermintTx(db.IncomingTendermintTx{
+									TxHash:      txQueryResult.Hash,
+									MsgIndex:    uint(i),
+									Denom:       coin.Denom,
+									FromAddress: txMsg.FromAddress,
+									Amount:      coin.Amount,
+									Memo:        memo,
 								})
 								if err != nil {
 									return err
+								}
+								err = db.AddTendermintTxToKafka(db.TendermintTxToKafka{
+									TxHash:   txQueryResult.Hash,
+									MsgIndex: uint(i),
+									Denom:    coin.Denom,
+								})
+								if err != nil {
+									return fmt.Errorf("added to IncomingTendermintTx but NOT to TendermintTxToKafka failed. Tx won't be added to kafka: %v", err)
 								}
 							}
 						}
@@ -87,12 +93,15 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 }
 
 func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
-	txs, err := db.GetProduceToKafkaTendermintIncomingTxs()
+	tmTxToKafkaList, err := db.GetAllTendermintTxToKafka()
 	if err != nil {
-		logging.ShutdownWithError(err)
-		shutdown.SetBridgeStopSignal(true)
+		logging.Fatal(err)
 	}
-	for _, tx := range txs {
+	for _, tmTxToKafka := range tmTxToKafkaList {
+		tx, err := db.GetIncomingTendermintTx(tmTxToKafka.TxHash, tmTxToKafka.MsgIndex, tmTxToKafka.Denom)
+		if err != nil {
+			logging.Fatal(fmt.Errorf("failed to get IncomingTendermintTx by TendermintTxToKafka [TM Listener]: %s", err.Error()))
+		}
 		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
 		var ethAddress goEthCommon.Address
 		if validEthMemo {
@@ -112,18 +121,16 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "amount:", tx.Amount.String())
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 			if err != nil {
-				logging.ShutdownWithError(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
-				shutdown.SetBridgeStopSignal(true)
+				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
 			logging.Info("Reverting coins,TxHash:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Coin:", revertToken.String())
 			revertCoins(tx.FromAddress, sdk.NewCoins(revertToken), kafkaProducer, protoCodec)
 		}
-		err = db.SetTendermintIncomingTxProduced(tx)
+		err = db.DeleteTendermintTxToKafka(tx.TxHash, tx.MsgIndex, tx.Denom)
 		if err != nil {
-			logging.ShutdownWithError(err)
-			shutdown.SetBridgeStopSignal(true)
+			logging.Fatal(err)
 		}
 	}
 }
@@ -136,13 +143,11 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncPr
 	}
 	msgBytes, err := protoCodec.MarshalInterface(msg)
 	if err != nil {
-		logging.ShutdownWithError(err)
-		shutdown.SetBridgeStopSignal(true)
+		logging.Fatal(err)
 	}
 	logging.Info("REVERT: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
-		logging.ShutdownWithError(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))
-		shutdown.SetBridgeStopSignal(true)
+		logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))
 	}
 }

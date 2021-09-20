@@ -9,9 +9,9 @@ import (
 
 func TestGenerateStoreKey(t *testing.T) {
 	key := common.Hash{}.Bytes()
-	storeKey := ethereumBroadcastedWrapTokenTransactionPrefix.GenerateStoreKey(key)
+	storeKey := outgoingEthereumTxPrefix.GenerateStoreKey(key)
 	Bytes := make([]byte, 2)
-	binary.LittleEndian.PutUint16(Bytes, uint16(ethereumBroadcastedWrapTokenTransactionPrefix))
+	binary.LittleEndian.PutUint16(Bytes, uint16(outgoingEthereumTxPrefix))
 
 	Key := append(Bytes, key...)
 	require.Equal(t, Key, storeKey)

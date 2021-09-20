@@ -64,12 +64,12 @@ func TestCollectEthTx(t *testing.T) {
 	}
 	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
-	ethTransaction := db.EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,
 		Messages: txd,
 	}
 
-	err = db.SetBroadcastedEthereumTx(ethTransaction)
+	err = db.SetOutgoingEthereumTx(ethTransaction)
 
 	err = collectEthTx(ethereumClient, &ctx, protoCodec, tx, &contract)
 	require.Equal(t, nil, err)
@@ -149,11 +149,11 @@ func TestProduceToKafka(t *testing.T) {
 	}
 	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
-	ethTransaction := db.EthereumBroadcastedWrapTokenTransaction{
+	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,
 		Messages: txd,
 	}
 
-	err = db.SetBroadcastedEthereumTx(ethTransaction)
+	err = db.SetOutgoingEthereumTx(ethTransaction)
 	produceToKafka(&kafkaProducer)
 }
