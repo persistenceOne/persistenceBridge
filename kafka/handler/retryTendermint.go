@@ -19,6 +19,9 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
 		}
 	}()
+	if m.Count <= 0 {
+		return nil
+	}
 	claimMsgChan := claim.Messages()
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool

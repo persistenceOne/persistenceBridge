@@ -48,6 +48,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 					if err != nil {
 						return err
 					}
+					m.Count = m.Count + len(validators)
 					m.WithdrawRewards = true
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
@@ -58,7 +59,8 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 				}
 				session.MarkMessage(kafkaMsg, "")
 				loop--
-				if loop == 0 {
+				m.Count++
+				if loop <= 0 {
 					break ConsumerLoop
 				}
 			default:
