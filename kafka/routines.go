@@ -143,24 +143,26 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			if err != nil {
 				logging.Fatal(err)
 			}
-			ticker := time.Tick(10 * time.Second)
+			ticker := time.NewTicker(10 * time.Second)
 			select {
 			case <-end:
 				logging.Info("Stopping Unbondings Consumer!!!")
 				ended <- true
 				return
-			case <-ticker:
+			case <-ticker.C:
 				logging.Debug("Next Routine Unbond")
+				ticker.Stop()
 			}
 		} else {
-			ticker := time.Tick(10 * time.Second)
+			ticker := time.NewTicker(10 * time.Second)
 			select {
 			case <-end:
 				logging.Info("Stopping Unbondings Consumer!!!")
 				ended <- true
 				return
-			case <-ticker:
+			case <-ticker.C:
 				logging.Debug("Next Routine Unbond")
+				ticker.Stop()
 			}
 		}
 	}
