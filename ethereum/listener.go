@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -49,7 +50,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			return
 		}
 
-		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
+		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > constants.EthereumBlockConfirmations {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 			logging.Info("Ethereum Block:", processHeight)
 

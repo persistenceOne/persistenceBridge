@@ -163,7 +163,7 @@ func StartCommand() *cobra.Command {
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			for sig := range signalChan {
 				logging.Info("STOP SIGNAL RECEIVED:", sig.String(), "(Might take around a minute to stop)")
-				shutdown.SetBridgeStopSignal(true)
+				shutdown.StopBridge()
 				for {
 					if !shutdown.GetKafkaConsumerClosed() {
 						logging.Info("Stopping Kafka Routine!!!")

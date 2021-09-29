@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -76,51 +77,63 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		logging.Fatal(err)
 	}
 
+	attempts := 0
+	txBroadcastSuccess := false
 	for {
+		attempts++
 		if countPendingTx == 0 {
 			response, err := outgoingTx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
 			if err != nil {
 				logging.Error("Unable to broadcast tendermint messages:", err)
-				config := utils.SaramaConfig()
-				producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
-				defer func() {
-					err := producer.Close()
-					if err != nil {
-						logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", err)
-					}
-				}()
-
-				for _, msg := range msgs {
-					if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
-						msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
-						if err != nil {
-							logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
-							// TODO @Puneet continue or return? ~ this case should never come, log(ALERT), continue
-						}
-						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
-						if err != nil {
-							logging.Error("Retry txs: Failed to add msg to kafka queue, Msg:", msg.String(), "Error:", err)
-							// TODO @Puneet continue or return? ~ let it continue, log the message, will have to send manually.
-						}
-						logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
-					}
-				}
-				return nil
-			} else {
-				err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
-				if err != nil {
-					logging.Fatal(err)
-				}
+				break
+			}
+			txBroadcastSuccess = true
+			err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
+			if err != nil {
+				logging.Fatal(err)
 			}
 			logging.Info("Broadcast Tendermint Tx Hash:", response.TxHash)
-			return nil
+			break
 		} else {
 			logging.Info("cannot broadcast yet, tendermint txs pending")
-			time.Sleep(4 * time.Second)
+			time.Sleep(constants.TendermintAvgBlockTime)
 			countPendingTx, err = db.CountTotalOutgoingTendermintTx()
 			if err != nil {
 				logging.Fatal(err)
 			}
+		}
+		if attempts >= configuration.GetAppConfig().Kafka.MaxTendermintTxAttempts {
+			logging.Error("Unable to broadcast tendermint messages, max attempts while waiting for previous tx to be finished")
+			break
+		}
+	}
+	if !txBroadcastSuccess {
+		addToRetryTendermintQueue(msgs, handler)
+	}
+	return nil
+}
+
+func addToRetryTendermintQueue(msgs []sdk.Msg, handler MsgHandler) {
+	config := utils.SaramaConfig()
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+	defer func() {
+		err := producer.Close()
+		if err != nil {
+			logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", err)
+		}
+	}()
+
+	for _, msg := range msgs {
+		if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
+			msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
+			if err != nil {
+				logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
+			}
+			err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
+			if err != nil {
+				logging.Error("Retry txs: Failed to add msg to kafka RetryTendermint queue, Msg:", msg.String(), "Error:", err)
+			}
+			logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
 		}
 	}
 }

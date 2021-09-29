@@ -12,15 +12,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appConfig *config
+var appConfig *Config
 
-func InitConfig() *config {
+func InitConfig() *Config {
 	c := newConfig()
 	appConfig = &c
 	return appConfig
 }
 
-func GetAppConfig() config {
+func GetAppConfig() Config {
 	return *appConfig
 }
 
@@ -29,12 +29,12 @@ func SetPStakeAddress(tmAddress sdk.AccAddress) {
 		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
 			appConfig.Tendermint.pStakeAddress = tmAddress.String()
 		} else {
-			panic(fmt.Errorf("pStake wrap address prefix (%s) and config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
+			panic(fmt.Errorf("pStake wrap address prefix (%s) and Config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
 		}
 	}
 }
 
-func SetConfig(cmd *cobra.Command) *config {
+func SetConfig(cmd *cobra.Command) *Config {
 	if appConfig == nil || !appConfig.seal {
 		denom, err := cmd.Flags().GetString(constants2.FlagDenom)
 		if err != nil {
@@ -124,17 +124,17 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if caspTMPublicKey != "" {
+		if caspEthPublicKey != "" {
 			appConfig.CASP.EthereumPublicKey = caspEthPublicKey
 		}
 
-		caspSignatureWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPSignatureWaitTime)
+		caspWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPWaitTime)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if caspSignatureWaitTime >= 0 {
-			appConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
-		} else if appConfig.CASP.SignatureWaitTime < 0 {
+		if caspWaitTime > 0 {
+			appConfig.CASP.WaitTime = time.Duration(caspWaitTime) * time.Second
+		} else if caspWaitTime < 0 {
 			log.Fatalln("invalid casp signature wait time")
 		}
 
@@ -144,14 +144,14 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		appConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
 
-		caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants2.FlagCASPMaxGetSignatureAttempts)
+		caspMaxAttempts, err := cmd.Flags().GetInt(constants2.FlagCASPMaxAttempts)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if caspMaxGetSignatureAttempts > 0 {
-			appConfig.CASP.MaxGetSignatureAttempts = caspMaxGetSignatureAttempts
-		} else if appConfig.CASP.SignatureWaitTime < 0 {
-			log.Fatalln("invalid casp MaxGetSignatureAttempts")
+		if caspMaxAttempts > 0 {
+			appConfig.CASP.MaxAttempts = caspMaxAttempts
+		} else if caspMaxAttempts < 0 {
+			log.Fatalln("invalid casp MaxAttempts")
 		}
 
 		bridgeRPCEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)

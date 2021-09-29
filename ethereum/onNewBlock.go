@@ -8,6 +8,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -45,7 +46,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 				deleteTx = true
 			} else {
 				confirmedBlocks := latestBlockHeight - txReceipt.BlockNumber.Uint64()
-				if confirmedBlocks >= 12 {
+				if confirmedBlocks >= constants.EthereumBlockConfirmations {
 					logging.Info("Broadcast ethereum tx successful. Hash:", ethTx.TxHash, "Block:", txReceipt.BlockNumber.Uint64(), "Confirmed blocks:", confirmedBlocks)
 					deleteTx = true
 				} else {

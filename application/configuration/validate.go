@@ -8,8 +8,8 @@ import (
 	"net/url"
 )
 
-// Validate :panics if config is not valid
-func (config config) validate() error {
+// Validate :panics if Config is not valid
+func (config Config) validate() error {
 	if err := config.Ethereum.validate(); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (config config) validate() error {
 	return nil
 }
 
-// Validate :panics if config is not valid
+// Validate :panics if Config is not valid
 func (config ethereumConfig) validate() error {
 	if config.GasLimit <= 0 {
 		return fmt.Errorf("invalid eth gas limit")
@@ -39,7 +39,7 @@ func (config ethereumConfig) validate() error {
 	return nil
 }
 
-// Validate :panics if config is not valid
+// Validate :panics if Config is not valid
 func (config tendermintConfig) validate() error {
 	if config.pStakeAddress == "" {
 		return fmt.Errorf("pStakeAddress empty")
@@ -69,7 +69,7 @@ func (config tendermintConfig) validate() error {
 	return nil
 }
 
-// Validate :panics if config is not valid
+// Validate :panics if Config is not valid
 func (config kafkaConfig) validate() error {
 	if config.TopicDetail.ReplicationFactor < 1 {
 		return errors.New("replicationFactor has to be atleast 1")
@@ -82,6 +82,9 @@ func (config kafkaConfig) validate() error {
 	}
 	if config.ToEth.MinBatchSize > config.ToEth.MaxBatchSize {
 		return errors.New("ethereum min batch size cannot be greater than max batch size")
+	}
+	if config.MaxTendermintTxAttempts <= 0 {
+		return errors.New("Kafka.MaxTendermintTxAttempts cannot be less than equal to 0")
 	}
 	return nil
 }
@@ -102,8 +105,8 @@ func (config caspConfig) validate() error {
 	if config.EthereumPublicKey == "" {
 		return fmt.Errorf("casp tendermint public empty")
 	}
-	if config.MaxGetSignatureAttempts <= 0 {
-		return fmt.Errorf("casp MaxGetSignatureAttempts cannot be less than or equal to 0")
+	if config.MaxAttempts <= 0 {
+		return fmt.Errorf("casp MaxAttempts cannot be less than or equal to 0")
 	}
 	return nil
 }

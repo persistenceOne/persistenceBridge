@@ -80,6 +80,7 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 		return common.Hash{}, err
 	}
 
+	// TODO Upgrade to London Signer EIP1559
 	signer := types.NewEIP155Signer(chainID)
 	caspSignature, v, err := getEthSignature(tx, signer) //Signature is of 64 bytes, need to append V value
 	if err != nil {
@@ -101,7 +102,7 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 //getEthSignature returns R and S in byte array and V value as int
 func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
 	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
+	operationID, err := casp.SendDataToSign(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, true)
 	if err != nil {
 		return nil, -1, err
 	}

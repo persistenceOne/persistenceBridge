@@ -22,13 +22,13 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagCASPApiToken, "Bearer cHVuZWV0TmV3QXBpa2V5MTI6OWM1NDBhMzAtNTQ5NC00ZDdhLTljODktODA3MDZiNWNhYzQ1", "casp api token (in format: Bearer ...)")
 	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "3056301006072A8648CE3D020106052B8104000A0342000413109ECEADCBF6122EF44184B207F8C6820E509497792DDFB166BC090A0FB4447CFFCE16BAAF9EC7F57D14C02641B3A6A698614D973ED744E725A85E62535DA4", "casp tendermint public key")
 	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "3056301006072A8648CE3D020106052B8104000A034200049D8BB9DC3E37511273286F60C989BFFC3E28909F426AF7D4A7899FACC4E3DB00413E2DA7A8CF33F367D8C4D8FC2BFA791DD4389CC1E75154CD38429FD9525946", "casp ethereum public key")
-	cmd.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "casp signature wait time")
+	cmd.Flags().Int(constants2.FlagCASPWaitTime, int(constants2.DefaultCASPWaitTime.Seconds()), "casp wait time")
 	cmd.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 	cmd.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc Endpoint for server")
 	cmd.Flags().Int64(constants2.FlagMinimumWrapAmount, constants2.DefaultMinimumWrapAmount, "minimum amount in send coin tx to wrap onto eth")
 	cmd.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")
 	cmd.Flags().Int64(constants2.FlagTelegramChatID, 0, "telegram chat id")
-	cmd.Flags().Int(constants2.FlagCASPMaxGetSignatureAttempts, constants2.DefaultCASPMaxGetSignatureAttempt, "max attempts for getting signature")
+	cmd.Flags().Int(constants2.FlagCASPMaxAttempts, constants2.DefaultCASPMaxAttempts, "max attempts for getting signature for an operation and posting data to casp for generating signature")
 
 	return &cmd
 

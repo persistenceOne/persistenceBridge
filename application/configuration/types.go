@@ -8,7 +8,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
-type config struct {
+type Config struct {
 	Kafka       kafkaConfig
 	Tendermint  tendermintConfig
 	Ethereum    ethereumConfig
@@ -18,8 +18,8 @@ type config struct {
 	RPCEndpoint string
 }
 
-func newConfig() config {
-	return config{
+func newConfig() Config {
+	return Config{
 		Kafka:       newKafkaConfig(),
 		Tendermint:  newTendermintConfig(),
 		Ethereum:    newEthereumConfig(),
@@ -70,11 +70,10 @@ type caspConfig struct {
 	VaultID                 string
 	TendermintPublicKey     string
 	EthereumPublicKey       string
-	SignatureWaitTime       time.Duration
+	WaitTime                time.Duration
 	APIToken                string
 	AllowConcurrentKeyUsage bool
-	MaxGetSignatureAttempts int
-	TLSInsecureSkipVerify   bool
+	MaxAttempts             int
 }
 
 func newCASPConfig() caspConfig {
@@ -83,22 +82,20 @@ func newCASPConfig() caspConfig {
 		VaultID:                 "",
 		TendermintPublicKey:     "",
 		EthereumPublicKey:       "",
-		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
+		WaitTime:                constants.DefaultCASPWaitTime,
 		APIToken:                "",
 		AllowConcurrentKeyUsage: true,
-		MaxGetSignatureAttempts: constants.DefaultCASPMaxGetSignatureAttempt,
-		TLSInsecureSkipVerify:   true,
+		MaxAttempts:             constants.DefaultCASPMaxAttempts,
 	}
 }
 
 type kafkaConfig struct {
-	// Brokers: List of brokers to run kafka cluster
-	Brokers      []string
-	TopicDetail  sarama.TopicDetail
-	ToEth        TopicConsumer
-	ToTendermint TopicConsumer
-	// Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
-	EthUnbondCycleTime time.Duration
+	Brokers                 []string // Brokers: List of brokers to run kafka cluster
+	TopicDetail             sarama.TopicDetail
+	ToEth                   TopicConsumer
+	ToTendermint            TopicConsumer
+	EthUnbondCycleTime      time.Duration // Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
+	MaxTendermintTxAttempts int           // Max attempts in kafka consumer toTendermint to do tx if there is already a tx
 }
 
 type TopicConsumer struct {
@@ -133,7 +130,8 @@ func newKafkaConfig() kafkaConfig {
 			MaxBatchSize: constants.MaxTendermintBatchSize,
 			Ticker:       constants.TendermintTicker,
 		},
-		EthUnbondCycleTime: constants.DefaultEthUnbondCycleTime,
+		EthUnbondCycleTime:      constants.DefaultEthUnbondCycleTime,
+		MaxTendermintTxAttempts: constants.DefaultTendermintMaxTxAttempts,
 	}
 }
 

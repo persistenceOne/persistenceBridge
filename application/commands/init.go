@@ -34,7 +34,7 @@ func InitCommand() *cobra.Command {
 			if err = os.MkdirAll(homeDir, os.ModePerm); err != nil {
 				panic(err)
 			}
-			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0644); err != nil {
+			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0600); err != nil {
 				panic(err)
 			}
 			log.Println("generated configuration file at ", filepath.Join(homeDir, "config.toml"))
@@ -59,9 +59,9 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagCASPApiToken, "", "casp api token (in format: Bearer ...)")
 	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
-	cmd.Flags().Int(constants2.FlagCASPSignatureWaitTime, int(constants2.DefaultCASPSignatureWaitTime.Seconds()), "casp signature wait time")
+	cmd.Flags().Int(constants2.FlagCASPWaitTime, int(constants2.DefaultCASPWaitTime.Seconds()), "casp wait time (in seconds)")
 	cmd.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
-	cmd.Flags().Int(constants2.FlagCASPMaxGetSignatureAttempts, constants2.DefaultCASPMaxGetSignatureAttempt, "casp max attempts to fetch operation id")
+	cmd.Flags().Int(constants2.FlagCASPMaxAttempts, constants2.DefaultCASPMaxAttempts, "max attempts for getting signature for an operation id and posting data to casp for generating signature")
 	cmd.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc Endpoint for server")
 	cmd.Flags().Int64(constants2.FlagMinimumWrapAmount, constants2.DefaultMinimumWrapAmount, "minimum amount in send coin tx to wrap onto eth")
 	cmd.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")

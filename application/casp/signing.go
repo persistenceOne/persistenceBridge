@@ -10,12 +10,22 @@ import (
 	"time"
 )
 
-// GetCASPSigningOperationID description should be small
-func GetCASPSigningOperationID(dataToSign []string, publicKeys []string, description string) (string, error) {
+// SendDataToSign returns operation id from CASP
+func SendDataToSign(dataToSign []string, publicKeys []string, isEthTx bool) (string, error) {
+	description := "tm"
+	if isEthTx {
+		description = "eth"
+	}
+	attempts := 0
 	for {
+		attempts++
 		signDataResponse, busy, err := caspQueries.SignData(dataToSign, publicKeys, description)
 		if busy {
-			time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
+			if attempts >= configuration.GetAppConfig().CASP.MaxAttempts {
+				return "", fmt.Errorf("unable to post data for signing to casp")
+			}
+			time.Sleep(configuration.GetAppConfig().CASP.WaitTime)
+			continue
 		}
 		if err != nil {
 			return "", err
@@ -30,7 +40,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 	}
 	attempts := 0
 	for {
-		time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
+		time.Sleep(configuration.GetAppConfig().CASP.WaitTime)
 
 		signOperationResponse, err := caspQueries.GetSignOperation(operationID)
 		if err != nil {
@@ -44,7 +54,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 			if err != nil {
 				logging.Error("attempt:", attempts, err)
 			}
-			if attempts >= configuration.GetAppConfig().CASP.MaxGetSignatureAttempts {
+			if attempts >= configuration.GetAppConfig().CASP.MaxAttempts {
 				return signOperationResponse, fmt.Errorf("unable to get approvals for operation: %s", operationID)
 			}
 			continue
