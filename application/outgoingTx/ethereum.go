@@ -61,26 +61,31 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 		return common.Hash{}, err
 	}
 
-	gasPrice, err := client.SuggestGasPrice(ctx)
+	gasTipCap, err := client.SuggestGasTipCap(ctx)
 	if err != nil {
 		return common.Hash{}, err
 	}
-
-	tx := types.NewTx(&types.LegacyTx{
-		Nonce:    nonce,
-		Value:    txValue,
-		Gas:      configuration.GetAppConfig().Ethereum.GasLimit,
-		GasPrice: gasPrice.Add(gasPrice, big.NewInt(4000000000)),
-		Data:     txData,
-		To:       toAddress,
-	})
 
 	chainID, err := client.ChainID(ctx)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	signer := types.NewEIP155Signer(chainID)
+	//TODO set it as conf parameter
+	gasFeeCap := big.NewInt(300000000000)
+
+	tx := types.NewTx(&types.DynamicFeeTx{
+		ChainID:   chainID,
+		Nonce:     nonce,
+		GasFeeCap: gasTipCap,
+		GasTipCap: gasFeeCap,
+		Gas:       configuration.GetAppConfig().Ethereum.GasLimit,
+		To:        toAddress,
+		Value:     txValue,
+		Data:      txData,
+	})
+
+	signer := types.NewLondonSigner(chainID)
 	caspSignature, v, err := getEthSignature(tx, signer) //Signature is of 64 bytes, need to append V value
 	if err != nil {
 		return common.Hash{}, err
