@@ -17,6 +17,7 @@ const (
 	FlagDenom                 = "denom"
 	FlagTendermintCoinType    = "tmCoinType"
 	FlagEthGasLimit           = "ethGasLimit"
+	FlagEthGasFeeCap          = "ethGasFeeCap"
 	FlagKafkaPorts            = "kafkaPorts"
 	FlagBroadcastMode         = "tmBroadcastMode"
 	FlagCASPURL               = "caspURL"
@@ -47,6 +48,7 @@ var (
 	DefaultPBridgeHome             = os.ExpandEnv("$HOME/.persistenceBridge")
 	DefaultDenom                   = "stake"
 	DefaultEthGasLimit             = uint64(500000)
+	DefaultEthGasFeeCap            = int64(300000000000)
 	DefaultBroadcastMode           = flags.BroadcastAsync
 	DefaultMinimumWrapAmount       = int64(5000000)
 	DefaultAccountPrefix           = "cosmos"

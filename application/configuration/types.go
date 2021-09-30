@@ -33,12 +33,14 @@ func newConfig() config {
 type ethereumConfig struct {
 	EthereumEndPoint string
 	GasLimit         uint64
+	GasFeeCap        int64
 }
 
 func newEthereumConfig() ethereumConfig {
 	return ethereumConfig{
 		EthereumEndPoint: constants.DefaultEthereumEndPoint,
 		GasLimit:         constants.DefaultEthGasLimit,
+		GasFeeCap:        constants.DefaultEthGasFeeCap,
 	}
 }
 

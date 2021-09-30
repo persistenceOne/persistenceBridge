@@ -34,6 +34,9 @@ func (config ethereumConfig) validate() error {
 	if config.GasLimit <= 0 {
 		return fmt.Errorf("invalid eth gas limit")
 	}
+	if config.GasFeeCap <= 0 {
+		return fmt.Errorf("invalid eth gas fee cap")
+	}
 	return nil
 }
 

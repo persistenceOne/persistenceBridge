@@ -71,13 +71,10 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 		return common.Hash{}, err
 	}
 
-	//TODO set it as conf parameter
-	gasFeeCap := big.NewInt(300000000000)
-
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   chainID,
 		Nonce:     nonce,
-		GasFeeCap: gasFeeCap,
+		GasFeeCap: big.NewInt(configuration.GetAppConfig().Ethereum.GasFeeCap),
 		GasTipCap: gasTipCap,
 		Gas:       configuration.GetAppConfig().Ethereum.GasLimit,
 		To:        toAddress,
