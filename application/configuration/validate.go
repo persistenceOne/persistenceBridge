@@ -8,8 +8,7 @@ import (
 	"net/url"
 )
 
-// Validate :panics if Config is not valid
-func (config Config) validate() error {
+func (config config) validate() error {
 	if err := config.Ethereum.validate(); err != nil {
 		return err
 	}
@@ -31,7 +30,6 @@ func (config Config) validate() error {
 	return nil
 }
 
-// Validate :panics if Config is not valid
 func (config ethereumConfig) validate() error {
 	if config.GasLimit <= 0 {
 		return fmt.Errorf("invalid eth gas limit")
@@ -39,7 +37,6 @@ func (config ethereumConfig) validate() error {
 	return nil
 }
 
-// Validate :panics if Config is not valid
 func (config tendermintConfig) validate() error {
 	if config.pStakeAddress == "" {
 		return fmt.Errorf("pStakeAddress empty")
@@ -69,7 +66,7 @@ func (config tendermintConfig) validate() error {
 	return nil
 }
 
-// Validate :panics if Config is not valid
+// Validate :panics if config is not valid
 func (config kafkaConfig) validate() error {
 	if config.TopicDetail.ReplicationFactor < 1 {
 		return errors.New("replicationFactor has to be atleast 1")

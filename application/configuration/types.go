@@ -8,7 +8,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
-type Config struct {
+type config struct {
 	Kafka       kafkaConfig
 	Tendermint  tendermintConfig
 	Ethereum    ethereumConfig
@@ -18,8 +18,8 @@ type Config struct {
 	RPCEndpoint string
 }
 
-func newConfig() Config {
-	return Config{
+func newConfig() config {
+	return config{
 		Kafka:       newKafkaConfig(),
 		Tendermint:  newTendermintConfig(),
 		Ethereum:    newEthereumConfig(),

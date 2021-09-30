@@ -12,15 +12,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appConfig *Config
+var appConfig *config
 
-func InitConfig() *Config {
+func InitConfig() *config {
 	c := newConfig()
 	appConfig = &c
 	return appConfig
 }
 
-func GetAppConfig() Config {
+func GetAppConfig() config {
 	return *appConfig
 }
 
@@ -34,7 +34,7 @@ func SetPStakeAddress(tmAddress sdk.AccAddress) {
 	}
 }
 
-func SetConfig(cmd *cobra.Command) *Config {
+func SetConfig(cmd *cobra.Command) *config {
 	if appConfig == nil || !appConfig.seal {
 		denom, err := cmd.Flags().GetString(constants2.FlagDenom)
 		if err != nil {
