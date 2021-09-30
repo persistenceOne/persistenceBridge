@@ -77,8 +77,8 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   chainID,
 		Nonce:     nonce,
-		GasFeeCap: gasTipCap,
-		GasTipCap: gasFeeCap,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: gasTipCap,
 		Gas:       configuration.GetAppConfig().Ethereum.GasLimit,
 		To:        toAddress,
 		Value:     txValue,
