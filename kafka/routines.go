@@ -148,6 +148,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			case <-end:
 				logging.Info("Stopping Unbondings Consumer!!!")
 				ended <- true
+				ticker.Stop()
 				return
 			case <-ticker.C:
 				logging.Debug("Next Routine Unbond")
@@ -159,6 +160,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			case <-end:
 				logging.Info("Stopping Unbondings Consumer!!!")
 				ended <- true
+				ticker.Stop()
 				return
 			case <-ticker.C:
 				logging.Debug("Next Routine Unbond")
