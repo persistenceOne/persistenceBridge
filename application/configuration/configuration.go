@@ -34,6 +34,16 @@ func SetPStakeAddress(tmAddress sdk.AccAddress) {
 	}
 }
 
+func SetAPIToken(token string) {
+	if !appConfig.seal {
+		appConfig.CASP.apiToken = token
+	}
+}
+
+func GetAPIToken() string {
+	return appConfig.CASP.apiToken
+}
+
 func SetConfig(cmd *cobra.Command) *Config {
 	if appConfig == nil || !appConfig.seal {
 		denom, err := cmd.Flags().GetString(constants2.FlagDenom)
@@ -104,12 +114,12 @@ func SetConfig(cmd *cobra.Command) *Config {
 			appConfig.CASP.VaultID = caspVaultID
 		}
 
-		csapApiToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
+		caspApiToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if csapApiToken != "" {
-			appConfig.CASP.APIToken = csapApiToken
+		if caspApiToken != "" {
+			appConfig.CASP.apiToken = caspApiToken
 		}
 
 		caspTMPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPTMPublicKey)

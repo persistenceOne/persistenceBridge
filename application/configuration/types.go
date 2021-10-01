@@ -71,7 +71,7 @@ type caspConfig struct {
 	TendermintPublicKey     string
 	EthereumPublicKey       string
 	WaitTime                time.Duration
-	APIToken                string
+	apiToken                string
 	AllowConcurrentKeyUsage bool
 	MaxAttempts             int
 }
@@ -83,7 +83,7 @@ func newCASPConfig() caspConfig {
 		TendermintPublicKey:     "",
 		EthereumPublicKey:       "",
 		WaitTime:                constants.DefaultCASPWaitTime,
-		APIToken:                "",
+		apiToken:                "",
 		AllowConcurrentKeyUsage: true,
 		MaxAttempts:             constants.DefaultCASPMaxAttempts,
 	}

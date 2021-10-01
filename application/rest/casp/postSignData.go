@@ -43,7 +43,7 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 	if err != nil {
 		return response, false, err
 	}
-	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
+	request.Header.Set("authorization", configuration.GetAPIToken())
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(request)
 	if err != nil {
