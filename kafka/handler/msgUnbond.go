@@ -33,7 +33,6 @@ ConsumerLoop:
 			}
 			err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				//TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 				logging.Error("failed to produce from MsgUnbond to ToTendermint, error:", err)
 				break ConsumerLoop
 			}
