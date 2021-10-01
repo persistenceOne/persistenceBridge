@@ -87,12 +87,12 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 				logging.Error("Unable to broadcast tendermint messages:", err)
 				break
 			}
+			logging.Info("Broadcast Tendermint Tx Hash:", response.TxHash)
 			txBroadcastSuccess = true
 			err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
 			if err != nil {
 				logging.Fatal(err)
 			}
-			logging.Info("Broadcast Tendermint Tx Hash:", response.TxHash)
 			break
 		} else {
 			logging.Info("cannot broadcast yet, tendermint txs pending")
