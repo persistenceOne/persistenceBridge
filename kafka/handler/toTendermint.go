@@ -17,13 +17,14 @@ import (
 func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var kafkaMsgs []sarama.ConsumerMessage
 	claimMsgChan := claim.Messages()
-	ticker := time.Tick(configuration.GetAppConfig().Kafka.ToTendermint.Ticker)
+	ticker := time.NewTicker(configuration.GetAppConfig().Kafka.ToTendermint.Ticker)
+	defer ticker.Stop()
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
 ConsumerLoop:
 	for {
 		select {
-		case <-ticker:
+		case <-ticker.C:
 			break ConsumerLoop
 		case kafkaMsg, ok = <-claimMsgChan:
 			if ok {
