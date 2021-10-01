@@ -3,6 +3,7 @@ package testing
 import (
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 func GetCmdWithConfig() *cobra.Command {
@@ -17,11 +18,11 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "tendermint rpc node url chains")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
-	cmd.Flags().String(constants2.FlagCASPURL, "https://65.2.149.241:443", "casp api url (with http)")
-	cmd.Flags().String(constants2.FlagCASPVaultID, "4ec017bf-4af8-41b3-9527-a466e05971cb", "casp vault id")
-	cmd.Flags().String(constants2.FlagCASPApiToken, "Bearer cHVuZWV0TmV3QXBpa2V5MTI6OWM1NDBhMzAtNTQ5NC00ZDdhLTljODktODA3MDZiNWNhYzQ1", "casp api token (in format: Bearer ...)")
-	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "3056301006072A8648CE3D020106052B8104000A0342000413109ECEADCBF6122EF44184B207F8C6820E509497792DDFB166BC090A0FB4447CFFCE16BAAF9EC7F57D14C02641B3A6A698614D973ED744E725A85E62535DA4", "casp tendermint public key")
-	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "3056301006072A8648CE3D020106052B8104000A034200049D8BB9DC3E37511273286F60C989BFFC3E28909F426AF7D4A7899FACC4E3DB00413E2DA7A8CF33F367D8C4D8FC2BFA791DD4389CC1E75154CD38429FD9525946", "casp ethereum public key")
+	cmd.Flags().String(constants2.FlagCASPURL, "http://13.234.112.75:443", "casp api url (with http)")
+	cmd.Flags().String(constants2.FlagCASPVaultID, "b9b23cfd-2c53-45c4-a949-d07f7348b910", "casp vault id")
+	cmd.Flags().String(constants2.FlagCASPApiToken, os.Getenv("APIToken"), "casp api token (in format: Bearer ...)")
+	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "3056301006072A8648CE3D020106052B8104000A034200044AD9710EF4AEA73C200DC6F08B792CDBCE5EE89153FA986C22B4A527BADF0EBDACBDD00A67C0F3A331BFC35D65CBBEAA8509EFFFFE1EF645A5C4EB15BF648D37", "casp tendermint public key")
+	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "3056301006072A8648CE3D020106052B8104000A03420004B579EE6C480AB79820975E17211181FCA3E06B780D898D3CB181CD4B02984479DB4E5F1F0985E976251D5DE8B819E6BE86C59F8ED6CCA711B1F7772F09E5B97B", "casp ethereum public key")
 	cmd.Flags().Int(constants2.FlagCASPWaitTime, int(constants2.DefaultCASPWaitTime.Seconds()), "casp wait time")
 	cmd.Flags().Bool(constants2.FlagCASPConcurrentKey, true, "allows starting multiple sign operations that specify the same key")
 	cmd.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc Endpoint for server")
