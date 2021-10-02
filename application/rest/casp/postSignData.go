@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -22,7 +22,7 @@ type SignDataRequest struct {
 	AllowConcurrentKeyUsage bool     `json:"allowConcurrentKeyUsage"`
 }
 
-func SignData(dataToSign []string, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
+func PostSignData(dataToSign []string, publicKeys []string, description string) (casp.PostSignDataResponse, error) {
 	var response casp.PostSignDataResponse
 	//Encode the data
 	postBody, _ := json.Marshal(SignDataRequest{
@@ -41,18 +41,23 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 	}}
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID), responseBody)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
 	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(request)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			logging.Error(err)
+		}
+	}(resp.Body)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
 	err = json.Unmarshal(body, &response)
 	if err != nil || response.OperationID == "" {
@@ -60,14 +65,10 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 		var errResponse casp.ErrorResponse
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {
-			logging.Error("CASP SIGNING ERROR (Unknown response type):", err)
-			return response, false, err
+			logging.Error("CASP SIGNING ERROR (Unknown error response type):", err)
+			return response, err
 		}
-		if errResponse.Title == constants.VAULT_BUSY {
-			return response, true, nil
-		} else {
-			return response, false, errResponse
-		}
+		return response, errResponse
 	}
-	return response, false, nil
+	return response, err
 }

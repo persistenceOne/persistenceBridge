@@ -16,22 +16,11 @@ func SendDataToSign(dataToSign []string, publicKeys []string, isEthTx bool) (str
 	if isEthTx {
 		description = "eth"
 	}
-	attempts := 0
-	for {
-		attempts++
-		signDataResponse, busy, err := caspQueries.SignData(dataToSign, publicKeys, description)
-		if busy {
-			if attempts >= configuration.GetAppConfig().CASP.MaxAttempts {
-				return "", fmt.Errorf("unable to post data for signing to casp")
-			}
-			time.Sleep(configuration.GetAppConfig().CASP.WaitTime)
-			continue
-		}
-		if err != nil {
-			return "", err
-		}
-		return signDataResponse.OperationID, nil
+	signDataResponse, err := caspQueries.PostSignData(dataToSign, publicKeys, description)
+	if err != nil {
+		return "", err
 	}
+	return signDataResponse.OperationID, nil
 }
 
 func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, error) {
