@@ -38,7 +38,7 @@ func TestValidateAndSeal(t *testing.T) {
 	config := SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	SetPStakeAddress(pStakeAddress)
-	SetAPIToken("Bearer cHVuZWW0ThV3QHBpa22f5ikOWM1NDnhMzAtaTQ5wC00gDdhLTljODktODA3MDZiNWNhYzQ1")
+	GetAppConfig().CASP.SetAPIToken("Buller cHVuZWW0ThV3QHBpa22f5ikOWM1NDnhMzAtaTjdfsgjfbdskjfnsdkjnfYzQ1")
 	ValidateAndSeal()
 	require.Equal(t, config.seal, true, "appConfig did not get validated")
 }

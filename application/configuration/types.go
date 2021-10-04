@@ -141,3 +141,13 @@ func (config tendermintConfig) GetPStakeAddress() string {
 	}
 	return config.pStakeAddress
 }
+
+func (config caspConfig) GetAPIToken() string {
+	return appConfig.CASP.apiToken
+}
+
+func (config caspConfig) SetAPIToken(token string) {
+	if !appConfig.seal {
+		appConfig.CASP.apiToken = token
+	}
+}
