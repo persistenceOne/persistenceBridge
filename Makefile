@@ -1,8 +1,6 @@
 export GO111MODULE=on
 
-VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
-TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
-COMMIT := $(shell git rev-parse --short HEAD)
+VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 
 build_tags = netgo
 
@@ -13,12 +11,7 @@ whitespace := $(subst ,, )
 comma := ,
 build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=persistenceBridge \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=persistenceBridge \
-		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
-		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		   -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION) \
-		  -X github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)
+ldflags = -X github.com/persistenceOne/persistenceBridge/application/commands.Version=$(VERSION)
 
 ifeq (cleveldb,$(findstring cleveldb,$(build_tags)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
