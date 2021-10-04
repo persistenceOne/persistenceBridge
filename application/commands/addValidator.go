@@ -76,7 +76,7 @@ func AddCommand() *cobra.Command {
 				}
 			}
 			if len(validators) == 0 {
-				log.Println("No validators in db, panic.")
+				log.Println("No validators found in db.")
 			} else {
 				log.Printf("Total validators %d:\n", len(validators))
 				for i, validator := range validators {
