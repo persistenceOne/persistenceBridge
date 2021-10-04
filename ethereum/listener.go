@@ -32,7 +32,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 				shutdown.SetETHStopped(true)
 				return
 			}
-			time.Sleep(1 * time.Second)
+			time.Sleep(1 * time.Second) // thread is put to sleep to prevent 100% CPU usage
 			continue
 		}
 

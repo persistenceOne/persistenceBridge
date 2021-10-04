@@ -42,7 +42,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				shutdown.SetTMStopped(true)
 				return
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(5 * time.Second) // thread is put to sleep to prevent 100% CPU usage
 			continue
 		}
 

@@ -173,7 +173,7 @@ func StartCommand() *cobra.Command {
 					if shutdown.GetTMStopped() && shutdown.GetETHStopped() && shutdown.GetKafkaConsumerClosed() {
 						return nil
 					}
-					time.Sleep(100 * time.Millisecond)
+					time.Sleep(100 * time.Millisecond) // thread is put to sleep to prevent 100% CPU usage
 				}
 			}
 

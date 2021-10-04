@@ -8,7 +8,7 @@ import (
 func GetCmdWithConfig() *cobra.Command {
 	var cmd cobra.Command
 
-	cmd.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	cmd.Flags().String(constants2.FlagPBridgeHome, constants2.TestHomeDir, "home for pBridge")
 	cmd.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	cmd.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	cmd.Flags().String(constants2.FlagDenom, constants2.DefaultDenom, "denom name")
@@ -16,6 +16,7 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
 	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "tendermint rpc node url chains")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
+	cmd.Flags().Int64(constants2.FlagEthGasFeeCap, constants2.DefaultEthGasFeeCap, "Gas fee cap for eth txs")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
 	cmd.Flags().String(constants2.FlagCASPURL, "https://65.2.149.241:443", "casp api url (with http)")
 	cmd.Flags().String(constants2.FlagCASPVaultID, "4ec017bf-4af8-41b3-9527-a466e05971cb", "casp vault id")
@@ -28,7 +29,7 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().Int64(constants2.FlagMinimumWrapAmount, constants2.DefaultMinimumWrapAmount, "minimum amount in send coin tx to wrap onto eth")
 	cmd.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")
 	cmd.Flags().Int64(constants2.FlagTelegramChatID, 0, "telegram chat id")
-	cmd.Flags().Int(constants2.FlagCASPMaxAttempts, constants2.DefaultCASPMaxAttempts, "max attempts for getting signature for an operation and posting data to casp for generating signature")
+	cmd.Flags().Int(constants2.FlagCASPMaxAttempts, constants2.DefaultCASPMaxAttempts, "max attempts for getting signature")
 
 	return &cmd
 

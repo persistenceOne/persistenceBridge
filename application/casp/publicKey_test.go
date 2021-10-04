@@ -34,13 +34,12 @@ func TestGetEthPubKey(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
-	ethPublicKey := uncompressedPublicKeys.Items[0]
-	ethKey := GetEthPubKey(ethPublicKey)
-	require.Equal(t, 20, len(crypto.PubkeyToAddress(ethKey)))
-	require.Equal(t, reflect.TypeOf(ecdsa.PublicKey{}), reflect.TypeOf(ethKey))
-	require.Equal(t, reflect.TypeOf(&big.Int{}), reflect.TypeOf(ethKey.X))
-	require.Equal(t, reflect.TypeOf(&big.Int{}), reflect.TypeOf(ethKey.Y))
-	require.NotNil(t, ethKey)
+	ethPublicKey := GetEthPubKey(uncompressedPublicKeys.Items[0])
+	require.Equal(t, 20, len(crypto.PubkeyToAddress(ethPublicKey)))
+	require.Equal(t, reflect.TypeOf(ecdsa.PublicKey{}), reflect.TypeOf(ethPublicKey))
+	require.Equal(t, reflect.TypeOf(&big.Int{}), reflect.TypeOf(ethPublicKey.X))
+	require.Equal(t, reflect.TypeOf(&big.Int{}), reflect.TypeOf(ethPublicKey.Y))
+	require.NotNil(t, ethPublicKey)
 }
 
 func TestGetXY(t *testing.T) {
@@ -50,10 +49,10 @@ func TestGetXY(t *testing.T) {
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
 	x, y := getXY(uncompressedPublicKeys.Items[0])
-	require.Equal(t, 32, len(x.Bytes()))
-	require.Equal(t, 32, len(y.Bytes()))
-	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(x))
-	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(y))
 	require.NotNil(t, x)
 	require.NotNil(t, y)
+	require.LessOrEqual(t, 32, len(x.Bytes()))
+	require.LessOrEqual(t, 32, len(y.Bytes()))
+	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(x))
+	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(y))
 }
