@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -146,8 +147,8 @@ func (config caspConfig) GetAPIToken() string {
 	return appConfig.CASP.apiToken
 }
 
-func (config caspConfig) SetAPIToken(token string) {
+func (config caspConfig) SetAPIToken() {
 	if !appConfig.seal {
-		appConfig.CASP.apiToken = token
+		appConfig.CASP.apiToken = os.Getenv("APIToken")
 	}
 }

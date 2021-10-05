@@ -51,7 +51,7 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
-			configuration.GetAppConfig().CASP.SetAPIToken(os.Getenv("APIToken"))
+			configuration.GetAppConfig().CASP.SetAPIToken()
 			ethAddress, err := casp.GetEthAddress()
 			if err != nil {
 				log.Fatalln(err)

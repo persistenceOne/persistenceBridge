@@ -24,7 +24,6 @@ const (
 	FlagCASPTMPublicKey       = "caspTMPublicKey"
 	FlagCASPEthPublicKey      = "caspEthPublicKey"
 	FlagCASPWaitTime          = "caspWaitTime"
-	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
 	FlagCASPMaxAttempts       = "caspMaxAttempts"
 	FlagRPCEndpoint           = "rpc-endpoint"
