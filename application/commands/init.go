@@ -57,7 +57,6 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
 	cmd.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
 	cmd.Flags().String(constants2.FlagCASPVaultID, "", "casp vault id")
-	cmd.Flags().String(constants2.FlagCASPApiToken, "", "casp api token (in format: Bearer ...)")
 	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")
 	cmd.Flags().Int(constants2.FlagCASPWaitTime, int(constants2.DefaultCASPWaitTime.Seconds()), "casp wait time (in seconds)")

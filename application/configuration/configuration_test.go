@@ -2,6 +2,7 @@ package configuration
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -34,7 +35,9 @@ func TestSetPStakeAddress(t *testing.T) {
 }
 
 func TestValidateAndSeal(t *testing.T) {
+	constants2.LoadEnv()
 	InitConfig()
+	GetAppConfig().CASP.SetAPIToken()
 	config := SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	SetPStakeAddress(pStakeAddress)

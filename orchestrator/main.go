@@ -6,11 +6,18 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"github.com/persistenceOne/persistenceBridge/application/commands"
 	"github.com/spf13/cobra"
+	"log"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	cobra.EnableCommandSorting = false
 
 	rootCommand := &cobra.Command{
@@ -25,7 +32,7 @@ func main() {
 	rootCommand.AddCommand(commands.RemoveCommand())
 	rootCommand.AddCommand(commands.GetVersion())
 
-	err := rootCommand.Execute()
+	err = rootCommand.Execute()
 	if err != nil {
 		panic(err)
 	}
