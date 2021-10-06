@@ -49,9 +49,6 @@ func TestSetIncomingTendermintTxProduced(t *testing.T) {
 
 	err = db.Close()
 	require.Nil(t, err)
-
-	tmInTx = IncomingTendermintTx{}
-	require.Equal(t, "DB Closed", err.Error())
 }
 
 func TestGetIncomingTendermintTx(t *testing.T) {
