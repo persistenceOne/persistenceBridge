@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"net/url"
 )
 
@@ -37,10 +39,10 @@ func (config ethereumConfig) validate() error {
 	if config.GasFeeCap <= 0 {
 		return fmt.Errorf("invalid eth gas fee cap")
 	}
-	if config.LiquidStakingAddress == "" {
+	if config.LiquidStakingAddress == constants.DefaultEthZeroAddress || !common.IsHexAddress(config.LiquidStakingAddress) {
 		return fmt.Errorf("empty liquid staking contract address")
 	}
-	if config.TokenWrapperAddress == "" {
+	if config.TokenWrapperAddress == constants.DefaultEthZeroAddress || !common.IsHexAddress(config.TokenWrapperAddress) {
 		return fmt.Errorf("empty token wrapper contract address")
 	}
 	return nil

@@ -11,16 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appConfig *config
+var appConfig config
 
 func InitConfig() *config {
-	c := newConfig()
-	appConfig = &c
-	return appConfig
+	appConfig = newConfig()
+	return &appConfig
 }
 
 func GetAppConfig() config {
-	return *appConfig
+	return appConfig
 }
 
 func SetPStakeAddress(tmAddress sdk.AccAddress) {
@@ -34,7 +33,7 @@ func SetPStakeAddress(tmAddress sdk.AccAddress) {
 }
 
 func SetConfig(cmd *cobra.Command) *config {
-	if appConfig == nil || !appConfig.seal {
+	if !appConfig.seal {
 		denom, err := cmd.Flags().GetString(constants2.FlagDenom)
 		if err != nil {
 			log.Fatalln(err)
@@ -156,7 +155,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		appConfig.TelegramBot.ChatID = telegramBotChatID
 	}
 
-	return appConfig
+	return &appConfig
 }
 
 func ValidateAndSeal() {
