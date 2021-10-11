@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"net/url"
+	"strconv"
 )
 
 func (config config) validate() error {
@@ -61,6 +62,12 @@ func (config tendermintConfig) validate() error {
 	}
 	if config.PStakeDenom == "" {
 		return fmt.Errorf("denom cannot be empty")
+	}
+	if _, err := strconv.ParseFloat(config.GasPrice, 64); err != nil {
+		return fmt.Errorf("invalied tendermint gas price %v", err)
+	}
+	if config.GasAdjustment <= 1.0 {
+		return fmt.Errorf("tendermint gas adjustment should be greater than 1 (possibly 1.5, current: %v)", config.GasAdjustment)
 	}
 	if config.MinimumWrapAmount < 0 {
 		return fmt.Errorf("minimum wrap amount cannot be less than 0")

@@ -18,8 +18,8 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	chain.ChainID = configuration.GetAppConfig().Tendermint.ChainID
 	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
 	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
-	chain.GasAdjustment = 1.5
-	chain.GasPrices = "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom
+	chain.GasAdjustment = configuration.GetAppConfig().Tendermint.GasAdjustment
+	chain.GasPrices = configuration.GetAppConfig().Tendermint.GasPrice + configuration.GetAppConfig().Tendermint.PStakeDenom
 	chain.TrustingPeriod = "21h"
 
 	to, err := time.ParseDuration(timeout)

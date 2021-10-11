@@ -53,6 +53,8 @@ type tendermintConfig struct {
 	pStakeAddress     string
 	PStakeDenom       string
 	BroadcastMode     string
+	GasPrice          string
+	GasAdjustment     float64
 	MinimumWrapAmount int64
 	AccountPrefix     string
 	Node              string
@@ -64,6 +66,8 @@ func newTendermintConfig() tendermintConfig {
 	return tendermintConfig{
 		PStakeDenom:       constants.DefaultDenom,
 		BroadcastMode:     constants.DefaultBroadcastMode,
+		GasPrice:          constants.DefaultTendermintGasPrice,
+		GasAdjustment:     constants.DefaultTendermintGasAdjustment,
 		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
 		AccountPrefix:     constants.DefaultAccountPrefix,
 		Node:              constants.DefaultTendermintNode,

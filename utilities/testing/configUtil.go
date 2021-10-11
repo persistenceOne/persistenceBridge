@@ -17,6 +17,8 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagAccountPrefix, constants2.DefaultAccountPrefix, "account prefix on tendermint chains")
 	cmd.Flags().String(constants2.FlagTendermintNode, constants2.DefaultTendermintNode, "tendermint rpc node url")
 	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "tendermint rpc node url chains")
+	cmd.Flags().String(constants2.FlagTMGasPrice, constants2.DefaultTendermintGasPrice, "tendermint gas price (should be a float value)")
+	cmd.Flags().Float64(constants2.FlagTMGasAdjustment, constants2.DefaultTendermintGasAdjustment, "tendermint gas adjustment (should be a float value and greater than 1.0)")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().Int64(constants2.FlagEthGasFeeCap, constants2.DefaultEthGasFeeCap, "Gas fee cap for eth txs")
 	cmd.Flags().String(constants2.FlagTokenWrapperAddress, constants2.DefaultEthZeroAddress, "sc address of token wrapper")

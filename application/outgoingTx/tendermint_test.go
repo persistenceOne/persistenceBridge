@@ -46,7 +46,7 @@ func TestBroadcastTMTx(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
-	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 	configuration.SetPStakeAddress(tmAddress)
@@ -75,7 +75,7 @@ func TestGetTMBytesToSign(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
-	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 	configuration.SetPStakeAddress(tmAddress)
@@ -155,7 +155,7 @@ func setUpChain(t *testing.T) *relayer.Chain {
 	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
 	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
 	chain.GasAdjustment = 1.5
-	chain.GasPrices = "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom
+	chain.GasPrices = configuration.GetAppConfig().Tendermint.GasPrice + configuration.GetAppConfig().Tendermint.PStakeDenom
 	chain.TrustingPeriod = "21h"
 
 	to, err := time.ParseDuration("10s")

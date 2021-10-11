@@ -20,6 +20,8 @@ const (
 	FlagEthGasFeeCap          = "ethGasFeeCap"
 	FlagKafkaPorts            = "kafkaPorts"
 	FlagBroadcastMode         = "tmBroadcastMode"
+	FlagTMGasPrice            = "tmGasPrice"
+	FlagTMGasAdjustment       = "tmGasAdjust"
 	FlagCASPURL               = "caspURL"
 	FlagCASPVaultID           = "caspVaultID"
 	FlagCASPTMPublicKey       = "caspTMPublicKey"
@@ -50,7 +52,9 @@ var (
 	DefaultDenom                   = "stake"
 	DefaultEthGasLimit             = uint64(500000)
 	DefaultEthGasFeeCap            = int64(300000000000)
-	DefaultBroadcastMode           = flags.BroadcastAsync
+	DefaultBroadcastMode           = flags.BroadcastSync
+	DefaultTendermintGasPrice      = "0.025"
+	DefaultTendermintGasAdjustment = 1.5
 	DefaultMinimumWrapAmount       = int64(5000000)
 	DefaultAccountPrefix           = "cosmos"
 	DefaultTendermintNode          = "http://127.0.0.1:26657"

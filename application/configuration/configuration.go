@@ -46,6 +46,18 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		appConfig.Tendermint.AccountPrefix = accountPrefix
 
+		tmGasPrice, err := cmd.Flags().GetString(constants2.FlagTMGasPrice)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		appConfig.Tendermint.GasPrice = tmGasPrice
+
+		tmGasAdjust, err := cmd.Flags().GetFloat64(constants2.FlagTMGasAdjustment)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		appConfig.Tendermint.GasAdjustment = tmGasAdjust
+
 		ethereumEndPoint, err := cmd.Flags().GetString(constants2.FlagEthereumEndPoint)
 		if err != nil {
 			log.Fatalln(err)
