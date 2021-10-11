@@ -19,6 +19,10 @@ type config struct {
 	RPCEndpoint string
 }
 
+func (c config) IsSealed() bool {
+	return c.seal
+}
+
 func newConfig() config {
 	return config{
 		Kafka:       newKafkaConfig(),

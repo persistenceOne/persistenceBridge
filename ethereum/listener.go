@@ -2,15 +2,18 @@ package ethereum
 
 import (
 	"context"
-	"github.com/Shopify/sarama"
 	"math/big"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
+	contracts2 "github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -24,6 +27,10 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			logging.Error(err)
 		}
 	}(kafkaProducer)
+
+	// Need to set it here because configuration isn't initialized when contract objects are created
+	contracts2.LiquidStaking.SetAddress(common.HexToAddress(configuration.GetAppConfig().Ethereum.LiquidStakingAddress))
+	contracts2.TokenWrapper.SetAddress(common.HexToAddress(configuration.GetAppConfig().Ethereum.TokenWrapperAddress))
 
 	for {
 		if shutdown.GetBridgeStopSignal() {

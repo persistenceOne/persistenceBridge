@@ -5,6 +5,8 @@ OPENZEPPELIN_DIR_NAME="@openzeppelin"
 
 rm -rf pStake-smartContracts
 rm -rf "$OPENZEPPELIN_DIR_NAME"
+rm -rf ./ethereum/abi/liquidStaking/liquidStaking.go
+rm -rf ./ethereum/abi/tokenWrapper/tokenWrapper.go
 
 echo "Downloading pStake-smartContracts..."
 git clone git@github.com:persistenceOne/pStake-smartContracts.git

@@ -28,6 +28,7 @@ func ShowCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
+			configuration.GetAppConfig().CASP.SetAPIToken()
 			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
 				log.Fatalln(err)
