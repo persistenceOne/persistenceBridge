@@ -25,7 +25,6 @@ const (
 	FlagCASPTMPublicKey       = "caspTMPublicKey"
 	FlagCASPEthPublicKey      = "caspEthPublicKey"
 	FlagCASPWaitTime          = "caspWaitTime"
-	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPConcurrentKey     = "caspConcurrentKeyUsage"
 	FlagCASPMaxAttempts       = "caspMaxAttempts"
 	FlagRPCEndpoint           = "rpc-endpoint"
@@ -36,6 +35,8 @@ const (
 	FlagAccountPrefix         = "accountPrefix"
 	FlagTendermintNode        = "tmNode"
 	FlagTendermintChainID     = "chainID"
+	FlagTokenWrapperAddress   = "tokenWrapper"
+	FlagLiquidStakingAddress  = "liquidStaking"
 )
 
 var (
@@ -60,4 +61,5 @@ var (
 	DefaultCASPMaxAttempts         = 5
 	DefaultRPCEndpoint             = "localhost:4040"
 	DefaultTendermintMaxTxAttempts = 5
+	DefaultEthZeroAddress          = "0x0000000000000000000000000000000000000000"
 )

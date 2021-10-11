@@ -19,6 +19,8 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "tendermint rpc node url chains")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().Int64(constants2.FlagEthGasFeeCap, constants2.DefaultEthGasFeeCap, "Gas fee cap for eth txs")
+	cmd.Flags().String(constants2.FlagTokenWrapperAddress, constants2.DefaultEthZeroAddress, "sc address of token wrapper")
+	cmd.Flags().String(constants2.FlagLiquidStakingAddress, constants2.DefaultEthZeroAddress, "sc address of liquid staking")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
 	cmd.Flags().String(constants2.FlagCASPURL, os.Getenv("CASPURL"), "casp api url (with http)")
 	cmd.Flags().String(constants2.FlagCASPVaultID, os.Getenv("CASPVaultID"), "casp vault id")
@@ -31,7 +33,6 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagTelegramBotToken, "", "telegram bot token")
 	cmd.Flags().Int64(constants2.FlagTelegramChatID, 0, "telegram chat id")
 	cmd.Flags().Int(constants2.FlagCASPMaxAttempts, constants2.DefaultCASPMaxAttempts, "max attempts for getting signature")
-	cmd.Flags().Int(constants2.FlagCASPMaxAttempts, constants2.DefaultCASPMaxAttempts, "max attempts for getting signature for an operation and posting data to casp for generating signature")
 
 	return &cmd
 

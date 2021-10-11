@@ -4,19 +4,16 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"math/big"
-	"strings"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
+	"math/big"
 )
 
 var ethBridgeAdmin common.Address
@@ -30,18 +27,14 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 	if len(msgs) == 0 {
 		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
 	}
-	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
-	tokenWrapperABI, err := abi.JSON(strings.NewReader(constants.TokenWrapperABI))
-	if err != nil {
-		return common.Hash{}, err
-	}
+	contractAddress := contracts.TokenWrapper.GetAddress()
 	addresses := make([]common.Address, len(msgs))
 	amounts := make([]*big.Int, len(msgs))
 	for i, msg := range msgs {
 		addresses[i] = msg.Address
 		amounts[i] = msg.Amount
 	}
-	bytesData, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
+	bytesData, err := contracts.TokenWrapper.GetABI().Pack("generateUTokensInBatch", addresses, amounts)
 	if err != nil {
 		return common.Hash{}, err
 	}

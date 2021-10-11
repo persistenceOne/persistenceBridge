@@ -37,6 +37,12 @@ func (config ethereumConfig) validate() error {
 	if config.GasFeeCap <= 0 {
 		return fmt.Errorf("invalid eth gas fee cap")
 	}
+	if config.LiquidStakingAddress == "" {
+		return fmt.Errorf("empty liquid staking contract address")
+	}
+	if config.TokenWrapperAddress == "" {
+		return fmt.Errorf("empty token wrapper contract address")
+	}
 	return nil
 }
 

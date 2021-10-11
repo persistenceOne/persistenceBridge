@@ -14,7 +14,7 @@ import (
 
 var LiquidStaking = Contract{
 	name:    "LIQUID_STAKING",
-	address: common.HexToAddress(constants2.LiquidStakingAddress),
+	address: common.HexToAddress(configuration.GetAppConfig().Ethereum.LiquidStakingAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
 		constants2.LiquidStakingStake:   onStake,

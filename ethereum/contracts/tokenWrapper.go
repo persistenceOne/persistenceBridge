@@ -14,7 +14,7 @@ import (
 
 var TokenWrapper = Contract{
 	name:    "TOKEN_WRAPPER",
-	address: common.HexToAddress(constants2.TokenWrapperAddress),
+	address: common.HexToAddress(configuration.GetAppConfig().Ethereum.TokenWrapperAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
 		constants2.TokenWrapperWithdrawUTokens: onWithdrawUTokens,

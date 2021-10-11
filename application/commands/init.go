@@ -54,6 +54,8 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants2.FlagTendermintChainID, constants2.DefaultTendermintChainId, "chain id of tendermint node")
 	cmd.Flags().Uint64(constants2.FlagEthGasLimit, constants2.DefaultEthGasLimit, "Gas limit for eth txs")
 	cmd.Flags().Int64(constants2.FlagEthGasFeeCap, constants2.DefaultEthGasFeeCap, "Gas fee cap for eth txs")
+	cmd.Flags().String(constants2.FlagTokenWrapperAddress, constants2.DefaultEthZeroAddress, "sc address of token wrapper")
+	cmd.Flags().String(constants2.FlagLiquidStakingAddress, constants2.DefaultEthZeroAddress, "sc address of liquid staking")
 	cmd.Flags().String(constants2.FlagBroadcastMode, constants2.DefaultBroadcastMode, "broadcast mode for tendermint")
 	cmd.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
 	cmd.Flags().String(constants2.FlagCASPVaultID, "", "casp vault id")

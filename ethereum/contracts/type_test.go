@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/ethereum/abi/liquidStaking"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -23,10 +23,10 @@ func TestContracts(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	require.Equal(t, "LIQUID_STAKING", contractName)
-	require.Equal(t, common.HexToAddress(constants2.LiquidStakingAddress), contractAddress)
+	require.Equal(t, common.HexToAddress(configuration.GetAppConfig().Ethereum.LiquidStakingAddress), contractAddress)
 	require.Equal(t, abi.ABI{}, cABI)
-	contract.SetABI(constants2.LiquidStakingABI)
-	contractABI, err := abi.JSON(strings.NewReader(constants2.LiquidStakingABI))
+	contract.SetABI(liquidStaking.LiquidStakingMetaData.ABI)
+	contractABI, err := abi.JSON(strings.NewReader(liquidStaking.LiquidStakingMetaData.ABI))
 	require.Equal(t, nil, err)
 	require.Equal(t, contractABI, contract.GetABI())
 	i := 0

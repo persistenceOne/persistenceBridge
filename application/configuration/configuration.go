@@ -65,6 +65,18 @@ func SetConfig(cmd *cobra.Command) *config {
 		}
 		appConfig.Ethereum.GasFeeCap = ethGasFeeCap
 
+		tokenWrapperAddress, err := cmd.Flags().GetString(constants2.FlagTokenWrapperAddress)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		appConfig.Ethereum.TokenWrapperAddress = tokenWrapperAddress
+
+		liquidStakingAddress, err := cmd.Flags().GetString(constants2.FlagLiquidStakingAddress)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		appConfig.Ethereum.LiquidStakingAddress = liquidStakingAddress
+
 		ports, err := cmd.Flags().GetString(constants2.FlagKafkaPorts)
 		if err != nil {
 			log.Fatalln(err)

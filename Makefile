@@ -1,4 +1,5 @@
 export GO111MODULE=on
+export SC_COMMIT_HASH=4aac303e15d4ad01ffdf44f1ce376f0f509c765a
 
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 
@@ -34,6 +35,7 @@ GOOS = $(shell go env GOOS)
 all: verify install
 
 install:
+	.script/compileSC.sh
 ifeq (${OS},Windows_NT)
 	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceBridge.exe ./orchestrator
 
@@ -43,6 +45,7 @@ else
 endif
 
 build:
+	.script/compileSC.sh
 ifeq (${OS},Windows_NT)
 	go build  ${BUILD_FLAGS} -o build/${GOOS}/${GOARCH}/persistenceBridge.exe ./orchestrator
 

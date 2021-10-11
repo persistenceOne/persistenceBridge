@@ -32,16 +32,20 @@ func newConfig() config {
 }
 
 type ethereumConfig struct {
-	EthereumEndPoint string
-	GasLimit         uint64
-	GasFeeCap        int64
+	EthereumEndPoint     string
+	GasLimit             uint64
+	GasFeeCap            int64
+	TokenWrapperAddress  string
+	LiquidStakingAddress string
 }
 
 func newEthereumConfig() ethereumConfig {
 	return ethereumConfig{
-		EthereumEndPoint: constants.DefaultEthereumEndPoint,
-		GasLimit:         constants.DefaultEthGasLimit,
-		GasFeeCap:        constants.DefaultEthGasFeeCap,
+		EthereumEndPoint:     constants.DefaultEthereumEndPoint,
+		GasLimit:             constants.DefaultEthGasLimit,
+		GasFeeCap:            constants.DefaultEthGasFeeCap,
+		TokenWrapperAddress:  "",
+		LiquidStakingAddress: "",
 	}
 }
 
