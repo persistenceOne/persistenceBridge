@@ -1,5 +1,8 @@
 export GO111MODULE=on
+
 export SC_COMMIT_HASH=4aac303e15d4ad01ffdf44f1ce376f0f509c765a
+export LIQUID_STAKING=LiquidStaking
+export TokenWrapper=TokenWrapper
 
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 

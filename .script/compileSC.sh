@@ -44,12 +44,12 @@ cd pStake-smartContracts
 
 echo "Compiling smart contracts..."
 # shellcheck disable=SC2046
-solc --abi --bin contracts/LiquidStakingV2.sol -o build @openzeppelin/=$(pwd)/@openzeppelin/
-abigen --bin ./build/LiquidStakingV2.bin --abi ./build/LiquidStakingV2.abi --pkg=liquidStaking --out=liquidStaking.go
+solc --abi --bin contracts/"$LIQUID_STAKING".sol -o build @openzeppelin/=$(pwd)/@openzeppelin/
+abigen --bin ./build/"$LIQUID_STAKING".bin --abi ./build/"$LIQUID_STAKING".abi --pkg=liquidStaking --out=liquidStaking.go
 
 # shellcheck disable=SC2046
-solc --abi --bin contracts/TokenWrapperV2.sol -o build --overwrite @openzeppelin/=$(pwd)/@openzeppelin/
-abigen --bin ./build/TokenWrapperV2.bin --abi ./build/TokenWrapperV2.abi --pkg=tokenWrapper --out=tokenWrapper.go
+solc --abi --bin contracts/"$TOKEN_WRAPPER".sol -o build --overwrite @openzeppelin/=$(pwd)/@openzeppelin/
+abigen --bin ./build/"$TOKEN_WRAPPER".bin --abi ./build/"$TOKEN_WRAPPER".abi --pkg=tokenWrapper --out=tokenWrapper.go
 
 cd ..
 mv pStake-smartContracts/liquidStaking.go ./ethereum/abi/liquidStaking
