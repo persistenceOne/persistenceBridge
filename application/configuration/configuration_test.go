@@ -34,7 +34,9 @@ func TestSetPStakeAddress(t *testing.T) {
 }
 
 func TestValidateAndSeal(t *testing.T) {
+	test.LoadEnv()
 	InitConfig()
+	GetAppConfig().CASP.SetAPIToken()
 	config := SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	SetPStakeAddress(pStakeAddress)

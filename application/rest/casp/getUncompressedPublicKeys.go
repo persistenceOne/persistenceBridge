@@ -32,7 +32,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	if err != nil {
 		return response, err
 	}
-	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
+	request.Header.Set("authorization", configuration.GetAppConfig().CASP.GetAPIToken())
 	resp, err := client.Do(request)
 	if err != nil {
 		return response, err

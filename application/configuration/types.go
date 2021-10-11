@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -73,7 +74,7 @@ type caspConfig struct {
 	TendermintPublicKey     string
 	EthereumPublicKey       string
 	WaitTime                time.Duration
-	APIToken                string
+	apiToken                string
 	AllowConcurrentKeyUsage bool
 	MaxAttempts             int
 }
@@ -85,7 +86,7 @@ func newCASPConfig() caspConfig {
 		TendermintPublicKey:     "",
 		EthereumPublicKey:       "",
 		WaitTime:                constants.DefaultCASPWaitTime,
-		APIToken:                "",
+		apiToken:                "",
 		AllowConcurrentKeyUsage: true,
 		MaxAttempts:             constants.DefaultCASPMaxAttempts,
 	}
@@ -142,4 +143,14 @@ func (config tendermintConfig) GetPStakeAddress() string {
 		log.Fatalln("pStakeAddress not set")
 	}
 	return config.pStakeAddress
+}
+
+func (config caspConfig) GetAPIToken() string {
+	return appConfig.CASP.apiToken
+}
+
+func (config caspConfig) SetAPIToken() {
+	if !appConfig.seal {
+		appConfig.CASP.apiToken = os.Getenv("APIToken")
+	}
 }
