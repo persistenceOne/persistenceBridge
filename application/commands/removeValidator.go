@@ -2,17 +2,13 @@ package commands
 
 import (
 	"errors"
-	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/spf13/cobra"
 	"log"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -28,17 +24,8 @@ func RemoveCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			pStakeConfig := configuration.InitConfig()
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-			configuration.GetAppConfig().CASP.SetAPIToken()
-			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			configuration.ValidateAndSeal()
+			setAndSealConfig(homePath)
+
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err

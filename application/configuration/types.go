@@ -1,8 +1,12 @@
 package configuration
 
 import (
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -39,6 +43,7 @@ type ethereumConfig struct {
 	EthereumEndPoint     string
 	GasLimit             uint64
 	GasFeeCap            int64
+	bridgeAdminAddress   common.Address
 	TokenWrapperAddress  string
 	LiquidStakingAddress string
 }
@@ -54,8 +59,8 @@ func newEthereumConfig() ethereumConfig {
 }
 
 type tendermintConfig struct {
-	pStakeAddress     string
-	PStakeDenom       string
+	wrapAddress       string
+	Denom             string
 	BroadcastMode     string
 	GasPrice          string
 	GasAdjustment     float64
@@ -64,11 +69,12 @@ type tendermintConfig struct {
 	Node              string
 	ChainID           string
 	CoinType          uint32
+	AvgBlockTime      time.Duration
 }
 
 func newTendermintConfig() tendermintConfig {
 	return tendermintConfig{
-		PStakeDenom:       constants.DefaultDenom,
+		Denom:             constants.DefaultDenom,
 		BroadcastMode:     constants.DefaultBroadcastMode,
 		GasPrice:          constants.DefaultTendermintGasPrice,
 		GasAdjustment:     constants.DefaultTendermintGasAdjustment,
@@ -77,6 +83,7 @@ func newTendermintConfig() tendermintConfig {
 		Node:              constants.DefaultTendermintNode,
 		ChainID:           constants.DefaultTendermintChainId,
 		CoinType:          constants.DefaultTendermintCoinType,
+		AvgBlockTime:      constants.DefaultTendermintAvgBlockTime,
 	}
 }
 
@@ -88,7 +95,7 @@ type caspConfig struct {
 	WaitTime                time.Duration
 	apiToken                string
 	AllowConcurrentKeyUsage bool
-	MaxAttempts             int
+	MaxAttempts             uint
 }
 
 func newCASPConfig() caspConfig {
@@ -150,18 +157,42 @@ func newKafkaConfig() kafkaConfig {
 	}
 }
 
-func (config tendermintConfig) GetPStakeAddress() string {
-	if config.pStakeAddress == "" {
-		log.Fatalln("pStakeAddress not set")
+func (config tendermintConfig) GetWrapAddress() string {
+	if config.wrapAddress == "" {
+		log.Fatalln("wrapAddress not set")
 	}
-	return config.pStakeAddress
+	return config.wrapAddress
+}
+
+func setWrapAddress(tmAddress sdk.AccAddress) {
+	if !appConfig.seal {
+		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
+			appConfig.Tendermint.wrapAddress = tmAddress.String()
+		} else {
+			panic(fmt.Errorf("pStake wrap address prefix (%s) and Config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
+		}
+	}
+}
+
+func setBridgeAdminAddress(address common.Address) {
+	if !appConfig.seal {
+		if address.String() != constants.DefaultEthZeroAddress {
+			appConfig.Ethereum.bridgeAdminAddress = address
+		} else {
+			panic(fmt.Errorf("invalid eth address"))
+		}
+	}
+}
+
+func (ethConfig ethereumConfig) GetBridgeAdminAddress() common.Address {
+	return ethConfig.bridgeAdminAddress
 }
 
 func (config caspConfig) GetAPIToken() string {
 	return appConfig.CASP.apiToken
 }
 
-func (config caspConfig) SetAPIToken() {
+func SetCASPApiToken() {
 	if !appConfig.seal {
 		appConfig.CASP.apiToken = os.Getenv("APIToken")
 	}

@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
@@ -12,8 +11,7 @@ import (
 )
 
 func TestInitializeAndStartChain(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	initAndStartChain, err := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
 	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`^cosmos$`)

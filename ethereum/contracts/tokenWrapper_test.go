@@ -11,12 +11,12 @@ import (
 )
 
 func TestOnWithdrawUTokens(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	i := new(big.Int)
 	i.SetInt64(1000)

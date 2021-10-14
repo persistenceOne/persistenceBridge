@@ -16,7 +16,7 @@ func TestInitCommand(t *testing.T) {
 	err = cmd.Execute()
 	require.Equal(t, nil, err)
 
-	config := configuration.InitConfig()
+	config := configuration.GetAppConfig()
 	_, err = toml.DecodeFile(filepath.Join(constants2.TestHomeDir, "config.toml"), &config)
 	require.Equal(t, nil, err)
 

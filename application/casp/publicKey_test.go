@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
@@ -15,8 +14,7 @@ import (
 )
 
 func TestGetTMPubKey(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
@@ -29,8 +27,7 @@ func TestGetTMPubKey(t *testing.T) {
 }
 
 func TestGetEthPubKey(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
@@ -43,8 +40,7 @@ func TestGetEthPubKey(t *testing.T) {
 }
 
 func TestGetXY(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")

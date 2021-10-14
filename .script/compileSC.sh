@@ -1,6 +1,5 @@
 #!/bin/bash
 
-OPENZEPPELIN_VERSION="v3.4.2"
 OPENZEPPELIN_DIR_NAME="@openzeppelin"
 
 rm -rf pStake-smartContracts
@@ -12,7 +11,7 @@ echo "Downloading pStake-smartContracts..."
 git clone git@github.com:persistenceOne/pStake-smartContracts.git
 # shellcheck disable=SC2164
 cd pStake-smartContracts
-git checkout "$SC_COMMIT_HASH"
+git checkout "$SMART_CONTRACT_VERSION"
 # shellcheck disable=SC2103
 cd ..
 

@@ -2,6 +2,8 @@ package tendermint
 
 import (
 	"context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
@@ -52,4 +54,14 @@ func QueryDelegatorDelegations(delegatorAddress string, chain *relayer.Chain) (s
 		return nil, err
 	}
 	return stakingRes.DelegationResponses, err
+}
+
+func QueryAccountBalance(address sdk.AccAddress, denom string, chain *relayer.Chain) (sdk.Coin, error) {
+	bankClient := bankTypes.NewQueryClient(chain.CLIContext(0))
+	balanceResponse, err := bankClient.Balance(context.Background(), bankTypes.NewQueryBalanceRequest(address, denom))
+	if err != nil {
+		logging.Error("Unable to fetch balance from TM node, Error:", err)
+		return sdk.Coin{}, err
+	}
+	return *balanceResponse.Balance, nil
 }

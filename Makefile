@@ -1,8 +1,9 @@
 export GO111MODULE=on
 
-export SC_COMMIT_HASH=4aac303e15d4ad01ffdf44f1ce376f0f509c765a
+export SMART_CONTRACT_VERSION=4aac303e15d4ad01ffdf44f1ce376f0f509c765a
 export LIQUID_STAKING=LiquidStakingV2
 export TOKEN_WRAPPER=TokenWrapperV2
+export OPENZEPPELIN_VERSION=v3.4.2
 
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
 
@@ -38,7 +39,7 @@ GOOS = $(shell go env GOOS)
 all: verify install
 
 install:
-	.script/compileSC.sh
+	#.script/compileSC.sh
 ifeq (${OS},Windows_NT)
 	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceBridge.exe ./orchestrator
 
@@ -70,3 +71,17 @@ else
 endif
 
 
+test:
+	go test ./application/casp
+	go test ./application/commands
+	go test ./application/configuration
+	go test ./application/db
+	go test ./application/outgoingTx
+	go test ./application/rest
+	go test ./application/rpc
+	go test ./application/shutdown
+
+	go test ./ethereum/contracts
+	go test ./ethereum
+
+	go test ./tendermint

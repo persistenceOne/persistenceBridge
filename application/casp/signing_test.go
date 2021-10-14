@@ -9,8 +9,7 @@ import (
 )
 
 func TestGetCASPSignature(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 	operationID, err := SendDataToSign(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, true)
@@ -27,8 +26,7 @@ func TestGetCASPSignature(t *testing.T) {
 
 func TestSendDataToSign(t *testing.T) {
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	publickey := []string{configuration.GetAppConfig().CASP.TendermintPublicKey}
 

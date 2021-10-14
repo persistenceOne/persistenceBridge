@@ -13,8 +13,8 @@ func GetEthAddress() (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	if len(uncompressedPublicKeys.Items) == 0 {
-		return common.Address{}, fmt.Errorf("no eth public keys got from casp")
+	if len(uncompressedPublicKeys.Items) != 1 {
+		return common.Address{}, fmt.Errorf("no or more than 1 eth public keys got from casp")
 	}
 	publicKey := GetEthPubKey(uncompressedPublicKeys.Items[0])
 	return crypto.PubkeyToAddress(publicKey), nil
@@ -25,8 +25,8 @@ func GetTendermintAddress() (sdk.AccAddress, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(uncompressedPublicKeys.Items) == 0 {
-		return nil, fmt.Errorf("no tendermint public keys got from casp")
+	if len(uncompressedPublicKeys.Items) != 1 {
+		return nil, fmt.Errorf("no or more than 1 tendermint public keys got from casp")
 	}
 	tmPublicKey := GetTMPubKey(uncompressedPublicKeys.Items[0])
 	return sdk.AccAddress(tmPublicKey.Address()), nil

@@ -2,52 +2,32 @@ package configuration
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/ethereum/go-ethereum/common"
+	testCmd "github.com/persistenceOne/persistenceBridge/utilities/testing/cmd"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestGetAppConfig(t *testing.T) {
-	InitConfig()
-	require.Equal(t, *appConfig, GetAppConfig(), "The two configurations should be the same")
-}
-
-func TestInitConfig(t *testing.T) {
-	newAppConfig := InitConfig()
-	appConfig := newConfig()
-
-	require.Equal(t, appConfig, *newAppConfig)
+	require.Equal(t, appConfig, GetAppConfig(), "The two configurations should be the same")
 }
 
 func TestSetConfig(t *testing.T) {
-	InitConfig()
-	appConfig := SetConfig(test.GetCmdWithConfig())
-	require.Equal(t, GetAppConfig(), *appConfig)
-}
-
-func TestSetPStakeAddress(t *testing.T) {
-	InitConfig()
-	config := SetConfig(test.GetCmdWithConfig())
-	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
-	SetPStakeAddress(pStakeAddress)
-	require.Equal(t, config.Tendermint.pStakeAddress, pStakeAddress.String(), "PStakeAddress not set")
+	appConfig := SetConfig(testCmd.GetCmdWithConfig())
+	require.Equal(t, GetAppConfig(), appConfig)
 }
 
 func TestValidateAndSeal(t *testing.T) {
-	test.LoadEnv()
-	InitConfig()
-	GetAppConfig().CASP.SetAPIToken()
-	config := SetConfig(test.GetCmdWithConfig())
-	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
-	SetPStakeAddress(pStakeAddress)
+	SetConfig(testCmd.GetCmdWithConfig())
+	wrapAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	SetCASPAddresses(wrapAddress, common.HexToAddress("0x5988ab40c82bbbb2067eec1e19b08cdc8d5e22d5"))
+	SetCASPApiToken()
 	ValidateAndSeal()
-	require.Equal(t, config.seal, true, "appConfig did not get validated")
+	require.Equal(t, appConfig.seal, true, "appConfig did not get validated")
 }
 
-func TestGetPStakeAddress(t *testing.T) {
-	InitConfig()
-	config := SetConfig(test.GetCmdWithConfig())
+func TestGetWrapAddress(t *testing.T) {
+	SetConfig(testCmd.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
-	SetPStakeAddress(pStakeAddress)
-	require.Equal(t, config.Tendermint.GetPStakeAddress(), pStakeAddress.String(), "pStakeAddress not set")
+	require.Equal(t, appConfig.Tendermint.GetWrapAddress(), pStakeAddress.String(), "wrapAddress not set")
 }

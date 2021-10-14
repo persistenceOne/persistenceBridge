@@ -19,17 +19,18 @@ import (
 )
 
 func TestLogMessagesAndBroadcast(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tenderMintAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-	configuration.SetPStakeAddress(tenderMintAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tenderMintAddress, ethAddress)
 	chain := setUpChain(t)
 
 	msg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.PStakeDenom, 1)),
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.Denom, 1)),
 	}
 	txResponse, err := LogMessagesAndBroadcast(chain, []sdk.Msg{msg}, 200)
 	require.Equal(t, nil, err)
@@ -42,19 +43,20 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 }
 
 func TestBroadcastTMTx(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 	chain := setUpChain(t)
 	msg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.PStakeDenom, 1)),
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.Denom, 1)),
 	}
 
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmpPubKey, []sdk.Msg{msg}, "pStake@PersistenceOne", 200)
@@ -65,26 +67,26 @@ func TestBroadcastTMTx(t *testing.T) {
 	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`^[0-9a-fA-F]`)
 	require.Equal(t, true, re.MatchString(broadcastTMmsg.TxHash))
-	require.Equal(t, 66, broadcastTMmsg.Size())
 	require.NotNil(t, broadcastTMmsg)
 	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(broadcastTMmsg))
 }
 
 func TestGetTMBytesToSign(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 	chain := setUpChain(t)
 
 	msg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.PStakeDenom, 1)),
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.Denom, 1)),
 	}
 
 	tmBytesSignBytes, txBuilder, txFactory, errorGettingTMBytes := getTMBytesToSign(chain, tmpPubKey, []sdk.Msg{msg}, "pStake@PersistenceOne", 200)
@@ -98,8 +100,7 @@ func TestGetTMBytesToSign(t *testing.T) {
 }
 
 func TestGetTMSignature(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 	bytesToSign := []byte(strings.Join(dataToSign, ""))
@@ -114,9 +115,7 @@ func TestGetTMSignature(t *testing.T) {
 }
 
 func TestSetTMPublicKey(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
-
+	test.SetTestConfig()
 	err := setTMPublicKey()
 	require.Equal(t, nil, err)
 	require.NotNil(t, tmPublicKey)
@@ -124,16 +123,17 @@ func TestSetTMPublicKey(t *testing.T) {
 }
 
 func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	msg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.PStakeDenom, 1)),
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.Denom, 1)),
 	}
 
 	chain := setUpChain(t)
@@ -154,8 +154,8 @@ func setUpChain(t *testing.T) *relayer.Chain {
 	chain.ChainID = configuration.GetAppConfig().Tendermint.ChainID
 	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
 	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
-	chain.GasAdjustment = 1.5
-	chain.GasPrices = configuration.GetAppConfig().Tendermint.GasPrice + configuration.GetAppConfig().Tendermint.PStakeDenom
+	chain.GasAdjustment = configuration.GetAppConfig().Tendermint.GasAdjustment
+	chain.GasPrices = configuration.GetAppConfig().Tendermint.GasPrice + configuration.GetAppConfig().Tendermint.Denom
 	chain.TrustingPeriod = "21h"
 
 	to, err := time.ParseDuration("10s")

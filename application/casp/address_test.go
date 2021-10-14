@@ -1,7 +1,6 @@
 package casp
 
 import (
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"regexp"
@@ -9,8 +8,7 @@ import (
 )
 
 func TestGetEthAddress(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	ethAddress, err := GetEthAddress()
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Nil(t, err)
@@ -20,8 +18,7 @@ func TestGetEthAddress(t *testing.T) {
 }
 
 func TestGetTendermintAddress(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tenderMintAddress, errTMA := GetTendermintAddress()
 	re := regexp.MustCompile(`^cosmos[0-9a-zA-Z]{39}$`)
 	require.Nil(t, errTMA, "Error Getting Tendermint address")

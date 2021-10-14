@@ -34,7 +34,10 @@ func (config config) validate() error {
 }
 
 func (config ethereumConfig) validate() error {
-	if config.GasLimit <= 0 {
+	if _, err := url.ParseRequestURI(config.EthereumEndPoint); err != nil {
+		return fmt.Errorf("invalid EthereumEndPoint: %v", err)
+	}
+	if config.GasLimit == 0 {
 		return fmt.Errorf("invalid eth gas limit")
 	}
 	if config.GasFeeCap <= 0 {
@@ -46,21 +49,17 @@ func (config ethereumConfig) validate() error {
 	if config.TokenWrapperAddress == constants.DefaultEthZeroAddress || !common.IsHexAddress(config.TokenWrapperAddress) {
 		return fmt.Errorf("empty token wrapper contract address")
 	}
+	if config.bridgeAdminAddress.String() == "" || config.bridgeAdminAddress.String() == constants.DefaultEthZeroAddress {
+		return fmt.Errorf("bridgeAdminAddress is empty")
+	}
 	return nil
 }
 
 func (config tendermintConfig) validate() error {
-	if config.pStakeAddress == "" {
-		return fmt.Errorf("pStakeAddress empty")
-	}
-	_, err := sdk.AccAddressFromBech32(config.pStakeAddress)
-	if err != nil {
-		return err
-	}
 	if config.AccountPrefix == "" {
 		return fmt.Errorf("account prefix cannot be empty")
 	}
-	if config.PStakeDenom == "" {
+	if config.Denom == "" {
 		return fmt.Errorf("denom cannot be empty")
 	}
 	if _, err := strconv.ParseFloat(config.GasPrice, 64); err != nil {
@@ -80,6 +79,16 @@ func (config tendermintConfig) validate() error {
 	}
 	if !(config.BroadcastMode == flags.BroadcastAsync || config.BroadcastMode == flags.BroadcastSync || config.BroadcastMode == flags.BroadcastBlock) {
 		return fmt.Errorf("invalid broadcast mode")
+	}
+	if config.wrapAddress == "" {
+		return fmt.Errorf("wrapAddress empty")
+	}
+	_, err := sdk.AccAddressFromBech32(config.wrapAddress)
+	if err != nil {
+		return err
+	}
+	if config.AvgBlockTime.Nanoseconds() == 0 {
+		return fmt.Errorf("tendermint chain avg block time cannot be 0")
 	}
 	return nil
 }
@@ -101,6 +110,9 @@ func (config kafkaConfig) validate() error {
 	if config.MaxTendermintTxAttempts <= 0 {
 		return errors.New("Kafka.MaxTendermintTxAttempts cannot be less than equal to 0")
 	}
+	if config.EthUnbondCycleTime.Nanoseconds() == 0 {
+		return fmt.Errorf("kafka EthUnbondCycleTime time cannot be 0")
+	}
 	return nil
 }
 
@@ -111,17 +123,20 @@ func (config caspConfig) validate() error {
 	if config.apiToken == "" {
 		return fmt.Errorf("casp api token empty")
 	}
-	if config.URL == "" {
-		return fmt.Errorf("casp url empty")
+	if _, err := url.ParseRequestURI(config.URL); err != nil {
+		return fmt.Errorf("invalid casp url: %v", err)
 	}
 	if config.TendermintPublicKey == "" {
 		return fmt.Errorf("casp tendermint public empty")
 	}
 	if config.EthereumPublicKey == "" {
-		return fmt.Errorf("casp tendermint public empty")
+		return fmt.Errorf("casp ethereum public empty")
 	}
-	if config.MaxAttempts <= 0 {
-		return fmt.Errorf("casp MaxAttempts cannot be less than or equal to 0")
+	if config.MaxAttempts == 0 {
+		return fmt.Errorf("casp MaxAttempts cannot be equal to 0")
+	}
+	if config.WaitTime.Nanoseconds() == 0 {
+		return fmt.Errorf("casp wait time cannot be 0")
 	}
 	return nil
 }

@@ -4,11 +4,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestShowCommand(t *testing.T) {
+	test.SetTestConfig()
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
 	err = db.DeleteAllValidators()

@@ -27,7 +27,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 	if operationID == "" {
 		return caspResponses.SignOperationResponse{}, fmt.Errorf("empty operationID")
 	}
-	attempts := 0
+	attempts := uint(0)
 	for {
 		time.Sleep(configuration.GetAppConfig().CASP.WaitTime)
 

@@ -17,17 +17,17 @@ import (
 )
 
 func TestOnNewBlock(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Equal(t, nil, err)
 	ctx := context.Background()
-	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
+	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 
 	database, err := db.OpenDB(constants2.TestDbDir)

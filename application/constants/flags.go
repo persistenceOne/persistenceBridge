@@ -15,6 +15,7 @@ const (
 	FlagTendermintStartHeight = "tmStart"
 	FlagEthereumStartHeight   = "ethStart"
 	FlagDenom                 = "denom"
+	FlagTMAvgBlockTime        = "tmAvgBlockTime"
 	FlagTendermintCoinType    = "tmCoinType"
 	FlagEthGasLimit           = "ethGasLimit"
 	FlagEthGasFeeCap          = "ethGasFeeCap"
@@ -60,9 +61,10 @@ var (
 	DefaultTendermintNode          = "http://127.0.0.1:26657"
 	DefaultTendermintChainId       = "test"
 	DefaultTendermintCoinType      = uint32(118)
+	DefaultTendermintAvgBlockTime  = 6 * time.Second
 	DefaultKafkaPorts              = "localhost:9092"
 	DefaultCASPWaitTime            = 8 * time.Second
-	DefaultCASPMaxAttempts         = 5
+	DefaultCASPMaxAttempts         = uint(5)
 	DefaultRPCEndpoint             = "localhost:4040"
 	DefaultTendermintMaxTxAttempts = 5
 	DefaultEthZeroAddress          = "0x0000000000000000000000000000000000000000"

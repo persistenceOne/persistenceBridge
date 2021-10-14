@@ -57,6 +57,12 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			return
 		}
 
+		if ethStatus.LastCheckHeight < 0 {
+			logging.Error("Stopping Ethereum Listener, eth status height is less than 0:", ethStatus.LastCheckHeight)
+			shutdown.SetETHStopped(true)
+			return
+		}
+
 		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > constants.EthereumBlockConfirmations {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 			logging.Info("Ethereum Block:", processHeight)

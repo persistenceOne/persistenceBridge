@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -96,7 +95,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 			break
 		} else {
 			logging.Info("cannot broadcast yet, tendermint txs pending")
-			time.Sleep(constants.TendermintAvgBlockTime)
+			time.Sleep(configuration.GetAppConfig().Tendermint.AvgBlockTime)
 			countPendingTx, err = db.CountTotalOutgoingTendermintTx()
 			if err != nil {
 				logging.Fatal(err)

@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
@@ -9,8 +8,7 @@ import (
 )
 
 func TestInitializeDB(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	var ethStart int64 = 4772131
 	var tmStart int64 = 1

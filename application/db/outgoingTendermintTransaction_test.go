@@ -110,11 +110,17 @@ func TestTendermintOutgoingTransactionKey(t *testing.T) {
 }
 
 func TestTendermintOutgoingTransactionValidate(t *testing.T) {
-	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
-	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: Txhash,
-	}
-	err := tendermintTransaction.Validate()
+	tmTx := OutgoingTendermintTransaction{}
+	require.Equal(t, "OutgoingTendermintTransaction: empty tx hash", tmTx.Validate().Error())
+
+	tmTx.TxHash = "QWERTY"
+	require.Equal(t, "OutgoingTendermintTransaction: error decoding tx hash string encoding/hex: invalid byte: U+0051 'Q'", tmTx.Validate().Error())
+
+	tmTx.TxHash = "ABCDEF"
+	require.Equal(t, "OutgoingTendermintTransaction: invalid tx hash", tmTx.Validate().Error())
+
+	tmTx.TxHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	err := tmTx.Validate()
 	require.Nil(t, err)
 }
 

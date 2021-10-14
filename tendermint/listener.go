@@ -60,6 +60,12 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			return
 		}
 
+		if cosmosStatus.LastCheckHeight < 0 {
+			logging.Error("Stopping Tendermint Listener, cosmos status is less than 0")
+			shutdown.SetTMStopped(true)
+			return
+		}
+
 		if abciInfo.Response.LastBlockHeight > cosmosStatus.LastCheckHeight {
 			processHeight := cosmosStatus.LastCheckHeight + 1
 			logging.Info("Tendermint Block:", processHeight)

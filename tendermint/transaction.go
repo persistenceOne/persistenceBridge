@@ -55,7 +55,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *banktypes.MsgSend:
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetPStakeAddress() {
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetWrapAddress() {
 					if memo != "DO_NOT_REVERT" {
 						for _, coin := range txMsg.Amount {
 							// Do not check for TendermintTxToKafka exists.
@@ -108,7 +108,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			ethAddress = goEthCommon.HexToAddress(tx.Memo)
 		}
 
-		if tx.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
+		if tx.Denom == configuration.GetAppConfig().Tendermint.Denom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
 			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String())
 			ethTxMsg := outgoingTx.WrapTokenMsg{
 				Address: ethAddress,
@@ -137,7 +137,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 
 func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
 	msg := &banktypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   toAddress,
 		Amount:      coins,
 	}

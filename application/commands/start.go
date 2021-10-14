@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -24,7 +23,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -46,29 +44,14 @@ func StartCommand() *cobra.Command {
 			}
 			logging.ShowDebugLog(showDebugLog)
 
-			pStakeConfig := configuration.InitConfig()
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-			configuration.GetAppConfig().CASP.SetAPIToken()
-			ethAddress, err := casp.GetEthAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			tmAddress, err := tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			configuration.ValidateAndSeal()
-
 			err = logging.InitializeBot()
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			logging.Info("Bridge (Wrap) Tendermint Address:", tmAddress.String())
-			logging.Info("Bridge (Admin) Ethereum Address:", ethAddress.String())
+			setAndSealConfig(homePath)
+			logging.Info("Bridge (Wrap) Tendermint Address:", configuration.GetAppConfig().Tendermint.GetWrapAddress())
+			logging.Info("Bridge (Admin) Ethereum Address:", configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress().String())
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
 			if err != nil {
@@ -129,9 +112,9 @@ func StartCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			ethereumClient, err := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
+			ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 			if err != nil {
-				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", pStakeConfig.Ethereum.EthereumEndPoint, err.Error())
+				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", configuration.GetAppConfig().Ethereum.EthereumEndPoint, err.Error())
 			}
 
 			encodingConfig := application.MakeEncodingConfig()
@@ -146,18 +129,18 @@ func StartCommand() *cobra.Command {
 				WithHomeDir(homePath)
 
 			protoCodec := codec.NewProtoCodec(clientContext.InterfaceRegistry)
-			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
+			kafkaState := utils.NewKafkaState(configuration.GetAppConfig().Kafka.Brokers, homePath, configuration.GetAppConfig().Kafka.TopicDetail)
 			end := make(chan bool)
 			ended := make(chan bool)
 			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
-			go rpc.StartServer(pStakeConfig.RPCEndpoint)
+			go rpc.StartServer(configuration.GetAppConfig().RPCEndpoint)
 
 			logging.Info("Starting to listen ethereum....")
-			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
+			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, configuration.GetAppConfig().Kafka.Brokers, protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
-			go tendermint2.StartListening(clientContext, chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint2.StartListening(clientContext, chain, configuration.GetAppConfig().Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -189,4 +172,19 @@ func StartCommand() *cobra.Command {
 	pBridgeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, constants2.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
 
 	return pBridgeCommand
+}
+
+func setAndSealConfig(homePath string) {
+	configuration.InitializeConfigFromFile(homePath)
+	configuration.SetCASPApiToken()
+	ethAddress, err := casp.GetEthAddress()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	tmAddress, err := casp.GetTendermintAddress()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
+	configuration.ValidateAndSeal()
 }

@@ -1,16 +1,11 @@
 package commands
 
 import (
-	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/persistenceBridge/application/casp"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
-	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/spf13/cobra"
 	"log"
-	"path/filepath"
 )
 
 func ShowCommand() *cobra.Command {
@@ -23,28 +18,7 @@ func ShowCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			pStakeConfig := configuration.InitConfig()
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-			configuration.GetAppConfig().CASP.SetAPIToken()
-			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			configuration.ValidateAndSeal()
-
-			tmAddress, err := casp.GetTendermintAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			ethAddress, err := casp.GetEthAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			log.Println("Tendermint Address:", tmAddress.String())
-			log.Println("Ethereum Address:", ethAddress.String())
+			setAndSealConfig(homePath)
 
 			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
 			if err != nil {

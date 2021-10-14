@@ -20,8 +20,7 @@ import (
 )
 
 func TestEthereumWrapToken(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	ethAddress, _ := casp.GetEthAddress()
 	wrapTokenMsg := []WrapTokenMsg{{
@@ -31,6 +30,9 @@ func TestEthereumWrapToken(t *testing.T) {
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Equal(t, nil, err)
+	_, err = EthereumWrapToken(ethereumClient, nil)
+	require.Equal(t, "no wrap token messages to broadcast", err.Error())
+
 	txHash, err := EthereumWrapToken(ethereumClient, wrapTokenMsg)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, txHash)
@@ -41,8 +43,7 @@ func TestEthereumWrapToken(t *testing.T) {
 }
 
 func TestSendTxToEth(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
@@ -65,8 +66,7 @@ func TestSendTxToEth(t *testing.T) {
 }
 
 func TestGetEthSignature(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
@@ -106,9 +106,7 @@ func TestGetEthSignature(t *testing.T) {
 }
 
 func TestSetEthBridgeAdmin(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
-
+	test.SetTestConfig()
 	err := setEthBridgeAdmin()
 	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
