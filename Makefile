@@ -39,7 +39,7 @@ GOOS = $(shell go env GOOS)
 all: verify install
 
 install:
-	#.script/compileSC.sh
+	.script/compileSC.sh
 ifeq (${OS},Windows_NT)
 	go build -mod=readonly ${BUILD_FLAGS} -o ${GOBIN}/persistenceBridge.exe ./orchestrator
 
@@ -72,14 +72,14 @@ endif
 
 
 test:
-	go test ./application/casp
-	go test ./application/commands
-	go test ./application/configuration
-	go test ./application/db
-	go test ./application/outgoingTx
-	go test ./application/rest
-	go test ./application/rpc
-	go test ./application/shutdown
+	@go test ./application/casp
+	@go test ./application/commands
+	@go test ./application/configuration
+	@go test ./application/db
+	@go test ./application/outgoingTx
+	@go test ./application/rest
+	@go test ./application/rpc
+	@go test ./application/shutdown
 
 	go test ./ethereum/contracts
 	go test ./ethereum
