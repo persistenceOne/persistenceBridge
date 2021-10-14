@@ -81,7 +81,7 @@ test:
 	@go test ./application/rpc
 	@go test ./application/shutdown
 
-	go test ./ethereum/contracts
-	go test ./ethereum
+	@go test ./ethereum/contracts
+	@go test ./ethereum
 
-	go test ./tendermint
+	@go test ./tendermint
