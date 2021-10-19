@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -93,7 +92,7 @@ type caspConfig struct {
 	TendermintPublicKey     string
 	EthereumPublicKey       string
 	WaitTime                time.Duration
-	apiToken                string
+	ApiToken                string
 	AllowConcurrentKeyUsage bool
 	MaxAttempts             uint
 }
@@ -105,7 +104,7 @@ func newCASPConfig() caspConfig {
 		TendermintPublicKey:     "",
 		EthereumPublicKey:       "",
 		WaitTime:                constants.DefaultCASPWaitTime,
-		apiToken:                "",
+		ApiToken:                "",
 		AllowConcurrentKeyUsage: true,
 		MaxAttempts:             constants.DefaultCASPMaxAttempts,
 	}
@@ -186,14 +185,4 @@ func setBridgeAdminAddress(address common.Address) {
 
 func (ethConfig ethereumConfig) GetBridgeAdminAddress() common.Address {
 	return ethConfig.bridgeAdminAddress
-}
-
-func (config caspConfig) GetAPIToken() string {
-	return appConfig.CASP.apiToken
-}
-
-func SetCASPApiToken() {
-	if !appConfig.seal {
-		appConfig.CASP.apiToken = os.Getenv("APIToken")
-	}
 }

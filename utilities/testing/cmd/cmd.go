@@ -36,6 +36,7 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 
 	cmd.Flags().String(constants2.FlagCASPURL, os.Getenv("CASPURL"), "casp api url (with http)")
+	cmd.Flags().String(constants2.FlagCASPApiToken, os.Getenv("APIToken"), "casp api token")
 	cmd.Flags().String(constants2.FlagCASPVaultID, os.Getenv("CASPVaultID"), "casp vault id")
 	cmd.Flags().String(constants2.FlagCASPTMPublicKey, os.Getenv("CASPTMPublicKey"), "casp tendermint public key")
 	cmd.Flags().String(constants2.FlagCASPEthPublicKey, os.Getenv("CASPEthPublicKey"), "casp ethereum public key")

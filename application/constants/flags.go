@@ -24,6 +24,7 @@ const (
 	FlagTMGasPrice            = "tmGasPrice"
 	FlagTMGasAdjustment       = "tmGasAdjust"
 	FlagCASPURL               = "caspURL"
+	FlagCASPApiToken          = "caspApiToken"
 	FlagCASPVaultID           = "caspVaultID"
 	FlagCASPTMPublicKey       = "caspTMPublicKey"
 	FlagCASPEthPublicKey      = "caspEthPublicKey"

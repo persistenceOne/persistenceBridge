@@ -43,7 +43,7 @@ func PostSignData(dataToSign []string, publicKeys []string, description string) 
 	if err != nil {
 		return response, err
 	}
-	request.Header.Set("authorization", configuration.GetAppConfig().CASP.GetAPIToken())
+	request.Header.Set("authorization", configuration.GetAppConfig().CASP.ApiToken)
 	request.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(request)
 	if err != nil {

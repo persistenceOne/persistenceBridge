@@ -21,7 +21,6 @@ func TestValidateAndSeal(t *testing.T) {
 	SetConfig(testCmd.GetCmdWithConfig())
 	wrapAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	SetCASPAddresses(wrapAddress, common.HexToAddress("0x5988ab40c82bbbb2067eec1e19b08cdc8d5e22d5"))
-	SetCASPApiToken()
 	ValidateAndSeal()
 	require.Equal(t, appConfig.seal, true, "appConfig did not get validated")
 }

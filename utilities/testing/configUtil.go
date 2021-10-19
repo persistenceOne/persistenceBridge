@@ -26,5 +26,4 @@ func SetTestConfig() {
 	if err := ioutil.WriteFile(configPath, buf.Bytes(), 0644); err != nil {
 		panic(err)
 	}
-	configuration.SetCASPApiToken()
 }

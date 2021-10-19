@@ -50,8 +50,6 @@ func StartCommand() *cobra.Command {
 			}
 
 			setAndSealConfig(homePath)
-			logging.Info("Bridge (Wrap) Tendermint Address:", configuration.GetAppConfig().Tendermint.GetWrapAddress())
-			logging.Info("Bridge (Admin) Ethereum Address:", configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress().String())
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
 			if err != nil {
@@ -176,7 +174,6 @@ func StartCommand() *cobra.Command {
 
 func setAndSealConfig(homePath string) {
 	configuration.InitializeConfigFromFile(homePath)
-	configuration.SetCASPApiToken()
 	ethAddress, err := casp.GetEthAddress()
 	if err != nil {
 		log.Fatalln(err)
@@ -186,5 +183,9 @@ func setAndSealConfig(homePath string) {
 		log.Fatalln(err)
 	}
 	configuration.SetCASPAddresses(tmAddress, ethAddress)
+
+	logging.Info("Bridge (Wrap) Tendermint Address:", configuration.GetAppConfig().Tendermint.GetWrapAddress())
+	logging.Info("Bridge (Admin) Ethereum Address:", configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress().String())
+
 	configuration.ValidateAndSeal()
 }

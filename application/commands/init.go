@@ -69,6 +69,7 @@ func InitCommand() *cobra.Command {
 
 	// CASP
 	cmd.Flags().String(constants2.FlagCASPURL, "", "casp api url (with http)")
+	cmd.Flags().String(constants2.FlagCASPApiToken, "", "casp api token")
 	cmd.Flags().String(constants2.FlagCASPVaultID, "", "casp vault id")
 	cmd.Flags().String(constants2.FlagCASPTMPublicKey, "", "casp tendermint public key")
 	cmd.Flags().String(constants2.FlagCASPEthPublicKey, "", "casp ethereum public key")

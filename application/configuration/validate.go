@@ -120,7 +120,7 @@ func (config caspConfig) validate() error {
 	if config.VaultID == "" {
 		return fmt.Errorf("casp vault id empty")
 	}
-	if config.apiToken == "" {
+	if config.ApiToken == "" {
 		return fmt.Errorf("casp api token empty")
 	}
 	if _, err := url.ParseRequestURI(config.URL); err != nil {

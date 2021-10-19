@@ -128,7 +128,7 @@ func TestValidateCASP(t *testing.T) {
 
 	err = testConfig.validate()
 	require.Equal(t, fmt.Errorf("casp api token empty"), err)
-	testConfig.apiToken = "api token"
+	testConfig.ApiToken = "api token"
 
 	err = testConfig.validate()
 	require.Equal(t, fmt.Errorf("invalid casp url: parse \"\": empty url"), err)
@@ -212,7 +212,7 @@ func TestConfig(t *testing.T) {
 	err = c.validate()
 	require.Equal(t, fmt.Errorf("casp vault id empty"), err)
 	c.CASP.VaultID = "vault id"
-	c.CASP.apiToken = "api"
+	c.CASP.ApiToken = "api"
 	c.CASP.URL = "https://127.0.0.1:443"
 	c.CASP.MaxAttempts = 5
 	c.CASP.EthereumPublicKey = "public key"
