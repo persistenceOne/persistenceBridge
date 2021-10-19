@@ -52,6 +52,9 @@ func (config ethereumConfig) validate() error {
 	if config.bridgeAdminAddress.String() == "" || config.bridgeAdminAddress.String() == constants.DefaultEthZeroAddress {
 		return fmt.Errorf("bridgeAdminAddress is empty")
 	}
+	if config.BalanceCheckPeriod != 0 && config.AlertAmount <= 0 {
+		return fmt.Errorf("invalid ethereum balance alert configuration")
+	}
 	return nil
 }
 

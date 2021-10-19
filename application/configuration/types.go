@@ -2,13 +2,13 @@ package configuration
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
@@ -45,6 +45,8 @@ type ethereumConfig struct {
 	bridgeAdminAddress   common.Address
 	TokenWrapperAddress  string
 	LiquidStakingAddress string
+	BalanceCheckPeriod   uint64
+	AlertAmount          int64
 }
 
 func newEthereumConfig() ethereumConfig {

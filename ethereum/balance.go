@@ -1,5 +1,0 @@
-package ethereum
-
-func BalanceCheck() {
-
-}

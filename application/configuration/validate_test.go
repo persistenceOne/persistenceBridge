@@ -31,6 +31,11 @@ func TestValidateEthereum(t *testing.T) {
 	err = ethConfig.validate()
 	require.Equal(t, fmt.Errorf("bridgeAdminAddress is empty"), err)
 	ethConfig.bridgeAdminAddress = common.HexToAddress("0x0000000000000000000000000000000000000001")
+	ethConfig.BalanceCheckPeriod = 1
+	err = ethConfig.validate()
+	require.Equal(t, fmt.Errorf("invalid ethereum balance alert configuration"), err)
+	ethConfig.AlertAmount = 1000000000
+
 	err = ethConfig.validate()
 	require.Nil(t, err)
 }
