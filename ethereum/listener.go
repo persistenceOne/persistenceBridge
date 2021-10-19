@@ -52,15 +52,11 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 		ethStatus, err := db.GetEthereumStatus()
 		if err != nil {
-			logging.Error("Stopping Ethereum Listener, unable to get status, Error:", err)
-			shutdown.SetETHStopped(true)
-			return
+			logging.Fatal("Stopping Ethereum Listener, unable to get status, Error:", err)
 		}
 
 		if ethStatus.LastCheckHeight < 0 {
-			logging.Error("Stopping Ethereum Listener, eth status height is less than 0:", ethStatus.LastCheckHeight)
-			shutdown.SetETHStopped(true)
-			return
+			logging.Fatal("Stopping Ethereum Listener, eth status height is less than 0:", ethStatus.LastCheckHeight)
 		}
 
 		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > constants.EthereumBlockConfirmations {
@@ -83,16 +79,12 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 			err = db.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
-				logging.Error("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
-				shutdown.SetETHStopped(true)
-				return
+				logging.Fatal("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
 			}
 
 			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
 			if err != nil {
-				logging.Error("Stopping Ethereum Listener, onNewBlock error:", err)
-				shutdown.SetETHStopped(true)
-				return
+				logging.Fatal("Stopping Ethereum Listener, onNewBlock error:", err)
 			}
 		}
 		time.Sleep(sleepDuration)
