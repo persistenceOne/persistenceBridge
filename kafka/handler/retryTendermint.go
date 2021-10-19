@@ -47,6 +47,9 @@ ConsumerLoop:
 				}
 				m.WithdrawRewards = true
 				m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
+				if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+					break ConsumerLoop
+				}
 			}
 
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
