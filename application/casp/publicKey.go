@@ -14,6 +14,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
+// GetTMPubKey caspPubKey should include prefix "04"
 func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 	x, y := getXY(caspPubKey)
 
@@ -27,6 +28,7 @@ func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 	return &secp256k1.PubKey{Key: pk}
 }
 
+// GetEthPubKey caspPubKey should include prefix "04"
 func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	x, y := getXY(caspPubKey)
 	publicKey := ecdsa.PublicKey{
@@ -37,7 +39,7 @@ func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	return publicKey
 }
 
-// getXY Should include prefix "04"
+// getXY caspPubKey should include prefix "04"
 func getXY(caspPubKey string) (big.Int, big.Int) {
 	s := strings.Split(caspPubKey, "")
 	if s[0] != "0" && s[1] != "4" {
