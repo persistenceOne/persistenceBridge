@@ -15,13 +15,14 @@ import (
 func (m MsgHandler) HandleToEth(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var kafkaMsgs []sarama.ConsumerMessage
 	claimMsgChan := claim.Messages()
-	ticker := time.Tick(configuration.GetAppConfig().Kafka.ToEth.Ticker)
+	ticker := time.NewTicker(configuration.GetAppConfig().Kafka.ToEth.Ticker)
+	defer ticker.Stop()
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
 ConsumerLoop:
 	for {
 		select {
-		case <-ticker:
+		case <-ticker.C:
 			if len(kafkaMsgs) >= configuration.GetAppConfig().Kafka.ToEth.MinBatchSize {
 				break ConsumerLoop
 			} else {
