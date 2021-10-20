@@ -16,7 +16,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 	var response casp.SignOperationResponse
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
 		},
 	}}
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s", configuration.GetAppConfig().CASP.URL, operationID), nil)

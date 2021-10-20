@@ -36,7 +36,7 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 	responseBody := bytes.NewBuffer(postBody)
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
 		},
 	}}
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID), responseBody)
