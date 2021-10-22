@@ -3,7 +3,6 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -102,7 +101,10 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 		return txSearchResult.Txs, nil
 	}
 	resultTxs = append(resultTxs, txSearchResult.Txs...)
-	totalPages := int(math.Ceil(float64(txSearchResult.TotalCount) / float64(txsMaxPerPage)))
+	totalPages := (txSearchResult.TotalCount / txsMaxPerPage) + 1
+	if txSearchResult.TotalCount%txsMaxPerPage == 0 {
+		totalPages = txSearchResult.TotalCount / txsMaxPerPage
+	}
 	for i := page + 1; i <= totalPages; i++ {
 		txSearchResult, err = chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &i, &txsMaxPerPage, "asc")
 		if err != nil {
