@@ -18,6 +18,10 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 	}()
 
+	if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+		return nil
+	}
+
 	claimMsgChan := claim.Messages()
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
