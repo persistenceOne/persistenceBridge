@@ -5,8 +5,10 @@ import (
 )
 
 const (
-	cosmos   = "COSMOS"
-	ethereum = "ETHEREUM"
+	cosmos          = "COSMOS"
+	ethereum        = "ETHEREUM"
+	kafkaEthConsume = "KAFKA_ETHEREUM_CONSUME"
+	kafkaTMConsume  = "KAFKA_TENDERMINT_CONSUME"
 )
 
 type Status struct {
@@ -65,4 +67,20 @@ func GetEthereumStatus() (Status, error) {
 
 func SetEthereumStatus(height int64) error {
 	return setStatus(ethereum, height)
+}
+
+func getKafkaEthereumConsumeStatus() (Status, error) {
+	return getStatus(kafkaEthConsume)
+}
+
+func setKafkaEthereumConsumeStatus(height int64) error {
+	return setStatus(kafkaEthConsume, height)
+}
+
+func getKafkaTendermintConsumeStatus() (Status, error) {
+	return getStatus(kafkaEthConsume)
+}
+
+func setKafkaTendermintConsumeStatus(height int64) error {
+	return setStatus(kafkaTMConsume, height)
 }
