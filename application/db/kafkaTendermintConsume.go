@@ -10,7 +10,7 @@ import (
 type KafkaTendermintConsume struct {
 	Index      uint64
 	KafkaIndex int64
-	MsgBytes   []byte
+	MsgBytes   [][]byte
 	TxHash     tmBytes.HexBytes
 }
 
@@ -38,7 +38,7 @@ func (k KafkaTendermintConsume) Validate() error {
 	return nil
 }
 
-func AddKafkaTendermintConsume(kafkaIndex int64, msgBytes []byte) error {
+func AddKafkaTendermintConsume(kafkaIndex int64, msgBytes [][]byte) error {
 	kafkaTMConsumeStatus, err := getKafkaTendermintConsumeStatus()
 	if err != nil {
 		return err

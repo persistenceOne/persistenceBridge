@@ -10,7 +10,7 @@ import (
 type KafkaEthereumConsume struct {
 	Index      uint64
 	KafkaIndex int64
-	MsgBytes   []byte
+	MsgBytes   [][]byte
 	TxHash     common.Hash
 }
 
@@ -38,7 +38,7 @@ func (k KafkaEthereumConsume) Validate() error {
 	return nil
 }
 
-func AddKafkaEthereumConsume(kafkaIndex int64, msgBytes []byte) error {
+func AddKafkaEthereumConsume(kafkaIndex int64, msgBytes [][]byte) error {
 	kafkaEthereumConsumeStatus, err := getKafkaEthereumConsumeStatus()
 	if err != nil {
 		return err
