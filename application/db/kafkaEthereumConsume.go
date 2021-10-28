@@ -39,13 +39,13 @@ func (k KafkaEthereumConsume) Validate() error {
 }
 
 func AddKafkaEthereumConsume(kafkaIndex int64, msgBytes []byte) error {
-	kafkaTMConsumeStatus, err := getKafkaEthereumConsumeStatus()
+	kafkaEthereumConsumeStatus, err := getKafkaEthereumConsumeStatus()
 	if err != nil {
 		return err
 	}
 
 	err = set(&KafkaEthereumConsume{
-		Index:      uint64(kafkaTMConsumeStatus.LastCheckHeight),
+		Index:      uint64(kafkaEthereumConsumeStatus.LastCheckHeight),
 		KafkaIndex: kafkaIndex,
 		MsgBytes:   msgBytes,
 		TxHash:     common.Hash{},
@@ -54,7 +54,7 @@ func AddKafkaEthereumConsume(kafkaIndex int64, msgBytes []byte) error {
 		return err
 	}
 
-	return setKafkaEthereumConsumeStatus(kafkaTMConsumeStatus.LastCheckHeight + 1)
+	return setKafkaEthereumConsumeStatus(kafkaEthereumConsumeStatus.LastCheckHeight + 1)
 }
 
 func UpdateKafkaEthereumConsumeTxHash(index uint64, txHash common.Hash) error {
