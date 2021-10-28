@@ -78,7 +78,7 @@ func setKafkaEthereumConsumeStatus(height int64) error {
 }
 
 func getKafkaTendermintConsumeStatus() (Status, error) {
-	return getStatus(kafkaEthConsume)
+	return getStatus(kafkaTMConsume)
 }
 
 func setKafkaTendermintConsumeStatus(height int64) error {
