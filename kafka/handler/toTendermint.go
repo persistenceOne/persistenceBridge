@@ -56,6 +56,7 @@ ConsumerLoop:
 	}
 	// 2.set kafka offset
 	session.MarkMessage(kafkaMsg, "")
+
 	msgs, err := ConvertKafkaMsgsToSDKMsg(kafkaMsgs, m.ProtoCodec)
 	if err != nil {
 		return err
