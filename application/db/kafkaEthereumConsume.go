@@ -72,3 +72,10 @@ func GetKafkaEthereumConsume(index uint64) (KafkaEthereumConsume, error) {
 	err = json.Unmarshal(b, &result)
 	return result, err
 }
+
+func DeleteEthereumConsume(index uint64) error {
+	kafkaEthereumConsume := KafkaEthereumConsume{
+		Index: index,
+	}
+	return deleteKV(kafkaEthereumConsume.Key())
+}

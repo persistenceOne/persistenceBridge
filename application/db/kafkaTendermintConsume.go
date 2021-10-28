@@ -72,3 +72,10 @@ func GetKafkaTendermintConsume(index uint64) (KafkaTendermintConsume, error) {
 	err = json.Unmarshal(b, &result)
 	return result, err
 }
+
+func DeleteTendermintConsume(index uint64) error {
+	kafkaTendermintConsume := KafkaTendermintConsume{
+		Index: index,
+	}
+	return deleteKV(kafkaTendermintConsume.Key())
+}
