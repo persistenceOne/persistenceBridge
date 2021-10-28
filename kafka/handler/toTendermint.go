@@ -44,11 +44,26 @@ ConsumerLoop:
 	if kafkaMsg == nil {
 		return errors.New("kafka returned nil message")
 	}
-	err := SendBatchToTendermint(kafkaMsgs, m)
+
+	// 1.add to database
+	var msgBytes [][]byte
+	for _, msg := range kafkaMsgs {
+		msgBytes = append(msgBytes, msg.Value)
+	}
+	err := db.AddKafkaTendermintConsume(kafkaMsg.Offset, msgBytes)
 	if err != nil {
 		return err
 	}
+	// 2.set kafka offset
 	session.MarkMessage(kafkaMsg, "")
+	msgs, err := ConvertKafkaMsgsToSDKMsg(kafkaMsgs, m.ProtoCodec)
+	if err != nil {
+		return err
+	}
+	err = SendBatchToTendermint(msgs, m)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -66,11 +81,7 @@ func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *co
 }
 
 // SendBatchToTendermint :
-func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) error {
-	msgs, err := ConvertKafkaMsgsToSDKMsg(kafkaMsgs, handler.ProtoCodec)
-	if err != nil {
-		return err
-	}
+func SendBatchToTendermint(msgs []sdk.Msg, handler MsgHandler) error {
 
 	countPendingTx, err := db.CountTotalOutgoingTendermintTx()
 	if err != nil {

@@ -46,11 +46,29 @@ ConsumerLoop:
 	if kafkaMsg == nil {
 		return errors.New("kafka returned nil message")
 	}
-	err := SendBatchToEth(kafkaMsgs, m)
+
+	// 1.add to database
+	var msgBytes [][]byte
+	for _, msg := range kafkaMsgs {
+		msgBytes = append(msgBytes, msg.Value)
+	}
+	err := db.AddKafkaEthereumConsume(kafkaMsg.Offset, msgBytes)
 	if err != nil {
 		return err
 	}
+	// 2.set kafka offset
 	session.MarkMessage(kafkaMsg, "")
+
+	msgs, err := convertKafkaMsgsToEthMsg(kafkaMsgs)
+	if err != nil {
+		return err
+	}
+	logging.Info("batched messages to send to ETH:", msgs)
+
+	err = SendBatchToEth(msgs, m)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -68,12 +86,7 @@ func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingTx.
 }
 
 // SendBatchToEth : Handling of msgSend
-func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) error {
-	msgs, err := convertKafkaMsgsToEthMsg(kafkaMsgs)
-	if err != nil {
-		return err
-	}
-	logging.Info("batched messages to send to ETH:", msgs)
+func SendBatchToEth(msgs []outgoingTx.WrapTokenMsg, handler MsgHandler) error {
 
 	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
@@ -87,8 +100,12 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			}
 		}()
 
-		for i, kafkaMsg := range kafkaMsgs {
-			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToEth, producer)
+		for i, msg := range msgs {
+			msgBytes, err := json.Marshal(msg)
+			if err != nil {
+				logging.Error("Failed to Marshal an unmarshalled msg")
+			}
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, producer)
 			if err != nil {
 				logging.Error("Failed to add msg to kafka ToEth queue (need to do manually), message:", msgs[i], "error:", err)
 			}
