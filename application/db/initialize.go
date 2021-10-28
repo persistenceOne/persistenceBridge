@@ -38,22 +38,22 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 		}
 	}
 
-	kafkaTMConsumeStatus, err := getKafkaTendermintConsumeStatus()
+	kafkaTMConsumeStatus, err := GetKafkaTendermintConsumeStatus()
 	if err != nil {
 		return db, err
 	}
 	if kafkaTMConsumeStatus.LastCheckHeight == 0 {
-		err = setKafkaTendermintConsumeStatus(0)
+		err = SetKafkaTendermintConsumeStatus(0)
 		if err != nil {
 			return db, err
 		}
 	}
-	kafkaEthConsumeStatus, err := getKafkaEthereumConsumeStatus()
+	kafkaEthConsumeStatus, err := GetKafkaEthereumConsumeStatus()
 	if err != nil {
 		return db, err
 	}
 	if kafkaEthConsumeStatus.LastCheckHeight == 0 {
-		err = setKafkaEthereumConsumeStatus(0)
+		err = SetKafkaEthereumConsumeStatus(0)
 		if err != nil {
 			return db, err
 		}

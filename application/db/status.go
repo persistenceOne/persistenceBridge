@@ -69,18 +69,18 @@ func SetEthereumStatus(height int64) error {
 	return setStatus(ethereum, height)
 }
 
-func getKafkaEthereumConsumeStatus() (Status, error) {
+func GetKafkaEthereumConsumeStatus() (Status, error) {
 	return getStatus(kafkaEthConsume)
 }
 
-func setKafkaEthereumConsumeStatus(height int64) error {
+func SetKafkaEthereumConsumeStatus(height int64) error {
 	return setStatus(kafkaEthConsume, height)
 }
 
-func getKafkaTendermintConsumeStatus() (Status, error) {
+func GetKafkaTendermintConsumeStatus() (Status, error) {
 	return getStatus(kafkaTMConsume)
 }
 
-func setKafkaTendermintConsumeStatus(height int64) error {
+func SetKafkaTendermintConsumeStatus(height int64) error {
 	return setStatus(kafkaTMConsume, height)
 }

@@ -39,7 +39,7 @@ func (k KafkaEthereumConsume) Validate() error {
 }
 
 func AddKafkaEthereumConsume(kafkaIndex int64, msgBytes [][]byte) error {
-	kafkaEthereumConsumeStatus, err := getKafkaEthereumConsumeStatus()
+	kafkaEthereumConsumeStatus, err := GetKafkaEthereumConsumeStatus()
 	if err != nil {
 		return err
 	}
@@ -50,11 +50,7 @@ func AddKafkaEthereumConsume(kafkaIndex int64, msgBytes [][]byte) error {
 		MsgBytes:   msgBytes,
 		TxHash:     common.Hash{},
 	})
-	if err != nil {
-		return err
-	}
-
-	return setKafkaEthereumConsumeStatus(kafkaEthereumConsumeStatus.LastCheckHeight + 1)
+	return err
 }
 
 func UpdateKafkaEthereumConsumeTxHash(index uint64, txHash common.Hash) error {
