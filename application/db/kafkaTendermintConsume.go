@@ -38,10 +38,10 @@ func (k KafkaTendermintConsume) Validate() error {
 	return nil
 }
 
-func AddKafkaTendermintConsume(kafkaIndex int64, msgBytes [][]byte) error {
+func AddKafkaTendermintConsume(kafkaIndex int64, msgBytes [][]byte) (uint64, error) {
 	kafkaTMConsumeStatus, err := GetKafkaTendermintConsumeStatus()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	err = set(&KafkaTendermintConsume{
@@ -50,7 +50,11 @@ func AddKafkaTendermintConsume(kafkaIndex int64, msgBytes [][]byte) error {
 		MsgBytes:   msgBytes,
 		TxHash:     tmBytes.HexBytes{},
 	})
-	return err
+	err = SetKafkaTendermintConsumeStatus(kafkaTMConsumeStatus.LastCheckHeight + 1)
+	if err != nil {
+		return uint64(kafkaTMConsumeStatus.LastCheckHeight), err
+	}
+	return uint64(kafkaTMConsumeStatus.LastCheckHeight), err
 }
 
 func UpdateKafkaTendermintConsumeTxHash(index uint64, txHash tmBytes.HexBytes) error {
@@ -73,7 +77,7 @@ func GetKafkaTendermintConsume(index uint64) (KafkaTendermintConsume, error) {
 	return result, err
 }
 
-func DeleteTendermintConsume(index uint64) error {
+func DeleteKafkaTendermintConsume(index uint64) error {
 	kafkaTendermintConsume := KafkaTendermintConsume{
 		Index: index,
 	}
