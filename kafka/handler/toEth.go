@@ -83,11 +83,11 @@ func convertMsgBytesToEthMsg(msgBytes [][]byte) ([]outgoingTx.WrapTokenMsg, erro
 func SendBatchToEth(index uint64, handler MsgHandler) error {
 	kafkaConsume, err := db.GetKafkaEthereumConsume(index)
 	if err != nil {
-		return err
+		logging.Fatal(err)
 	}
 	msgs, err := convertMsgBytesToEthMsg(kafkaConsume.MsgBytes)
 	if err != nil {
-		return err
+		logging.Fatal(err)
 	}
 	logging.Info("batched messages to send to ETH:", msgs)
 
