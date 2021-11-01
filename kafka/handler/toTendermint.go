@@ -136,6 +136,7 @@ func SendBatchToTendermint(index uint64, handler MsgHandler) error {
 	if !txBroadcastSuccess {
 		addToRetryTendermintQueue(msgs, index, handler)
 	}
+	checkKafkaTendermintConsumeDBAndAddToRetry(handler)
 	return nil
 }
 
@@ -163,6 +164,24 @@ func addToRetryTendermintQueue(msgs []sdk.Msg, index uint64, handler MsgHandler)
 				logging.Error("Retry txs: Failed to add msg to kafka RetryTendermint queue, Msg:", msg.String(), "Error:", err)
 			}
 			logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
+		}
+	}
+}
+
+func checkKafkaTendermintConsumeDBAndAddToRetry(handler MsgHandler) {
+	//all logging, no return
+	kafkaTendermintConsumes, err := db.GetEmptyTxHashesTM()
+	if err != nil {
+		logging.Error(err)
+	}
+	if len(kafkaTendermintConsumes) > 0 {
+
+		for _, kafkaTendermintConsume := range kafkaTendermintConsumes {
+			msgs, err := ConvertMsgBytesToSDKMsg(kafkaTendermintConsume.MsgBytes, handler.ProtoCodec)
+			if err != nil {
+				logging.Error(err)
+			}
+			addToRetryTendermintQueue(msgs, kafkaTendermintConsume.Index, handler)
 		}
 	}
 

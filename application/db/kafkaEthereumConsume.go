@@ -83,3 +83,20 @@ func DeleteKafkaEthereumConsume(index uint64) error {
 	}
 	return deleteKV(kafkaEthereumConsume.Key())
 }
+
+func GetEmptyTxHashesETH() ([]KafkaEthereumConsume, error) {
+	var list []KafkaEthereumConsume
+	err := iterateKeyValues(kafkaEthereumConsumePrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
+		var k KafkaEthereumConsume
+		err := json.Unmarshal(value, &k)
+		if err != nil {
+			return err
+		}
+
+		if k.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+			list = append(list, k)
+		}
+		return nil
+	})
+	return list, err
+}

@@ -83,3 +83,19 @@ func DeleteKafkaTendermintConsume(index uint64) error {
 	}
 	return deleteKV(kafkaTendermintConsume.Key())
 }
+
+func GetEmptyTxHashesTM() ([]KafkaTendermintConsume, error) {
+	var list []KafkaTendermintConsume
+	err := iterateKeyValues(kafkaTendermintConsumePrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
+		var k KafkaTendermintConsume
+		err := json.Unmarshal(value, &k)
+		if err != nil {
+			return err
+		}
+		if len(k.TxHash.Bytes()) == 0 {
+			list = append(list, k)
+		}
+		return nil
+	})
+	return list, err
+}
