@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -41,7 +42,15 @@ ConsumerLoop:
 				return err
 			}
 			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
-				loop, err := WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain)
+				validators, err := db.GetValidators()
+				if err != nil {
+					return err
+				}
+				loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - m.Count
+				if loop <= len(validators) {
+					return nil
+				}
+				loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain)
 				if err != nil {
 					return err
 				}

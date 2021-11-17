@@ -43,6 +43,10 @@ func (m MsgHandler) HandleRedelegate(session sarama.ConsumerGroupSession, claim 
 	if err != nil {
 		return err
 	}
+	if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count < len(validatorSet) {
+		logging.Error("ReDelegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
+		return nil
+	}
 	// query validator delegation
 	delegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetWrapAddress(), m.Chain)
 	if err != nil {

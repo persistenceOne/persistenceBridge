@@ -49,6 +49,9 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 						return err
 					}
 					m.Count = m.Count + len(validators)
+					if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+						break ConsumerLoop
+					}
 					m.WithdrawRewards = true
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
