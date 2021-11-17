@@ -67,7 +67,7 @@ ConsumerLoop:
 		var unbondMsgs []*stakingTypes.MsgUndelegate
 		for _, delegation := range delegatorDelegations {
 			unbondingShare := ratio.Mul(delegation.Balance.Amount.ToDec()).RoundInt()
-			if unbondingShare.LT(delegation.Balance.Amount) {
+			if unbondingShare.LTE(delegation.Balance.Amount) {
 				unbondings = unbondings.Add(unbondingShare)
 			} else {
 				logging.Error("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
