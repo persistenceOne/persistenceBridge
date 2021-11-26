@@ -76,8 +76,6 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		}
 		return nil
 	})
-
-
 }
 
 
