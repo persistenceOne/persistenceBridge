@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-KAFKA_VERSION=2.8.0
+KAFKA_VERSION=2.8.1
 KAFKA_FOLDER=kafka_2.13-"$KAFKA_VERSION"
 
 if [ -d $KAFKA_FOLDER ]; then
@@ -13,7 +13,6 @@ else
   tar -xzf "$KAFKA_FOLDER".tgz
   rm "$KAFKA_FOLDER".tgz
 fi
-
 cd "$KAFKA_FOLDER"
 
 bin/zookeeper-server-start.sh config/zookeeper.properties &

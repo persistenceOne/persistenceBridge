@@ -1,9 +1,19 @@
 package logging
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
+	"github.com/pkg/errors"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
+	"math/big"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )
@@ -71,4 +81,44 @@ func sendMessage(message string) error {
 		}
 	}
 	return nil
+}
+
+func ErrorReason(ctx context.Context, from common.Address, tx *types.Transaction, blockNum *big.Int, ethClient ethclient.Client) error {
+	if tx.To().Hash() == common.HexToHash(utils.BlackHole){
+		return errors.New( "ZeroAddress not allowed")
+	}
+	msg := ethereum.CallMsg{
+		From:     from,
+		To:       tx.To(),
+		Gas:      tx.Gas(),
+		GasPrice: tx.GasPrice(),
+		Value:    tx.Value(),
+		Data:     tx.Data(),
+	}
+
+	res, err := ethClient.CallContract(ctx, msg, blockNum)
+	if err != nil {
+		return errors.Wrap(err, "Cannot get revert reason fatal")
+	}
+	if len(res) == 0 {
+		return errors.New("Out of gas")
+	}
+
+	return unpackError(res)
+}
+
+var (
+	errorSig            = []byte{0x08, 0xc3, 0x79, 0xa0} // Keccak256("Error(string)")[:4]
+	abiString, _        = abi.NewType("string", "", nil)
+)
+
+func unpackError(result []byte) error {
+	if !bytes.Equal(result[:4], errorSig) {
+		return errors.New("TX result not of type Error(string)")
+	}
+	vs, err := abi.Arguments{{Type: abiString}}.UnpackValues(result[4:])
+	if err != nil {
+		return errors.Wrap(err, "Unpacking revert reason")
+	}
+	return errors.New(vs[0].(string))
 }

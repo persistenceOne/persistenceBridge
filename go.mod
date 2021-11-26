@@ -12,6 +12,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.8
 	github.com/gorilla/mux v1.8.0
 	github.com/gravity-devs/liquidity v1.2.9
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/tendermint v0.34.11

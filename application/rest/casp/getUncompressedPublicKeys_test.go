@@ -13,9 +13,7 @@ func TestGetUncompressedPublicKeys(t *testing.T) {
 	funcResponse, err := GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "tendermint")
-	require.Equal(t, 1, len(funcResponse.PublicKeys))
 	funcResponse, err = GetUncompressedEthPublicKeys()
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "ethereum")
-	require.Equal(t, 1, len(funcResponse.PublicKeys))
 }

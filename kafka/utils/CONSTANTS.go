@@ -37,3 +37,8 @@ var Topics = []string{
 	EthUnbond, MsgSend, MsgDelegate, Redelegate, MsgUnbond,
 	ToEth, RetryTendermint, ToTendermint,
 }
+
+
+//
+
+const BlackHole = "0x0000000000000000000000000000000000000000"

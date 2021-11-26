@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/Shopify/sarama"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,7 +19,15 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal OutgoingEthereumTransaction %s [ETH onNewBlock]: %s", string(key), err.Error())
 		}
+		fmt.Println(ethTx.TxHash)
+		transaction, _, err := client.TransactionByHash(ctx, ethTx.TxHash)
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
+		fmt.Println(txReceipt.Logs)
+		sender, err := client.TransactionSender(ctx, transaction, txReceipt.BlockHash,txReceipt.TransactionIndex)
+		fmt.Println(sender.Hash())
+		if err!= nil {
+			fmt.Println(err.Error())
+		}
 		if err != nil {
 			if txReceipt == nil && err == ethereum.NotFound {
 				logging.Info("Broadcast ethereum tx pending:", ethTx.TxHash)
@@ -30,6 +37,10 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		} else {
 			deleteTx := false
 			if txReceipt.Status == 0 {
+				err := logging.ErrorReason(ctx, sender, transaction, txReceipt.BlockNumber, *client)
+				if err!=nil {
+					return err
+				}
 				logging.Error("Broadcast ethereum tx failed, Hash:", ethTx.TxHash.String(), "Block:", txReceipt.BlockNumber.Uint64())
 				for _, msg := range ethTx.Messages {
 					msgBytes, err := json.Marshal(msg)
@@ -59,4 +70,6 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		}
 		return nil
 	})
+
+
 }
