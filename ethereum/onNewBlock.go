@@ -94,7 +94,9 @@ func getError(ctx context.Context, from common.Address, tx *types.Transaction, b
 		return errors.Wrap(err, "Cannot get revert reason fatal")
 	}
 	if len(res) == 0 {
-		return errors.New("Out of gas")
+		logging.Error("Out of gas")
+
+		return nil
 	}
 
 	return unpackError(res)
