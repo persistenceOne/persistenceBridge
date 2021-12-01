@@ -63,6 +63,8 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 			logging.Info("Ethereum Block:", processHeight)
 
+			BalanceCheck(processHeight.Uint64(), client)
+
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
 				logging.Error("Unable to fetch ethereum block:", processHeight, "Error:", err)
