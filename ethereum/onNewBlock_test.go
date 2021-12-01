@@ -8,7 +8,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
@@ -39,11 +38,11 @@ func TestOnNewBlock(t *testing.T) {
 	Address := common.BytesToAddress([]byte("0xce3f57a8de9aa69da3289871b5fee5e77ffcf480"))
 	amt := new(big.Int)
 	amt.SetInt64(1000)
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
+	wrapTokenMsg := db.WrapTokenMsg{
 		Address: Address,
 		Amount:  amt,
 	}
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd := []db.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   TxhashFail,
@@ -59,11 +58,11 @@ func TestOnNewBlock(t *testing.T) {
 	Address = common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	amt = new(big.Int)
 	amt.SetInt64(1000)
-	wrapTokenMsg = outgoingTx.WrapTokenMsg{
+	wrapTokenMsg = db.WrapTokenMsg{
 		Address: Address,
 		Amount:  amt,
 	}
-	txd = []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd = []db.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction = db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,

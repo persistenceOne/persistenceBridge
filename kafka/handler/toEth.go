@@ -66,10 +66,10 @@ ConsumerLoop:
 	return nil
 }
 
-func convertMsgBytesToEthMsg(msgBytes [][]byte) ([]outgoingTx.WrapTokenMsg, error) {
-	msgs := make([]outgoingTx.WrapTokenMsg, len(msgBytes))
+func convertMsgBytesToEthMsg(msgBytes [][]byte) ([]db.WrapTokenMsg, error) {
+	msgs := make([]db.WrapTokenMsg, len(msgBytes))
 	for i, msgByte := range msgBytes {
-		var msg outgoingTx.WrapTokenMsg
+		var msg db.WrapTokenMsg
 		err := json.Unmarshal(msgByte, &msg)
 		if err != nil {
 			return nil, err
@@ -91,7 +91,7 @@ func SendBatchToEth(index uint64, handler MsgHandler) error {
 	}
 	logging.Info("batched messages to send to ETH:", msgs)
 
-	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
+	hash, err := outgoingTx.EthereumWrapAndStakeToken(handler.EthClient, msgs)
 	if err != nil {
 		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
 		config := utils.SaramaConfig()
@@ -156,7 +156,7 @@ func checkKafkaEthereumConsumeDBAndAddToRetry() {
 			for _, msgByte := range kafkaEthereumConsume.MsgBytes {
 				err = utils.ProducerDeliverMessage(msgByte, utils.ToEth, producer)
 				if err != nil {
-					var msg outgoingTx.WrapTokenMsg
+					var msg db.WrapTokenMsg
 					err2 := json.Unmarshal(msgByte, &msg)
 					if err2 != nil {
 						logging.Error("Failed to Unmarshal Retry ToEth queue msg", "error:", err)

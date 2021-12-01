@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -18,23 +19,20 @@ import (
 
 var ethBridgeAdmin common.Address
 
-type WrapTokenMsg struct {
-	Address common.Address `json:"address"`
-	Amount  *big.Int       `json:"amount"`
-}
-
-func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Hash, error) {
+func EthereumWrapAndStakeToken(client *ethclient.Client, msgs []db.WrapTokenMsg) (common.Hash, error) {
 	if len(msgs) == 0 {
 		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
 	}
-	contractAddress := contracts.TokenWrapper.GetAddress()
+	contractAddress := contracts.LiquidStaking.GetAddress()
 	addresses := make([]common.Address, len(msgs))
-	amounts := make([]*big.Int, len(msgs))
+	stakingAmounts := make([]*big.Int, len(msgs))
+	wrappingAmounts := make([]*big.Int, len(msgs))
 	for i, msg := range msgs {
 		addresses[i] = msg.Address
-		amounts[i] = msg.Amount
+		stakingAmounts[i] = msg.StakingAmount
+		wrappingAmounts[i] = msg.WrapAmount
 	}
-	bytesData, err := contracts.TokenWrapper.GetABI().Pack("generateUTokensInBatch", addresses, amounts)
+	bytesData, err := contracts.LiquidStaking.GetABI().Pack("stakeDirectInBatch", addresses, stakingAmounts, wrappingAmounts)
 	if err != nil {
 		return common.Hash{}, err
 	}

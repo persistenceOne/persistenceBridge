@@ -14,7 +14,6 @@ import (
 	goEthCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -102,17 +101,26 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 		if err != nil {
 			logging.Fatal(fmt.Errorf("failed to get IncomingTendermintTx by TendermintTxToKafka [TM Listener]: %s", err.Error()))
 		}
-		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
-		var ethAddress goEthCommon.Address
-		if validEthMemo {
-			ethAddress = goEthCommon.HexToAddress(tx.Memo)
+		validMemo := true
+		ethAddress, ratio, err := getWrapAddressAndStakingRatio(tx.Memo)
+		if err != nil {
+			validMemo = false
 		}
 
-		if tx.Denom == configuration.GetAppConfig().Tendermint.Denom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
-			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String())
-			ethTxMsg := outgoingTx.WrapTokenMsg{
-				Address: ethAddress,
-				Amount:  tx.Amount.BigInt(),
+		if tx.Denom == configuration.GetAppConfig().Tendermint.Denom && validMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
+			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String(), "Ratio:", ratio.String())
+			fromAddress, err := sdk.AccAddressFromBech32(tx.FromAddress)
+			if err != nil {
+				panic(err)
+			}
+			stakingAmount := sdk.NewDecFromInt(tx.Amount).Mul(ratio).TruncateInt()
+			wrapAmount := tx.Amount.Sub(stakingAmount)
+			ethTxMsg := db.WrapTokenMsg{
+				FromAddress:      fromAddress,
+				TendermintTxHash: tx.TxHash,
+				Address:          ethAddress,
+				StakingAmount:    stakingAmount.BigInt(),
+				WrapAmount:       wrapAmount.BigInt(),
 			}
 			msgBytes, err := json.Marshal(ethTxMsg)
 			if err != nil {
@@ -150,4 +158,31 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncPr
 	if err != nil {
 		logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))
 	}
+}
+
+func getWrapAddressAndStakingRatio(memo string) (goEthCommon.Address, sdk.Dec, error) {
+	split := strings.Split(memo, ",")
+	if len(split) > 2 || len(split) == 0 {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
+	}
+	isEthAddress := false
+	var ethAddress goEthCommon.Address
+	if goEthCommon.IsHexAddress(split[0]) {
+		ethAddress = goEthCommon.HexToAddress(split[0])
+		isEthAddress = ethAddress.String() != goEthCommon.Address{}.String()
+	}
+	if !isEthAddress {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
+	}
+	if len(split) == 1 {
+		return ethAddress, sdk.ZeroDec(), nil
+	}
+	ratio, err := sdk.NewDecFromStr(split[1])
+	if err != nil {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
+	}
+	if ratio.IsNegative() {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("negative ratio: invalid memo for bridge")
+	}
+	return ethAddress, ratio, nil
 }

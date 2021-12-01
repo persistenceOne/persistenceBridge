@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"math/big"
@@ -23,17 +24,17 @@ func TestEthereumWrapToken(t *testing.T) {
 	test.SetTestConfig()
 
 	ethAddress, _ := casp.GetEthAddress()
-	wrapTokenMsg := []WrapTokenMsg{{
+	wrapTokenMsg := []db.WrapTokenMsg{{
 		Address: ethAddress,
 		Amount:  &big.Int{}},
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Equal(t, nil, err)
-	_, err = EthereumWrapToken(ethereumClient, nil)
+	_, err = EthereumWrapAndStakeToken(ethereumClient, nil)
 	require.Equal(t, "no wrap token messages to broadcast", err.Error())
 
-	txHash, err := EthereumWrapToken(ethereumClient, wrapTokenMsg)
+	txHash, err := EthereumWrapAndStakeToken(ethereumClient, wrapTokenMsg)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, txHash)
 	require.Equal(t, true, re.MatchString(txHash.String()))

@@ -14,7 +14,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
@@ -131,11 +130,11 @@ func TestProduceToKafka(t *testing.T) {
 	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	amt := new(big.Int)
 	amt.SetInt64(1000)
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
+	wrapTokenMsg := db.WrapTokenMsg{
 		Address: Address,
 		Amount:  amt,
 	}
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd := []db.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,

@@ -1,8 +1,8 @@
 export GO111MODULE=on
 
-export SMART_CONTRACT_VERSION=4aac303e15d4ad01ffdf44f1ce376f0f509c765a
-export LIQUID_STAKING=LiquidStakingV2
-export TOKEN_WRAPPER=TokenWrapperV2
+export SMART_CONTRACT_VERSION=fbda08567aac3acd004e36dfe670a44253453907
+export LIQUID_STAKING=LiquidStakingV3
+export TOKEN_WRAPPER=TokenWrapperV3
 export OPENZEPPELIN_VERSION=v3.4.2
 
 VERSION := $(shell echo $(shell git describe --always) | sed 's/^v//')
