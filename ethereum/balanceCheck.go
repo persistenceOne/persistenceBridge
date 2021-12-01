@@ -8,15 +8,20 @@ import (
 	"math/big"
 )
 
+var balanceWarn = false
+
 func BalanceCheck(currentHeight uint64, client *ethclient.Client) {
-	if configuration.GetAppConfig().Ethereum.BalanceCheckPeriod != 0 && currentHeight%configuration.GetAppConfig().Ethereum.BalanceCheckPeriod == 0 {
+	if balanceWarn || (configuration.GetAppConfig().Ethereum.BalanceCheckPeriod != 0 && currentHeight%configuration.GetAppConfig().Ethereum.BalanceCheckPeriod == 0) {
 		balance, err := client.BalanceAt(context.Background(), configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress(), nil)
 		if err != nil {
 			logging.Error("Unable to fetch eth bridge admin balance")
 		}
 		ethAlertAmount := big.NewInt(0).Mul(big.NewInt(configuration.GetAppConfig().Ethereum.AlertAmount), big.NewInt(1000000000))
 		if balance.Cmp(ethAlertAmount) <= 0 {
+			balanceWarn = true
 			logging.Warn("Ethereum bridge admin address", configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress().String(), "balance has fallen below  ")
+		} else {
+			balanceWarn = false
 		}
 	}
 }
