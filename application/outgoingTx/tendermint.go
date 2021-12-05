@@ -10,14 +10,17 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/tendermint/tendermint/crypto"
@@ -29,11 +32,11 @@ var tmPublicKey cryptotypes.PubKey
 func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	msgsTypes := ""
 	for _, msg := range msgs {
-		if msg.Type() == bankTypes.TypeMsgSend {
+		if sdk.MsgTypeURL(msg) == constants.MsgSendTypeUrl {
 			sendCoin := msg.(*bankTypes.MsgSend)
-			msgsTypes = msgsTypes + msg.Type() + " [to: " + sendCoin.ToAddress + " amount: " + sendCoin.Amount.String() + "] "
+			msgsTypes = msgsTypes + sendCoin.Type() + " [to: " + sendCoin.ToAddress + " amount: " + sendCoin.Amount.String() + "] "
 		} else {
-			msgsTypes = msgsTypes + msg.Type() + " "
+			msgsTypes = msgsTypes + sdk.MsgTypeURL(msg) + " "
 		}
 	}
 	logging.Info("Messages to tendermint:", msgsTypes)
@@ -70,12 +73,12 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
 
-	txFactory, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
+	txFactory, err := prepareFactory(ctx, chain.TxFactory(0))
 	if err != nil {
 		return []byte{}, nil, txFactory, err
 	}
 
-	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
+	_, adjusted, err := tx.CalculateGas(ctx, txFactory, msgs...)
 	if err != nil {
 		return []byte{}, nil, txFactory, err
 	}
@@ -191,4 +194,82 @@ func setTMPublicKey() error {
 	}
 	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	return nil
+}
+
+func prepareFactory(clientCtx client.Context, txf tx.Factory) (tx.Factory, error) {
+	from := clientCtx.GetFromAddress()
+
+	if err := txf.AccountRetriever().EnsureExists(clientCtx, from); err != nil {
+		return txf, err
+	}
+
+	initNum, initSeq := txf.AccountNumber(), txf.Sequence()
+	if initNum == 0 || initSeq == 0 {
+		num, seq, err := txf.AccountRetriever().GetAccountNumberSequence(clientCtx, from)
+		if err != nil {
+			return txf, err
+		}
+
+		if initNum == 0 {
+			txf = txf.WithAccountNumber(num)
+		}
+
+		if initSeq == 0 {
+			txf = txf.WithSequence(seq)
+		}
+	}
+
+	return txf, nil
+}
+
+func calculateGas(queryFunc func(string, []byte) ([]byte, int64, error), txf tx.Factory, msgs ...sdk.Msg) (txTypes.SimulateResponse, uint64, error) {
+	txBytes, err := buildSimTx(txf, msgs...)
+	if err != nil {
+		return txTypes.SimulateResponse{}, 0, err
+	}
+
+	bz, _, err := queryFunc("/cosmos.tx.v1beta1.Service/Simulate", txBytes)
+	if err != nil {
+		return txTypes.SimulateResponse{}, 0, err
+	}
+
+	var simRes txTypes.SimulateResponse
+
+	if err := simRes.Unmarshal(bz); err != nil {
+		return txTypes.SimulateResponse{}, 0, err
+	}
+
+	return simRes, uint64(txf.GasAdjustment() * float64(simRes.GasInfo.GasUsed)), nil
+}
+
+type protoTxProvider interface {
+	GetProtoTx() *txTypes.Tx
+}
+
+func buildSimTx(txf tx.Factory, msgs ...sdk.Msg) ([]byte, error) {
+	txb, err := tx.BuildUnsignedTx(txf, msgs...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create an empty signature literal as the ante handler will populate with a
+	// sentinel pubkey.
+	sig := signing.SignatureV2{
+		PubKey: &secp256k1.PubKey{},
+		Data: &signing.SingleSignatureData{
+			SignMode: txf.SignMode(),
+		},
+		Sequence: txf.Sequence(),
+	}
+	if err := txb.SetSignatures(sig); err != nil {
+		return nil, err
+	}
+
+	protoProvider, ok := txb.(protoTxProvider)
+	if !ok {
+		return nil, fmt.Errorf("cannot simulate amino tx")
+	}
+	simReq := txTypes.SimulateRequest{Tx: protoProvider.GetProtoTx()}
+
+	return simReq.Marshal()
 }
