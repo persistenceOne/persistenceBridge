@@ -6,8 +6,8 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -154,7 +154,7 @@ func addToRetryTendermintQueue(msgs []sdk.Msg, index uint64, handler MsgHandler)
 		logging.Error("Failed to delete Tendermint msg at index: ", index, " Error: ", err)
 	}
 	for _, msg := range msgs {
-		if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
+		if sdk.MsgTypeURL(msg) != constants.MsgWithdrawDelegatorRewardTypeUrl {
 			msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
 			if err != nil {
 				logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)

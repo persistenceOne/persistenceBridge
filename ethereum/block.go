@@ -3,6 +3,7 @@ package ethereum
 import (
 	"context"
 	"fmt"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -69,7 +70,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 					TxHash:   transaction.Hash(),
 					MsgBytes: msgBytes,
 					Sender:   sender,
-					MsgType:  msg.Type(),
+					MsgType:  sdkTypes.MsgTypeURL(msg),
 				})
 				if err != nil {
 					return err
