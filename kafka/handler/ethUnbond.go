@@ -101,15 +101,17 @@ ConsumerLoop:
 		}
 
 		for _, unbondMsg := range unbondMsgs {
-			msgBytes, err := m.ProtoCodec.MarshalInterface(unbondMsg)
-			if err != nil {
-				return err
-			}
+			if !unbondMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
+				msgBytes, err := m.ProtoCodec.MarshalInterface(unbondMsg)
+				if err != nil {
+					return err
+				}
 
-			err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
-			if err != nil {
-				logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
-				return err
+				err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
+				if err != nil {
+					logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
+					return err
+				}
 			}
 		}
 		session.MarkMessage(kafkaMsg, "")
