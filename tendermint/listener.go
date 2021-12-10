@@ -70,6 +70,13 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				continue
 			}
 
+			validatorList, err := db.GetValidators()
+			err = handleSlashedOrAboutToBeSlashed(chain, validatorList, processHeight)
+			if err != nil {
+				logging.Error("Unable to handle jailed or to be jailed check at height:", processHeight, "ERR:", err)
+				continue
+			}
+
 			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
 			if err != nil {
 				logging.Error("Unable to handle tendermint txs at height:", processHeight, "ERR:", err)

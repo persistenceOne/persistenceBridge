@@ -2,7 +2,9 @@ package tendermint
 
 import (
 	"context"
-
+	"github.com/cosmos/cosmos-sdk/client/rpc"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	slashingTypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -52,4 +54,38 @@ func QueryDelegatorDelegations(delegatorAddress string, chain *relayer.Chain) (s
 		return nil, err
 	}
 	return stakingRes.DelegationResponses, err
+}
+
+func QueryValidatorStatus(validatorAddress sdk.ValAddress, chain *relayer.Chain) (stakingTypes.QueryValidatorResponse, error) {
+	stakingClient := stakingTypes.NewQueryClient(chain.CLIContext(0))
+	stakingResponse, err := stakingClient.Validator(context.Background(), &stakingTypes.QueryValidatorRequest{ValidatorAddr: validatorAddress.String()})
+	if err != nil {
+		logging.Info("Validator's staking response not found, Error:", err)
+		return stakingTypes.QueryValidatorResponse{}, err
+	}
+	return *stakingResponse, err
+}
+
+func QueryAllValidators(chain *relayer.Chain) ([]rpc.ValidatorOutput, error) {
+	height, _ := chain.QueryLatestHeight()
+	var (
+		page    = 1
+		perPage = 10000
+	)
+	valOutput, err := rpc.GetValidators(chain.CLIContext(0), &height, &page, &perPage)
+	if err != nil {
+		logging.Info("List of Validators not found, Error:", err)
+		return nil, err
+	}
+	return valOutput.Validators, err
+}
+
+func QuerySlashingSigningInfo(consAddress sdk.ConsAddress, chain *relayer.Chain) (slashingTypes.QuerySigningInfoResponse, error) {
+	slashingClient := slashingTypes.NewQueryClient(chain.CLIContext(0))
+	slashingResponse, err := slashingClient.SigningInfo(context.Background(), &slashingTypes.QuerySigningInfoRequest{ConsAddress: consAddress.String()})
+	if err != nil {
+		logging.Info("Validator's signing info not found, Error:", err)
+		return slashingTypes.QuerySigningInfoResponse{}, err
+	}
+	return *slashingResponse, err
 }
