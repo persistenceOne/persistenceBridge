@@ -22,6 +22,7 @@ import (
 
 func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range resultTxs {
+		logging.Info("Tendermint TX:", transaction.Hash.String())
 		err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
