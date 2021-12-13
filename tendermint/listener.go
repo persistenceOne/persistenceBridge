@@ -60,7 +60,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			return
 		}
 
-		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > 2 {
+		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > 5 {
 			processHeight := cosmosStatus.LastCheckHeight + 1
 			logging.Info("Tendermint Block:", processHeight)
 
