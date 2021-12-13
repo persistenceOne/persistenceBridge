@@ -107,6 +107,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 		var ethAddress goEthCommon.Address
 		if validEthMemo {
 			ethAddress = goEthCommon.HexToAddress(tx.Memo)
+			validEthMemo = goEthCommon.Address{}.String() != tx.Memo
 		}
 
 		if tx.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
