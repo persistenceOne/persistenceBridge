@@ -3,7 +3,6 @@ package tendermint
 import (
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"time"
@@ -18,7 +17,7 @@ func allValidatorsMap(chain *relayer.Chain) (map[string]types.ConsAddress, error
 	return m, nil
 }
 
-func handleSlashedOrAboutToBeSlashed(chain *relayer.Chain, validators []db.Validator, processHeight int64) error {
+func handleSlashedOrAboutToBeSlashed(chain *relayer.Chain, validators []db.Validator, processHeight int64, maxMissed int64) error {
 	validatorsMap, err := allValidatorsMap(chain)
 	if err != nil {
 		return err
@@ -33,10 +32,10 @@ func handleSlashedOrAboutToBeSlashed(chain *relayer.Chain, validators []db.Valid
 		if len(validatorsMap[string(compareBytes)]) > 0 {
 			slashingInfoAboutValidator, err := QuerySlashingSigningInfo(validatorsMap[string(compareBytes)], chain)
 			if err != nil {
-				logging.Info("Could not find the signing info about the validator", processHeight, "Validator Name:", validator.Name)
+				logging.Info("Could not find the signing info about the validator", processHeight, "Validator Name:", validator.Name, "ERR:", err)
 			}
 
-			if slashingInfoAboutValidator.ValSigningInfo.MissedBlocksCounter > configuration.GetAppConfig().TelegramBot.NotificationHeight {
+			if slashingInfoAboutValidator.ValSigningInfo.MissedBlocksCounter > maxMissed {
 				logging.Error("Validator is about to be jailed", processHeight, "Validator Name:", validator.Name)
 			}
 

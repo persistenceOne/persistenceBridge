@@ -108,16 +108,14 @@ type TopicConsumer struct {
 }
 
 type telegramBot struct {
-	Token              string
-	ChatID             int64
-	NotificationHeight int64
+	Token  string
+	ChatID int64
 }
 
 func newTelegramBot() telegramBot {
 	return telegramBot{
-		Token:              "",
-		ChatID:             0,
-		NotificationHeight: 100,
+		Token:  "",
+		ChatID: 0,
 	}
 }
 

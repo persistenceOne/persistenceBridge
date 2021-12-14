@@ -89,3 +89,13 @@ func QuerySlashingSigningInfo(consAddress sdk.ConsAddress, chain *relayer.Chain)
 	}
 	return *slashingResponse, err
 }
+
+func QuerySlashingParams(chain *relayer.Chain) (slashingTypes.QueryParamsResponse, error) {
+	slashingClient := slashingTypes.NewQueryClient(chain.CLIContext(0))
+	slashingResponse, err := slashingClient.Params(context.Background(), &slashingTypes.QueryParamsRequest{})
+	if err != nil {
+		logging.Info("Params not found, Error:", err)
+		return slashingTypes.QueryParamsResponse{}, err
+	}
+	return *slashingResponse, err
+}

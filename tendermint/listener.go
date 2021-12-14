@@ -26,6 +26,14 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			logging.Error(err)
 		}
 	}(kafkaProducer)
+	blockCounter := (int64)(1)
+	slashingParamsResponse, err := QuerySlashingParams(chain)
+	if err != nil {
+		logging.Error("Params not found", "ERR:", err)
+	}
+	signedBlockWindow := slashingParamsResponse.Params.SignedBlocksWindow
+	minSignedPerWindow := slashingParamsResponse.Params.MinSignedPerWindow.MulInt64(signedBlockWindow).RoundInt64()
+	blockCheckInterval := ((signedBlockWindow - minSignedPerWindow) * 90) / 100
 
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
@@ -70,11 +78,16 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				continue
 			}
 
-			validatorList, err := db.GetValidators()
-			err = handleSlashedOrAboutToBeSlashed(chain, validatorList, processHeight)
-			if err != nil {
-				logging.Error("Unable to handle jailed or to be jailed check at height:", processHeight, "ERR:", err)
-				continue
+			if blockCounter <= blockCheckInterval {
+				blockCounter += 1
+			} else {
+				validatorList, err := db.GetValidators()
+				err = handleSlashedOrAboutToBeSlashed(chain, validatorList, processHeight, blockCheckInterval)
+				if err != nil {
+					logging.Error("Unable to handle jailed or to be jailed check at height:", processHeight, "ERR:", err)
+					continue
+				}
+				blockCounter = 1
 			}
 
 			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
