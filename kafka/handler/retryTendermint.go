@@ -4,9 +4,9 @@ import (
 	"errors"
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -38,7 +38,7 @@ ConsumerLoop:
 			if err != nil {
 				return err
 			}
-			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
+			if sdk.MsgTypeURL(msg) == constants.MsgSendTypeUrl && !m.WithdrawRewards {
 				loop, err := WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain)
 				if err != nil {
 					return err
@@ -48,7 +48,7 @@ ConsumerLoop:
 			}
 
 			//TODO remove: This is added as fix for smooth migration.
-			if msg.Type() == stakingTypes.TypeMsgDelegate {
+			if sdk.MsgTypeURL(msg) == constants.MsgDelegateTypeUrl {
 				switch txMsg := msg.(type) {
 				case *stakingTypes.MsgDelegate:
 					if txMsg.Amount.Amount.LTE(sdk.ZeroInt()) {

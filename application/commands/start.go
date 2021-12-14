@@ -136,14 +136,15 @@ func StartCommand() *cobra.Command {
 
 			encodingConfig := application.MakeEncodingConfig()
 			clientContext := client.Context{}.
-				WithJSONMarshaler(encodingConfig.Marshaler).
+				WithCodec(encodingConfig.Marshaler).
 				WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 				WithTxConfig(encodingConfig.TransactionConfig).
 				WithLegacyAmino(encodingConfig.Amino).
 				WithInput(os.Stdin).
 				WithAccountRetriever(authTypes.AccountRetriever{}).
-				WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode).
-				WithHomeDir(homePath)
+				WithHomeDir(homePath).
+				WithViper("").
+				WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode)
 
 			protoCodec := codec.NewProtoCodec(clientContext.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)

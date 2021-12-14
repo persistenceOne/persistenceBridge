@@ -3,8 +3,8 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 
@@ -69,7 +69,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 					TxHash:   transaction.Hash(),
 					MsgBytes: msgBytes,
 					Sender:   sender,
-					MsgType:  msg.Type(),
+					MsgType:  sdkTypes.MsgTypeURL(msg),
 				})
 				if err != nil {
 					return err
@@ -98,14 +98,14 @@ func produceToKafka(kafkaProducer *sarama.SyncProducer) {
 		}
 		producer := ""
 		switch ethTxToTM.MsgType {
-		case bankTypes.TypeMsgSend:
+		case constants.MsgSendTypeUrl:
 			producer = utils.MsgSend
-		case stakingTypes.TypeMsgDelegate:
+		case constants.MsgDelegateTypeUrl:
 			producer = utils.MsgDelegate
-		case stakingTypes.TypeMsgUndelegate:
+		case constants.MsgUndelegateTypeUrl:
 			producer = utils.EthUnbond
 		default:
-			logging.Fatal("unknown msg type [ETH Listener]")
+			logging.Fatal("unknown msg type [ETH Listener]:", ethTxToTM.MsgType)
 		}
 		logging.Info("[ETH Listener] Adding to kafka producer:", producer, "of txHash:", ethTxToTM.TxHash.String(), "msgType:", ethTxToTM.MsgType, "sender:", ethTxToTM.Sender.String())
 		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, *kafkaProducer)

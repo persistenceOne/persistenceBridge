@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/tendermint/tendermint/crypto"
@@ -25,11 +26,11 @@ var tmPublicKey cryptotypes.PubKey
 func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	msgsTypes := ""
 	for _, msg := range msgs {
-		if msg.Type() == bankTypes.TypeMsgSend {
+		if sdk.MsgTypeURL(msg) == constants.MsgSendTypeUrl {
 			sendCoin := msg.(*bankTypes.MsgSend)
-			msgsTypes = msgsTypes + msg.Type() + " [to: " + sendCoin.ToAddress + " amount: " + sendCoin.Amount.String() + "] "
+			msgsTypes = msgsTypes + sendCoin.Type() + " [to: " + sendCoin.ToAddress + " amount: " + sendCoin.Amount.String() + "] "
 		} else {
-			msgsTypes = msgsTypes + msg.Type() + " "
+			msgsTypes = msgsTypes + sdk.MsgTypeURL(msg) + " "
 		}
 	}
 	logging.Info("Messages to tendermint:", msgsTypes)
@@ -66,12 +67,12 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
 
-	txFactory, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
+	txFactory, err := prepareFactory(ctx, chain.TxFactory(0))
 	if err != nil {
 		return []byte{}, nil, txFactory, err
 	}
 
-	_, adjusted, err := tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
+	_, adjusted, err := tx.CalculateGas(ctx, txFactory, msgs...)
 	if err != nil {
 		return []byte{}, nil, txFactory, err
 	}
@@ -114,7 +115,6 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	return bytesToSign, txBuilder, txFactory, nil
 }
 
-// broadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
 func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
@@ -188,4 +188,30 @@ func setTMPublicKey() error {
 	}
 	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	return nil
+}
+
+func prepareFactory(clientCtx client.Context, txf tx.Factory) (tx.Factory, error) {
+	from := clientCtx.GetFromAddress()
+
+	if err := txf.AccountRetriever().EnsureExists(clientCtx, from); err != nil {
+		return txf, err
+	}
+
+	initNum, initSeq := txf.AccountNumber(), txf.Sequence()
+	if initNum == 0 || initSeq == 0 {
+		num, seq, err := txf.AccountRetriever().GetAccountNumberSequence(clientCtx, from)
+		if err != nil {
+			return txf, err
+		}
+
+		if initNum == 0 {
+			txf = txf.WithAccountNumber(num)
+		}
+
+		if initSeq == 0 {
+			txf = txf.WithSequence(seq)
+		}
+	}
+
+	return txf, nil
 }
