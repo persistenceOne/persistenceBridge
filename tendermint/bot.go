@@ -8,31 +8,43 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func handleSlashedOrAboutToBeSlashed(chain *relayer.Chain, validators []db.Validator, processHeight int64, missedBlockCounterForValidator map[string]int64) {
+//Map to keep track of missed blocks during previous CheckValidators() call
+var missedBlockCounterForValidator = make(map[string]int64)
+
+func CheckValidators(chain *relayer.Chain, processHeight int64) {
+	//Get validators list from db
+	validators, err := db.GetValidators()
+	if err != nil {
+		logging.Error("Could not fetch validators from DB", processHeight, "ERR:", err)
+	}
+
 	for _, validator := range validators {
-		validatorStatus, err := QueryValidator(validator.Address, chain)
+		//Query details about validator
+		validatorDetails, err := QueryValidator(validator.Address, chain)
 		if err != nil {
 			logging.Error("Could not query the validator", processHeight, "Validator Name:", validator.Name, "ERR:", err)
 		}
 
+		//Convert type.Any key to consensus pubKey
 		var pubKey cryptoTypes.PubKey
-		err = chain.CLIContext(0).InterfaceRegistry.UnpackAny(validatorStatus.Validator.ConsensusPubkey, &pubKey)
+		err = chain.CLIContext(0).InterfaceRegistry.UnpackAny(validatorDetails.Validator.ConsensusPubkey, &pubKey)
 		if err != nil {
 			logging.Error("Could not unpack consensus pubKey", processHeight, "ERR:", err)
 		}
 
+		//Convert PubKey to consAddress to query Slashing Info
 		consAddress := types.ConsAddress(pubKey.Address())
-		slashingInfoAboutValidator, err := QuerySlashingSigningInfo(consAddress, chain)
+		validatorSlashingInfo, err := QuerySlashingSigningInfo(consAddress, chain)
 		if err != nil {
 			logging.Error("Could not find the signing info about the validator", processHeight, "Validator Name:", validator.Name, "ERR:", err)
 		}
 
-		if slashingInfoAboutValidator.ValSigningInfo.MissedBlocksCounter > missedBlockCounterForValidator[validator.Name] && missedBlockCounterForValidator[validator.Name] != 0 {
-			missedBlockCounterForValidator[validator.Name] = slashingInfoAboutValidator.ValSigningInfo.MissedBlocksCounter
+		if validatorSlashingInfo.ValSigningInfo.MissedBlocksCounter > missedBlockCounterForValidator[validator.Name] {
 			logging.Warn("Validator is about to be jailed", processHeight, "Validator Name:", validator.Name)
 		}
-		if validatorStatus.Validator.Jailed {
+		if validatorDetails.Validator.Jailed {
 			logging.Warn("Validator is Jailed", processHeight, "Validator Name:", validator.Name)
 		}
+		missedBlockCounterForValidator[validator.Name] = validatorSlashingInfo.ValSigningInfo.MissedBlocksCounter
 	}
 }

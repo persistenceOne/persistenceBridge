@@ -24,12 +24,10 @@ func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
 		Name:    "test1",
 	})
 	require.Equal(t, nil, err)
-	validatorList, err := db.GetValidators()
-	require.Equal(t, nil, err)
 	cosmosStatus, err := db.GetCosmosStatus()
 	require.Equal(t, nil, err)
 	processHeight := cosmosStatus.LastCheckHeight + 1
-	err = handleSlashedOrAboutToBeSlashed(chain, validatorList, processHeight)
+	CheckValidators(chain, processHeight)
 	require.Equal(t, nil, err)
 	database.Close()
 }
