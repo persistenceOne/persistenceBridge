@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -26,14 +27,16 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			logging.Error(err)
 		}
 	}(kafkaProducer)
-	blockCounter := (int64)(1)
+	missedBlockCounterForValidator := make(map[string]int64)
 	slashingParamsResponse, err := QuerySlashingParams(chain)
 	if err != nil {
 		logging.Error("Params not found", "ERR:", err)
 	}
-	signedBlockWindow := slashingParamsResponse.Params.SignedBlocksWindow
-	minSignedPerWindow := slashingParamsResponse.Params.MinSignedPerWindow.MulInt64(signedBlockWindow).RoundInt64()
-	blockCheckInterval := ((signedBlockWindow - minSignedPerWindow) * 90) / 100
+	minSignedPerWindow, err := strconv.ParseFloat(slashingParamsResponse.Params.MinSignedPerWindow.String(), 64)
+	if err != nil {
+		logging.Error("Cannot convert MinSignedPerWindow to float, ERR:", err)
+	}
+	blockIntervalForJailedOrToBeJailed := int64(float64(slashingParamsResponse.Params.SignedBlocksWindow) * (1 - minSignedPerWindow) / 10)
 
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
@@ -78,16 +81,12 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				continue
 			}
 
-			if blockCounter <= blockCheckInterval {
-				blockCounter += 1
-			} else {
+			if processHeight%blockIntervalForJailedOrToBeJailed == 0 {
 				validatorList, err := db.GetValidators()
-				err = handleSlashedOrAboutToBeSlashed(chain, validatorList, processHeight, blockCheckInterval)
 				if err != nil {
-					logging.Error("Unable to handle jailed or to be jailed check at height:", processHeight, "ERR:", err)
-					continue
+					logging.Error("Unable to get validator list from DB", processHeight, "ERR:", err)
 				}
-				blockCounter = 1
+				handleSlashedOrAboutToBeSlashed(chain, validatorList, processHeight, missedBlockCounterForValidator)
 			}
 
 			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
