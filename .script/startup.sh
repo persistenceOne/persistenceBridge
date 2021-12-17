@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-upKAFKA_VERSION=2.8.1
+KAFKA_VERSION=2.8.1
 KAFKA_FOLDER=kafka_2.13-"$KAFKA_VERSION"
 
 if [ -d $KAFKA_FOLDER ]; then
