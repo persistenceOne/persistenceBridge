@@ -20,6 +20,7 @@ import (
 func TestOnWithdrawUTokens(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
+
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 
@@ -31,6 +32,7 @@ func TestOnWithdrawUTokens(t *testing.T) {
 	sendCoinMsg, ercAddress, err := onWithdrawUTokens(arr)
 	require.Equal(t, nil, err)
 	require.Equal(t, common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")).String(), ercAddress.String())
+
 	sendCoinMsgString := sendCoinMsg.String()
 	require.NotNil(t, sendCoinMsgString)
 

@@ -19,9 +19,10 @@ func TestSetStatus(t *testing.T) {
 	database, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	Name := "tx1"
-	var LastCheckHeight int64 = 4772132
-	err = setStatus(Name, LastCheckHeight)
+	name := "tx1"
+	var lastCheckHeight int64 = 4772132
+
+	err = setStatus(name, lastCheckHeight)
 	require.Nil(t, err)
 
 	database.Close()
@@ -31,24 +32,25 @@ func TestGetStatus(t *testing.T) {
 	database, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	Name := "tx1"
-	var LastCheckHeight int64 = 4772132
-	err = setStatus(Name, LastCheckHeight)
+	name := "tx1"
+	var lastCheckHeight int64 = 4772132
+
+	err = setStatus(name, lastCheckHeight)
 	require.Nil(t, err)
 
 	var expectedStatus Status
-	expectedStatus.Name = Name
+	expectedStatus.Name = name
+
 	b, err := get(expectedStatus.Key())
 	require.Nil(t, err)
 
 	err = json.Unmarshal(b, &expectedStatus)
 
-	status, err := getStatus(Name)
+	status, err := getStatus(name)
 	require.Nil(t, err)
 	require.Equal(t, expectedStatus, status)
 
 	database.Close()
-
 }
 
 func TestStatusKey(t *testing.T) {
@@ -69,7 +71,6 @@ func TestStatusValue(t *testing.T) {
 	require.Nil(t, err)
 
 	require.Equal(t, expectedValue, value)
-
 }
 
 func TestStatusPrefix(t *testing.T) {

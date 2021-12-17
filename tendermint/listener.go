@@ -48,6 +48,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				shutdown.SetTMStopped(true)
 				return
 			}
+
 			time.Sleep(5 * time.Second)
 			continue
 		}
@@ -89,8 +90,8 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				shutdown.SetTMStopped(true)
 				return
 			}
-
 		}
+
 		time.Sleep(sleepDuration)
 	}
 }
@@ -99,15 +100,19 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 	var resultTxs []*coreTypes.ResultTx
 	page := 1
 	txsMaxPerPage := 100
+
 	txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &page, &txsMaxPerPage, "asc")
 	if err != nil {
 		logging.Error("Unable to fetch tendermint txs for block:", height, "page:", page, "ERR:", err)
 		return resultTxs, err
 	}
+
 	if txSearchResult.TotalCount <= txsMaxPerPage {
 		return txSearchResult.Txs, nil
 	}
+
 	resultTxs = append(resultTxs, txSearchResult.Txs...)
+
 	totalPages := int(math.Ceil(float64(txSearchResult.TotalCount) / float64(txsMaxPerPage)))
 	for i := page + 1; i <= totalPages; i++ {
 		txSearchResult, err = chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &i, &txsMaxPerPage, "asc")
@@ -115,7 +120,9 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 			logging.Error("Unable to fetch tendermint txs for block:", height, "page:", i, "ERR:", err)
 			return resultTxs, err
 		}
+
 		resultTxs = append(resultTxs, txSearchResult.Txs...)
 	}
+
 	return resultTxs, nil
 }

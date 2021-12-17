@@ -31,23 +31,29 @@ var LiquidStaking = Contract{
 func onStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
+
 	stakeMsg := &stakingTypes.MsgDelegate{
 		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ValidatorAddress: "",
 		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
 	}
+
 	logging.Info("Received ETH Stake Tx from:", ercAddress.String(), "amount:", amount.String())
+
 	return stakeMsg, ercAddress, nil
 }
 
 func onUnStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
+
 	unStakeMsg := &stakingTypes.MsgUndelegate{
 		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ValidatorAddress: "",
 		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
 	}
+
 	logging.Info("Received ETH UnStake Tx from:", ercAddress.String(), "amount:", amount.String())
+
 	return unStakeMsg, ercAddress, nil
 }

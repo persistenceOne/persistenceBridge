@@ -56,6 +56,7 @@ func (contract *Contract) SetABI(contractABIString string) {
 	if err != nil {
 		log.Fatalln("Unable to decode abi:  " + err.Error())
 	}
+
 	contract.abi = contractABI
 }
 
@@ -81,5 +82,6 @@ func (contract *Contract) GetMethodAndArguments(inputData []byte) (*abi.Method, 
 	}
 
 	arguments, err := method.Inputs.Unpack(decodedData)
+
 	return method, arguments, err
 }

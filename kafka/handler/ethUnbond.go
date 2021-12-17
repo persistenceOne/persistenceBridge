@@ -91,6 +91,7 @@ ConsumerLoop:
 
 		if unbondings.GT(sum) {
 			difference := unbondings.Sub(sum)
+
 		Loop:
 			for {
 				for _, unbondMsg := range unbondMsgs {
@@ -98,12 +99,12 @@ ConsumerLoop:
 						unbondMsg.Amount.Amount = unbondMsg.Amount.Amount.Sub(sdk.NewInt(1))
 						difference = difference.Sub(sdk.NewInt(1))
 					}
+
 					if difference.Equal(sdk.ZeroInt()) {
 						break Loop
 					}
 				}
 			}
-
 		}
 
 		for _, unbondMsg := range unbondMsgs {

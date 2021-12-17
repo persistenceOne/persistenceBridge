@@ -20,7 +20,6 @@ func TestGetSignOperation(t *testing.T) {
 
 	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"
 	responseRecieved, err := GetSignOperation(operationID)
-
 	require.Equal(t, nil, err)
 	require.Equal(t, responseRecieved.StatusText, "Completed")
 	require.Equal(t, responseRecieved.IsApproved, true)
@@ -28,5 +27,4 @@ func TestGetSignOperation(t *testing.T) {
 
 	_, err = GetSignOperation("")
 	require.Equal(t, "Operation not found", err.Error())
-
 }

@@ -24,11 +24,11 @@ func InitCommand() *cobra.Command {
 		Use:   "init",
 		Short: "creates config.toml file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			configuration.InitConfig()
 			config := configuration.SetConfig(cmd)
 
 			var buf bytes.Buffer
+
 			encoder := toml.NewEncoder(&buf)
 			if err := encoder.Encode(config); err != nil {
 				panic(err)
@@ -38,12 +38,15 @@ func InitCommand() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
+
 			if err = os.MkdirAll(homeDir, os.ModePerm); err != nil {
 				panic(err)
 			}
+
 			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0644); err != nil {
 				panic(err)
 			}
+
 			log.Println("generated configuration file at ", filepath.Join(homeDir, "config.toml"))
 
 			return nil

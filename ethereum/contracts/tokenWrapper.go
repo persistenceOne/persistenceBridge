@@ -30,15 +30,19 @@ var TokenWrapper = Contract{
 func onWithdrawUTokens(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
+
 	atomAddress, err := sdkTypes.AccAddressFromBech32(arguments[2].(string))
 	if err != nil {
 		return nil, common.Address{}, err
 	}
+
 	sendCoinMsg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   atomAddress.String(),
 		Amount:      sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount)),
 	}
+
 	logging.Info("Received ETH Unwrap Tx from:", ercAddress.String(), "amount:", amount.String(), "toAddress:", atomAddress.String())
+
 	return sendCoinMsg, ercAddress, nil
 }

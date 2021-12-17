@@ -68,7 +68,6 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 
 // Timeout height should be greater than current block height or set it 0 for none.
 func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
-
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
 
@@ -99,15 +98,18 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 		AccountNumber: txFactory.AccountNumber(),
 		Sequence:      txFactory.Sequence(),
 	}
+
 	sigData := signing.SingleSignatureData{
 		SignMode:  signMode,
 		Signature: nil,
 	}
+
 	sig := signing.SignatureV2{
 		PubKey:   fromPublicKey,
 		Data:     &sigData,
 		Sequence: txFactory.Sequence(),
 	}
+
 	if err := txBuilder.SetSignatures(sig); err != nil {
 		return []byte{}, txBuilder, txFactory, err
 	}

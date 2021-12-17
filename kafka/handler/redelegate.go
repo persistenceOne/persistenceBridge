@@ -21,6 +21,7 @@ import (
 
 func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
+
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 	defer func() {
 		err := producer.Close()
@@ -30,9 +31,11 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	}()
 
 	claimMsgChan := claim.Messages()
+
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
 	var redelegationSourceAddress sdk.ValAddress
+
 	select {
 	case kafkaMsg, ok = <-claimMsgChan:
 		if !ok {
@@ -50,23 +53,26 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	if err != nil {
 		return err
 	}
+
 	// query validator delegation
 	delegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), m.Chain)
 	if err != nil {
 		return err
 	}
+
 	totalRedistributeAmount := sdk.ZeroInt()
 	for _, delegation := range delegations {
 		if delegation.Delegation.ValidatorAddress == redelegationSourceAddress.String() {
 			totalRedistributeAmount = delegation.Balance.Amount
 		}
-
 	}
+
 	if totalRedistributeAmount.Equal(sdk.ZeroInt()) {
 		logging.Info("No Delegations to Redelegate for validator src Address", redelegationSourceAddress.String())
 		session.MarkMessage(kafkaMsg, "")
 		return nil
 	}
+
 	redistributeAmount := totalRedistributeAmount.QuoRaw(int64(len(validatorSet)))
 	redistributeChange := totalRedistributeAmount.ModRaw(int64(len(validatorSet)))
 
@@ -79,6 +85,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 			ValidatorDstAddress: validator.Address.String(),
 			Amount:              sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount),
 		}
+
 		if i == len(validatorSet)-1 {
 			msgRedelegate.Amount.Amount = msgRedelegate.Amount.Amount.Add(redistributeChange)
 		}
@@ -94,9 +101,11 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 				logging.Error("failed to produce message from topic Redelegate to ToTendermint")
 				return err
 			}
+
 			m.Count++
 		}
 	}
+
 	session.MarkMessage(kafkaMsg, "")
 
 	return nil

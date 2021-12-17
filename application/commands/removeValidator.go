@@ -40,11 +40,14 @@ func RemoveCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
+
 			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			configuration.ValidateAndSeal()
+
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -59,8 +62,10 @@ func RemoveCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			config := utils.SaramaConfig()
 			producer := utils.NewProducer(strings.Split(kafkaPorts, ","), config)
+
 			defer func() {
 				err := producer.Close()
 				if err != nil {
@@ -69,10 +74,12 @@ func RemoveCommand() *cobra.Command {
 			}()
 
 			var validators []db.Validator
+
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
+
 				var err2 error
 				validators, err2 = rpc.RemoveValidator(validatorAddress, rpcEndpoint)
 				if err2 != nil {
@@ -80,6 +87,7 @@ func RemoveCommand() *cobra.Command {
 				}
 			} else {
 				defer database.Close()
+
 				err = db.DeleteValidator(validatorAddress)
 				if err != nil {
 					return err
@@ -90,13 +98,15 @@ func RemoveCommand() *cobra.Command {
 				if err2 != nil {
 					return err2
 				}
-
 			}
+
 			if len(validators) == 0 {
 				log.Println("IMPORTANT: No validator present to redelegate!!!")
+
 				return errors.New("need to have at least one validator to redelegate to")
 			} else {
 				log.Printf("Total validators %d:\n", len(validators))
+
 				for i, validator := range validators {
 					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
 				}
@@ -113,6 +123,7 @@ func RemoveCommand() *cobra.Command {
 			return nil
 		},
 	}
+
 	removeCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
 	removeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	removeCommand.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "broker ports kafka is running on")

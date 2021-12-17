@@ -25,66 +25,79 @@ type errorResponse struct {
 
 func status(w http.ResponseWriter, _ *http.Request) {
 	var errResponse errorResponse
+
 	cosmosStatus, err := db.GetCosmosStatus()
 	if err != nil {
 		errResponse.Message = err.Error()
+
 		b, err := json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 		}
+
 		return
 	}
 
 	ethStatus, err := db.GetEthereumStatus()
 	if err != nil {
 		errResponse.Message = err.Error()
+
 		b, err := json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		return
 	}
 
 	unboundEpoch, err := db.GetUnboundEpochTime()
 	if err != nil {
 		errResponse.Message = err.Error()
+
 		b, err := json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		return
 	}
 
 	totalWrapped, err := db.GetTotalTokensWrapped()
 	if err != nil {
 		errResponse.Message = err.Error()
+
 		b, err := json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		return
 	}
 
@@ -94,16 +107,18 @@ func status(w http.ResponseWriter, _ *http.Request) {
 		NextEpoch:        unboundEpoch.Epoch,
 		TotalWrapped:     totalWrapped.String(),
 	}
+
 	b, err := json.Marshal(status)
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
+
 	_, err = w.Write(b)
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
-	return
 
+	return
 }

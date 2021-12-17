@@ -34,7 +34,6 @@ func (m MsgHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 
 func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-
 	switch claim.Topic() {
 	case utils.ToEth:
 		err := m.HandleToEth(session, claim)

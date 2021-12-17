@@ -35,20 +35,24 @@ func ShowCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
+
 			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			configuration.ValidateAndSeal()
 
 			tmAddress, err := casp.GetTendermintAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			ethAddress, err := casp.GetEthAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			log.Println("Tendermint Address:", tmAddress.String())
 			log.Println("Ethereum Address:", ethAddress.String())
 
@@ -56,11 +60,14 @@ func ShowCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			var validators []db.Validator
+
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc to %v", rpcEndpoint)
+
 				var err2 error
 				validators, err2 = rpc.ShowValidators("", rpcEndpoint)
 				if err2 != nil {
@@ -73,16 +80,18 @@ func ShowCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
-
 			}
+
 			if len(validators) == 0 {
 				log.Println("No validators in db, panic.")
 			} else {
 				log.Printf("Total validators %d:\n", len(validators))
+
 				for i, validator := range validators {
 					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
 				}
 			}
+
 			return nil
 		},
 	}

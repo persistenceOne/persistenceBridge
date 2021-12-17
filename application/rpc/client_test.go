@@ -23,13 +23,16 @@ func TestAddValidator(t *testing.T) {
 
 	validatorName := "binance"
 	rpcEndpoint := "127.0.0.1:4040"
+
 	if !rpcRunning {
 		go StartServer(rpcEndpoint)
+
 		rpcRunning = true
 	}
 
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
+
 	defer database.Close()
 
 	validators, err := AddValidator(db.Validator{
@@ -51,6 +54,7 @@ func TestRemoveValidator(t *testing.T) {
 
 	validatorName := "binance"
 	rpcEndpoint := "127.0.0.1:4040"
+
 	if !rpcRunning {
 		go StartServer(rpcEndpoint)
 		rpcRunning = true
@@ -58,6 +62,7 @@ func TestRemoveValidator(t *testing.T) {
 
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
+
 	defer database.Close()
 
 	validators, err2 := AddValidator(db.Validator{
@@ -72,27 +77,29 @@ func TestRemoveValidator(t *testing.T) {
 
 	require.Equal(t, nil, err2)
 	require.Equal(t, validators, validatorsGet)
+
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
 }
 
 func TestShowValidators(t *testing.T) {
 	rpcEndpoint := "127.0.0.1:4040"
+
 	if !rpcRunning {
 		go StartServer(rpcEndpoint)
+
 		rpcRunning = true
 	}
 
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
+
 	defer database.Close()
 
 	validators, err := ShowValidators("", rpcEndpoint)
 	require.Equal(t, nil, err)
 
 	validatorsGet, err2 := db.GetValidators()
-
 	require.Equal(t, nil, err2)
 	require.Equal(t, validators, validatorsGet)
-
 }

@@ -37,5 +37,4 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().Int(constants2.FlagCASPMaxGetSignatureAttempts, constants2.DefaultCASPMaxGetSignatureAttempt, "max attempts for getting signature")
 
 	return &cmd
-
 }

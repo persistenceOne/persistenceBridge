@@ -27,8 +27,10 @@ func TestGetTMPubKey(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
+
 	tmpKey := GetTMPubKey(uncompressedPublicKeys.Items[0])
 	re := regexp.MustCompile(`^PubKeySecp256k1{+[0-9a-fA-F]+}$`)
+
 	require.Equal(t, 20, len(tmpKey.Address().Bytes()))
 	require.Equal(t, reflect.TypeOf(types.Address{}), reflect.TypeOf(tmpKey.Address()))
 	require.Equal(t, true, re.MatchString(tmpKey.String()), "TM Public Key regex not matching")
@@ -41,6 +43,7 @@ func TestGetEthPubKey(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
+
 	ethPubliKey := uncompressedPublicKeys.Items[0]
 	ethKey := GetEthPubKey(ethPubliKey)
 	require.Equal(t, 20, len(crypto.PubkeyToAddress(ethKey)))
@@ -56,6 +59,7 @@ func TestGetXY(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
+
 	x, y := getXY(uncompressedPublicKeys.Items[0])
 	require.Equal(t, 32, len(y.Bytes()))
 	require.Equal(t, 32, len(y.Bytes()))

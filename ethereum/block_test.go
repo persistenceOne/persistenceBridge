@@ -80,7 +80,6 @@ func TestCollectEthTx(t *testing.T) {
 
 	err = collectEthTx(ethereumClient, &ctx, protoCodec, tx, &contract)
 	require.Equal(t, nil, err)
-
 }
 
 func TestHandleBlock(t *testing.T) {
@@ -124,7 +123,6 @@ func TestHandleBlock(t *testing.T) {
 
 	err = handleBlock(ethereumClient, &ctx, block, &kafkaProducer, protoCodec)
 	require.Equal(t, nil, err)
-
 }
 
 func TestProduceToKafka(t *testing.T) {

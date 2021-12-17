@@ -80,11 +80,14 @@ func TestBroadcastTMTx(t *testing.T) {
 func TestGetTMBytesToSign(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
+
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
+
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
+
 	configuration.SetPStakeAddress(tmAddress)
 	chain := setUpChain(t)
 
@@ -98,6 +101,7 @@ func TestGetTMBytesToSign(t *testing.T) {
 	if errorGettingTMBytes != nil {
 		t.Errorf("Error Getting TM Bytes to Sign: %v", errorGettingTMBytes)
 	}
+
 	require.Equal(t, "pStake@PersistenceOne", txFactory.Memo())
 	require.NotNil(t, tmBytesSignBytes)
 	require.NotNil(t, txBuilder)
@@ -110,10 +114,12 @@ func TestGetTMSignature(t *testing.T) {
 
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 	bytesToSign := []byte(strings.Join(dataToSign, ""))
+
 	tmSignature, err := getTMSignature(bytesToSign)
 	if err != nil {
 		t.Errorf("Error getting TM signature: \n %v", err)
 	}
+
 	require.Equal(t, 64, len(tmSignature))
 	require.Equal(t, reflect.TypeOf([]byte{}), reflect.TypeOf(tmSignature))
 	require.NotNil(t, tmSignature)
@@ -133,8 +139,10 @@ func TestSetTMPublicKey(t *testing.T) {
 func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
+
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
+
 	configuration.SetPStakeAddress(tmAddress)
 
 	msg := &bankTypes.MsgSend{
@@ -146,6 +154,7 @@ func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 	chain := setUpChain(t)
 	tmSignAndBroadcastMsg, err := tendermintSignAndBroadcastMsgs(chain, []sdk.Msg{msg}, "", 0)
 	require.Equal(t, nil, err)
+
 	re := regexp.MustCompile(`^[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(tmSignAndBroadcastMsg.TxHash))
 	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(tmSignAndBroadcastMsg))

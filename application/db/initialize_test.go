@@ -21,12 +21,16 @@ func TestInitializeDB(t *testing.T) {
 
 	var ethStart int64 = 4772131
 	var tmStart int64 = 1
+
 	database, err := InitializeDB(constants.TestHomeDir, tmStart, ethStart)
 	require.Nil(t, err)
+
 	ethStatus, err := GetEthereumStatus()
 	require.Nil(t, err)
+
 	cosmosLastCheckHeight, err := GetCosmosStatus()
 	require.Nil(t, err)
+
 	ethHeight := ethStatus.LastCheckHeight + 1
 	cosmosHeight := cosmosLastCheckHeight.LastCheckHeight + 1
 	require.Equal(t, ethStart, ethHeight)
@@ -34,13 +38,16 @@ func TestInitializeDB(t *testing.T) {
 	database.Close()
 
 	database, err = OpenDB(constants.TestHomeDir)
+
 	err = deleteKV(unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime)))
 	require.Nil(t, err)
-	database.Close()
-	database, err = InitializeDB(constants.TestHomeDir, tmStart, ethStart)
-	require.Nil(t, err)
+
 	database.Close()
 
+	database, err = InitializeDB(constants.TestHomeDir, tmStart, ethStart)
+	require.Nil(t, err)
+
+	database.Close()
 }
 
 func TestOpenDB(t *testing.T) {

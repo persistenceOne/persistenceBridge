@@ -41,7 +41,6 @@ func StartCommand() *cobra.Command {
 		Use:   "start",
 		Short: "starts persistenceBridge",
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
@@ -51,6 +50,7 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			logging.ShowDebugLog(showDebugLog)
 
 			pStakeConfig := configuration.InitConfig()
@@ -58,6 +58,7 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
+
 			ethAddress, err := casp.GetEthAddress()
 			if err != nil {
 				log.Fatalln(err)
@@ -67,6 +68,7 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			configuration.ValidateAndSeal()
 
 			err = logging.InitializeBot()
@@ -106,6 +108,7 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			defer func(db *badger.DB) {
 				err := db.Close()
 				if err != nil {
@@ -117,12 +120,14 @@ func StartCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
 			validators, err := db2.GetValidators()
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			if len(validators) == 0 {
 				log.Fatalln("no validator has been added")
 			} else {
@@ -154,8 +159,10 @@ func StartCommand() *cobra.Command {
 
 			protoCodec := codec.NewProtoCodec(clientContext.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
+
 			end := make(chan bool)
 			ended := make(chan bool)
+
 			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
 			go rpc.StartServer(pStakeConfig.RPCEndpoint)
@@ -168,18 +175,23 @@ func StartCommand() *cobra.Command {
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
 			for sig := range signalChan {
 				logging.Info("STOP SIGNAL RECEIVED:", sig.String(), "(Might take around a minute to stop)")
+
 				shutdown.SetBridgeStopSignal(true)
+
 				for {
 					if !shutdown.GetKafkaConsumerClosed() {
 						logging.Info("Stopping Kafka Routine!!!")
 						kafka.KafkaClose(kafkaState, end, ended)()
 						shutdown.SetKafkaConsumerClosed(true)
 					}
+
 					if shutdown.GetTMStopped() && shutdown.GetETHStopped() && shutdown.GetKafkaConsumerClosed() {
 						return nil
 					}
+
 					time.Sleep(100 * time.Millisecond)
 				}
 			}
@@ -187,6 +199,7 @@ func StartCommand() *cobra.Command {
 			return nil
 		},
 	}
+
 	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
 	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 	pBridgeCommand.Flags().Bool(constants2.FlagShowDebugLog, false, "show debug logs")
