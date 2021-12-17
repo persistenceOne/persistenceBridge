@@ -3,6 +3,7 @@ package tendermint
 import (
 	"encoding/json"
 	"fmt"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"strings"
 
 	"github.com/Shopify/sarama"
@@ -126,10 +127,27 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			if err != nil {
 				panic(err)
 			}
-			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "amount:", tx.Amount.String())
+			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "wrap amount:", ethTxMsg.WrapAmount.String())
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 			if err != nil {
 				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
+			}
+
+			if stakingAmount.GTE(sdk.ZeroInt()) {
+				stakingMsg := &stakingTypes.MsgDelegate{
+					DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
+					ValidatorAddress: "",
+					Amount:           sdk.NewCoin(configuration.GetAppConfig().Tendermint.Denom, stakingAmount),
+				}
+				stakingMsgBytes, err := protoCodec.MarshalInterface(stakingMsg)
+				if err != nil {
+					logging.Fatal("Tendermint Listener: Staking Message marshalling failed:", err.Error())
+				}
+				logging.Info("Adding direct staking msg to kafka producer MsgDelegate, from:", tx.FromAddress, "to:", ethAddress.String(), "direct staking amount:", ethTxMsg.StakingAmount.String())
+				err = utils.ProducerDeliverMessage(stakingMsgBytes, utils.MsgDelegate, *kafkaProducer)
+				if err != nil {
+					logging.Fatal("failed to add staking msg to kafka queue MsgDelegate [TM Listener]: %s", err.Error())
+				}
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
