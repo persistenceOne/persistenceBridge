@@ -10,10 +10,8 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -220,56 +218,4 @@ func prepareFactory(clientCtx client.Context, txf tx.Factory) (tx.Factory, error
 	}
 
 	return txf, nil
-}
-
-func calculateGas(queryFunc func(string, []byte) ([]byte, int64, error), txf tx.Factory, msgs ...sdk.Msg) (txTypes.SimulateResponse, uint64, error) {
-	txBytes, err := buildSimTx(txf, msgs...)
-	if err != nil {
-		return txTypes.SimulateResponse{}, 0, err
-	}
-
-	bz, _, err := queryFunc("/cosmos.tx.v1beta1.Service/Simulate", txBytes)
-	if err != nil {
-		return txTypes.SimulateResponse{}, 0, err
-	}
-
-	var simRes txTypes.SimulateResponse
-
-	if err := simRes.Unmarshal(bz); err != nil {
-		return txTypes.SimulateResponse{}, 0, err
-	}
-
-	return simRes, uint64(txf.GasAdjustment() * float64(simRes.GasInfo.GasUsed)), nil
-}
-
-type protoTxProvider interface {
-	GetProtoTx() *txTypes.Tx
-}
-
-func buildSimTx(txf tx.Factory, msgs ...sdk.Msg) ([]byte, error) {
-	txb, err := tx.BuildUnsignedTx(txf, msgs...)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create an empty signature literal as the ante handler will populate with a
-	// sentinel pubkey.
-	sig := signing.SignatureV2{
-		PubKey: &secp256k1.PubKey{},
-		Data: &signing.SingleSignatureData{
-			SignMode: txf.SignMode(),
-		},
-		Sequence: txf.Sequence(),
-	}
-	if err := txb.SetSignatures(sig); err != nil {
-		return nil, err
-	}
-
-	protoProvider, ok := txb.(protoTxProvider)
-	if !ok {
-		return nil, fmt.Errorf("cannot simulate amino tx")
-	}
-	simReq := txTypes.SimulateRequest{Tx: protoProvider.GetProtoTx()}
-
-	return simReq.Marshal()
 }
