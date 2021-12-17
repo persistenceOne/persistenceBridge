@@ -26,7 +26,8 @@ import (
 )
 
 func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
-	for _, transaction := range resultTxs {
+	for i, transaction := range resultTxs {
+		logging.Info("Tendermint TX:", transaction.Hash.String(), fmt.Sprintf("(%d)", i+1))
 		err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
@@ -111,6 +112,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 		var ethAddress goEthCommon.Address
 		if validEthMemo {
 			ethAddress = goEthCommon.HexToAddress(tx.Memo)
+			validEthMemo = goEthCommon.Address{}.String() != tx.Memo
 		}
 
 		if tx.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
