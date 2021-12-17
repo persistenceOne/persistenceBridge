@@ -10,7 +10,6 @@ import (
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -50,19 +49,6 @@ ConsumerLoop:
 				}
 				m.WithdrawRewards = true
 				m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
-			}
-
-			//TODO remove: This is added as fix for smooth migration.
-			if msg.Type() == stakingTypes.TypeMsgDelegate {
-				switch txMsg := msg.(type) {
-				case *stakingTypes.MsgDelegate:
-					if txMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
-						session.MarkMessage(kafkaMsg, "")
-						continue
-					}
-				default:
-					logging.Fatal("Unexpected type found in topic: EthUnbond")
-				}
 			}
 
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
