@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package casp
 
 import (
@@ -13,9 +18,9 @@ func TestGetUncompressedPublicKeys(t *testing.T) {
 	funcResponse, err := GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "tendermint")
-	require.Equal(t, 1, len(funcResponse.PublicKeys))
+	require.Equal(t, 1, len(funcResponse.Items))
 	funcResponse, err = GetUncompressedEthPublicKeys()
 	require.Equal(t, nil, err)
 	require.Equal(t, funcResponse.AccountName, "ethereum")
-	require.Equal(t, 1, len(funcResponse.PublicKeys))
+	require.Equal(t, 1, len(funcResponse.Items))
 }

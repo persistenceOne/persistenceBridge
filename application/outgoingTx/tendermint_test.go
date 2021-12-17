@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package outgoingTx
 
 import (
@@ -46,7 +51,7 @@ func TestBroadcastTMTx(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
-	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 	configuration.SetPStakeAddress(tmAddress)
@@ -75,7 +80,7 @@ func TestGetTMBytesToSign(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
-	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 	configuration.SetPStakeAddress(tmAddress)

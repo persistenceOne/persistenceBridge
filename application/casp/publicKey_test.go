@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package casp
 
 import (
@@ -20,7 +25,7 @@ func TestGetTMPubKey(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
-	tmpKey := GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpKey := GetTMPubKey(uncompressedPublicKeys.Items[0])
 	re := regexp.MustCompile(`^PubKeySecp256k1{+[0-9a-fA-F]+}$`)
 	require.Equal(t, 20, len(tmpKey.Address().Bytes()))
 	require.Equal(t, reflect.TypeOf(types.Address{}), reflect.TypeOf(tmpKey.Address()))
@@ -34,7 +39,7 @@ func TestGetEthPubKey(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
-	ethPubliKey := uncompressedPublicKeys.PublicKeys[0]
+	ethPubliKey := uncompressedPublicKeys.Items[0]
 	ethKey := GetEthPubKey(ethPubliKey)
 	require.Equal(t, 20, len(crypto.PubkeyToAddress(ethKey)))
 	require.Equal(t, reflect.TypeOf(ecdsa.PublicKey{}), reflect.TypeOf(ethKey))
@@ -49,7 +54,7 @@ func TestGetXY(t *testing.T) {
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	require.Nil(t, err, "Failed to get casp Response")
-	x, y := getXY(uncompressedPublicKeys.PublicKeys[0])
+	x, y := getXY(uncompressedPublicKeys.Items[0])
 	require.Equal(t, 32, len(y.Bytes()))
 	require.Equal(t, 32, len(y.Bytes()))
 	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(x))

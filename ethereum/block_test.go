@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package ethereum
 
 import (
@@ -44,7 +49,7 @@ func TestCollectEthTx(t *testing.T) {
 	contract := contracts.LiquidStaking
 	encodingConfig := application.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithJSONMarshaler(encodingConfig.Marshaler).
+		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TransactionConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -85,7 +90,7 @@ func TestHandleBlock(t *testing.T) {
 	configuration.SetPStakeAddress(tmAddress)
 	encodingConfig := application.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithJSONMarshaler(encodingConfig.Marshaler).
+		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TransactionConfig).
 		WithLegacyAmino(encodingConfig.Amino).
