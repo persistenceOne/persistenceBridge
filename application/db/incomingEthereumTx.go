@@ -37,23 +37,29 @@ func (t *IncomingEthereumTx) Validate() error {
 	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
 		return fmt.Errorf("tx hash is empty")
 	}
+
 	if len(t.MsgBytes) == 0 {
 		return fmt.Errorf("empty MsgBytes")
 	}
+
 	if t.MsgType == "" {
 		return fmt.Errorf("invalid msg type")
 	}
+
 	return nil
 }
 
 func GetIncomingEthereumTx(txHash common.Hash) (IncomingEthereumTx, error) {
 	var ethInTx IncomingEthereumTx
 	ethInTx.TxHash = txHash
+
 	b, err := get(ethInTx.Key())
 	if err != nil {
 		return ethInTx, err
 	}
+
 	err = json.Unmarshal(b, &ethInTx)
+
 	return ethInTx, err
 }
 
@@ -65,5 +71,6 @@ func CheckIncomingEthereumTxExists(txHash common.Hash) bool {
 	ethInTx := IncomingEthereumTx{
 		TxHash: txHash,
 	}
+
 	return keyExists(ethInTx.Key())
 }

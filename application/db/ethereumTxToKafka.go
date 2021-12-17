@@ -34,20 +34,26 @@ func (t *EthereumTxToKafka) Validate() error {
 	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
 		return fmt.Errorf("tx hash is empty")
 	}
+
 	return nil
 }
 
 func GetAllEthereumTxToKafka() ([]EthereumTxToKafka, error) {
 	var ethTxToKafkaList []EthereumTxToKafka
+
 	err := iterateKeyValues(ethereumTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
 		var t EthereumTxToKafka
+
 		err := json.Unmarshal(val, &t)
 		if err != nil {
 			return err
 		}
+
 		ethTxToKafkaList = append(ethTxToKafkaList, t)
+
 		return nil
 	})
+
 	return ethTxToKafkaList, err
 }
 
@@ -59,5 +65,6 @@ func DeleteEthereumTxToKafka(txHash common.Hash) error {
 	ethInTx := EthereumTxToKafka{
 		TxHash: txHash,
 	}
+
 	return deleteKV(ethInTx.Key())
 }

@@ -20,6 +20,7 @@ func TestSetUnboundEpochTime(t *testing.T) {
 	require.Nil(t, err)
 
 	var epochTime int64 = 4772132
+
 	err = SetUnboundEpochTime(epochTime)
 	require.Nil(t, err)
 
@@ -30,11 +31,14 @@ func TestGetUnboundEpochTime(t *testing.T) {
 	require.Nil(t, err)
 
 	var epochTime int64 = 4772132
+
 	err = SetUnboundEpochTime(epochTime)
 	require.Nil(t, err)
 
 	var u UnboundEpochTime
+
 	key := unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime))
+
 	b, err := get(key)
 	require.Nil(t, err)
 
@@ -52,6 +56,7 @@ func TestGetUnboundEpochTime(t *testing.T) {
 
 func TestUnboundEpochTimeKey(t *testing.T) {
 	var epochTime int64 = 4772132
+
 	unboundEpochTime := UnboundEpochTime{
 		Epoch: epochTime,
 	}
@@ -65,9 +70,11 @@ func TestUnboundEpochTimeKey(t *testing.T) {
 
 func TestUnboundEpochTimeValue(t *testing.T) {
 	var epochTime int64 = 4772132
+
 	unboundEpochTime := UnboundEpochTime{
 		Epoch: epochTime,
 	}
+
 	expectedValue, err := json.Marshal(unboundEpochTime)
 	require.Nil(t, err)
 
@@ -80,6 +87,7 @@ func TestUnboundEpochTimeValue(t *testing.T) {
 
 func TestUnboundEpochTimePrefix(t *testing.T) {
 	var epochTime int64 = 4772132
+
 	unboundEpochTime := UnboundEpochTime{
 		Epoch: epochTime,
 	}

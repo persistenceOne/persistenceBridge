@@ -21,17 +21,22 @@ import (
 func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	saramaConfig := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, saramaConfig)
+
 	defer func() {
 		err := producer.Close()
 		if err != nil {
 			logging.Error("failed to close producer in topic: EthUnbond, error:", err)
 		}
 	}()
-	var kafkaMsg *sarama.ConsumerMessage
+
+	var (
+		kafkaMsg *sarama.ConsumerMessage
+		ok       bool
+	)
 
 	claimMsgChan := claim.Messages()
-	var ok bool
 	sum := sdk.ZeroInt()
+
 ConsumerLoop:
 	for {
 		select {
@@ -39,6 +44,7 @@ ConsumerLoop:
 			if !ok {
 				break ConsumerLoop
 			}
+
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
@@ -48,6 +54,7 @@ ConsumerLoop:
 			if err != nil {
 				return err
 			}
+
 			switch txMsg := msg.(type) {
 			case *stakingTypes.MsgUndelegate:
 				sum = sum.Add(txMsg.Amount.Amount)
@@ -64,20 +71,26 @@ ConsumerLoop:
 		if err != nil {
 			return err
 		}
+
 		totalDelegations := TotalDelegations(delegatorDelegations)
 		if sum.GT(totalDelegations) {
 			return errors.New("unbondings requested are greater than delegated tokens")
 		}
+
 		ratio := sum.ToDec().Quo(totalDelegations.ToDec())
 		unbondings := sdk.ZeroInt()
+
 		var unbondMsgs []*stakingTypes.MsgUndelegate
+
 		for _, delegation := range delegatorDelegations {
 			unbondingShare := ratio.Mul(delegation.Balance.Amount.ToDec()).RoundInt()
+
 			if unbondingShare.LT(delegation.Balance.Amount) {
 				unbondings = unbondings.Add(unbondingShare)
 			} else {
 				logging.Error("Incorrect UnbondingShareCalculation: Please Check delegations and unbonding delegations")
 			}
+
 			unbondMsg := &stakingTypes.MsgUndelegate{
 				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 				ValidatorAddress: delegation.Delegation.ValidatorAddress,
@@ -86,6 +99,7 @@ ConsumerLoop:
 					Amount: unbondingShare,
 				},
 			}
+
 			unbondMsgs = append(unbondMsgs, unbondMsg)
 		}
 
@@ -109,7 +123,9 @@ ConsumerLoop:
 
 		for _, unbondMsg := range unbondMsgs {
 			if !unbondMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
-				msgBytes, err := m.ProtoCodec.MarshalInterface(unbondMsg)
+				var msgBytes []byte
+
+				msgBytes, err = m.ProtoCodec.MarshalInterface(unbondMsg)
 				if err != nil {
 					return err
 				}
@@ -117,11 +133,14 @@ ConsumerLoop:
 				err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
 				if err != nil {
 					logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
+
 					return err
 				}
 			}
 		}
+
 		session.MarkMessage(kafkaMsg, "")
 	}
+
 	return nil
 }

@@ -20,7 +20,7 @@ func TestSetStatus(t *testing.T) {
 	require.Nil(t, err)
 
 	name := "tx1"
-	var lastCheckHeight int64 = 4772132
+	lastCheckHeight := int64(4772132)
 
 	err = setStatus(name, lastCheckHeight)
 	require.Nil(t, err)
@@ -33,7 +33,7 @@ func TestGetStatus(t *testing.T) {
 	require.Nil(t, err)
 
 	name := "tx1"
-	var lastCheckHeight int64 = 4772132
+	lastCheckHeight := int64(4772132)
 
 	err = setStatus(name, lastCheckHeight)
 	require.Nil(t, err)

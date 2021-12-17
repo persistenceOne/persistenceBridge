@@ -21,13 +21,16 @@ import (
 
 func (m MsgHandler) HandleToEth(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var kafkaMsgs []sarama.ConsumerMessage
+
 	claimMsgChan := claim.Messages()
 
 	ticker := time.NewTicker(configuration.GetAppConfig().Kafka.ToEth.Ticker)
 	defer ticker.Stop()
 
-	var kafkaMsg *sarama.ConsumerMessage
-	var ok bool
+	var (
+		kafkaMsg *sarama.ConsumerMessage
+		ok       bool
+	)
 
 ConsumerLoop:
 	for {
@@ -64,6 +67,7 @@ ConsumerLoop:
 	}
 
 	session.MarkMessage(kafkaMsg, "")
+
 	return nil
 }
 
@@ -72,6 +76,7 @@ func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingTx.
 
 	for i, kafkaMsg := range kafkaMsgs {
 		var msg outgoingTx.WrapTokenMsg
+
 		err := json.Unmarshal(kafkaMsg.Value, &msg)
 		if err != nil {
 			return nil, err
@@ -98,6 +103,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
 		defer func() {
 			innerErr := producer.Close()
 			if innerErr != nil {

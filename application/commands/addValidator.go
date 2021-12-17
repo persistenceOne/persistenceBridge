@@ -32,15 +32,19 @@ func AddCommand() *cobra.Command {
 			}
 
 			pStakeConfig := configuration.InitConfig()
+
 			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
+
 			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			configuration.ValidateAndSeal()
+
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -52,11 +56,14 @@ func AddCommand() *cobra.Command {
 			if err != nil {
 				log.Fatalln(err)
 			}
+
 			var validators []db.Validator
+
 			database, err := db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
+
 				var err2 error
 				validators, err2 = rpc.AddValidator(db.Validator{
 					Address: validatorAddress,
@@ -85,6 +92,7 @@ func AddCommand() *cobra.Command {
 				log.Println("No validators in db, panic.")
 			} else {
 				log.Printf("Total validators %d:\n", len(validators))
+
 				for i, validator := range validators {
 					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
 				}
@@ -96,5 +104,6 @@ func AddCommand() *cobra.Command {
 
 	addCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
 	addCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+
 	return addCommand
 }

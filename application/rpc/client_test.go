@@ -57,6 +57,7 @@ func TestRemoveValidator(t *testing.T) {
 
 	if !rpcRunning {
 		go StartServer(rpcEndpoint)
+
 		rpcRunning = true
 	}
 

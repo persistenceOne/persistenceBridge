@@ -35,12 +35,16 @@ func (u *UnboundEpochTime) Validate() error {
 
 func GetUnboundEpochTime() (UnboundEpochTime, error) {
 	var u UnboundEpochTime
+
 	key := unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime))
+
 	b, err := get(key)
 	if err != nil {
 		return u, err
 	}
+
 	err = json.Unmarshal(b, &u)
+
 	return u, err
 }
 
@@ -48,5 +52,6 @@ func SetUnboundEpochTime(epochTime int64) error {
 	u := UnboundEpochTime{
 		Epoch: epochTime,
 	}
+
 	return set(&u)
 }

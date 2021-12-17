@@ -23,6 +23,7 @@ var appConfig *config
 func InitConfig() *config {
 	c := newConfig()
 	appConfig = &c
+
 	return appConfig
 }
 
@@ -46,6 +47,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if denom != "" {
 			appConfig.Tendermint.PStakeDenom = denom
 		}
@@ -54,6 +56,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if accountPrefix != "" {
 			appConfig.Tendermint.AccountPrefix = accountPrefix
 		}
@@ -62,6 +65,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if ethereumEndPoint != "" {
 			appConfig.Ethereum.EthereumEndPoint = ethereumEndPoint
 		}
@@ -70,6 +74,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if ethGasLimit != 0 {
 			appConfig.Ethereum.GasLimit = ethGasLimit
 		}
@@ -78,6 +83,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if ports != "" {
 			appConfig.Kafka.Brokers = strings.Split(ports, ",")
 		}
@@ -86,6 +92,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if broadcastMode != "" {
 			if broadcastMode == flags.BroadcastBlock || broadcastMode == flags.BroadcastAsync || broadcastMode == flags.BroadcastSync {
 				appConfig.Tendermint.BroadcastMode = broadcastMode
@@ -98,6 +105,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if caspURL != "" {
 			appConfig.CASP.URL = caspURL
 		}
@@ -106,6 +114,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if caspVaultID != "" {
 			appConfig.CASP.VaultID = caspVaultID
 		}
@@ -114,6 +123,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if csapApiToken != "" {
 			appConfig.CASP.APIToken = csapApiToken
 		}
@@ -122,6 +132,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if caspTMPublicKey != "" {
 			appConfig.CASP.TendermintPublicKey = caspTMPublicKey
 		}
@@ -130,6 +141,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if caspTMPublicKey != "" {
 			appConfig.CASP.EthereumPublicKey = caspEthPublicKey
 		}
@@ -138,6 +150,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if caspSignatureWaitTime >= 0 {
 			appConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
 		} else if appConfig.CASP.SignatureWaitTime < 0 {
@@ -148,12 +161,14 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		appConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
 
 		caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants2.FlagCASPMaxGetSignatureAttempts)
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if caspMaxGetSignatureAttempts > 0 {
 			appConfig.CASP.MaxGetSignatureAttempts = caspMaxGetSignatureAttempts
 		} else if appConfig.CASP.SignatureWaitTime < 0 {
@@ -164,6 +179,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if bridgeRPCEndpoint != "" {
 			appConfig.RPCEndpoint = bridgeRPCEndpoint
 		}
@@ -172,6 +188,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if minWrapAmt >= 0 {
 			appConfig.Tendermint.MinimumWrapAmount = minWrapAmt
 		}
@@ -180,6 +197,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if telegramBotToken != "" {
 			appConfig.TelegramBot.Token = telegramBotToken
 		}
@@ -188,6 +206,7 @@ func SetConfig(cmd *cobra.Command) *config {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if telegramBotChatID != 0 {
 			appConfig.TelegramBot.ChatID = telegramBotChatID
 		}
@@ -200,5 +219,6 @@ func ValidateAndSeal() {
 	if err := appConfig.validate(); err != nil {
 		log.Fatalf("configuration validation error: %s", err.Error())
 	}
+
 	appConfig.seal = true
 }

@@ -15,5 +15,6 @@ func SaramaConfig() *sarama.Config {
 	config.Producer.Return.Successes = true
 
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+
 	return config
 }

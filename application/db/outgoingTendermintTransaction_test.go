@@ -61,8 +61,10 @@ func TestIterateOutgoingTmTx(t *testing.T) {
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
-		var transactions []OutgoingTendermintTransaction
-		var tmTx OutgoingTendermintTransaction
+		var (
+			transactions []OutgoingTendermintTransaction
+			tmTx         OutgoingTendermintTransaction
+		)
 
 		innerErr := json.Unmarshal(value, &tmTx)
 		if innerErr != nil {

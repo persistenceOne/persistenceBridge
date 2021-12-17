@@ -29,23 +29,29 @@ import (
 func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for i, transaction := range resultTxs {
 		logging.Info("Tendermint TX:", transaction.Hash.String(), fmt.Sprintf("(%d)", i+1))
+
 		err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
+
 			return err
 		}
 	}
+
 	wrapOrRevert(kafkaProducer, protoCodec)
+
 	return nil
 }
 
 func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx) error {
 	if txQueryResult.TxResult.GetCode() == 0 {
-		// Should be used if txQueryResult.Tx is string
-		//decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)
-		//if err != nil {
-		//	return txMsgs, err
-		//}
+		/*
+			// Should be used if txQueryResult.Tx is string
+			decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)
+			if err != nil {
+				return txMsgs, err
+			}
+		*/
 
 		txInterface, err := clientCtx.TxConfig.TxDecoder()(txQueryResult.Tx)
 		if err != nil {
@@ -78,6 +84,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 								if err != nil {
 									return err
 								}
+
 								err = db.AddTendermintTxToKafka(db.TendermintTxToKafka{
 									TxHash:   txQueryResult.Hash,
 									MsgIndex: uint(i),
@@ -96,6 +103,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -112,6 +120,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 		}
 
 		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
+
 		var ethAddress goEthCommon.Address
 
 		if validEthMemo {
@@ -128,6 +137,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			}
 
 			var msgBytes []byte
+
 			msgBytes, err = json.Marshal(ethTxMsg)
 			if err != nil {
 				panic(err)

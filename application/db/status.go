@@ -40,11 +40,14 @@ func (status *Status) Validate() error {
 func getStatus(name string) (Status, error) {
 	var status Status
 	status.Name = name
+
 	b, err := get(status.Key())
 	if err != nil {
 		return status, err
 	}
+
 	err = json.Unmarshal(b, &status)
+
 	return status, err
 }
 
@@ -53,6 +56,7 @@ func setStatus(name string, height int64) error {
 		Name:            name,
 		LastCheckHeight: height,
 	}
+
 	return set(&status)
 }
 

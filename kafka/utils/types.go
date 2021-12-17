@@ -12,19 +12,19 @@ import (
 // Ticket : is a type that implements string
 type Ticket string
 
-//// KafkaMsg : is a store that can be stored in kafka queues
-//type KafkaMsg struct {
+// // KafkaMsg : is a store that can be stored in kafka queues
+// type KafkaMsg struct {
 //	MsgBytes      sdk.MsgBytes `json:"msg"`
 //	TicketID Ticket  `json:"ticketID"`
-//}
+// }
 //
-//// NewKafkaMsgFromRest : makes a msg to send to kafka queue
-//func NewKafkaMsgFromRest(msg sdk.MsgBytes, ticketID Ticket) KafkaMsg {
+// // NewKafkaMsgFromRest : makes a msg to send to kafka queue
+// func NewKafkaMsgFromRest(msg sdk.MsgBytes, ticketID Ticket) KafkaMsg {
 //	return KafkaMsg{
 //		MsgBytes:      msg,
 //		TicketID: ticketID,
 //	}
-//}
+// }
 
 // TicketIDResponse : is a json structure to send TicketID to user
 type TicketIDResponse struct {
@@ -44,22 +44,26 @@ type KafkaState struct {
 func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.TopicDetail) KafkaState {
 	config := SaramaConfig()
 	admin := KafkaAdmin(kafkaPorts, config)
+
 	adminTopics, err := admin.ListTopics()
 	if err != nil {
 		panic(err)
 	}
-	//create topics if not present
+
+	// create topics if not present
 	for _, topic := range Topics {
 		if _, ok := adminTopics[topic]; !ok {
 			TopicsInit(admin, topic, topicDetail)
 		}
 	}
+
 	producer := NewProducer(kafkaPorts, config)
 
-	consumers := map[string]sarama.ConsumerGroup{}
+	consumers := make(map[string]sarama.ConsumerGroup, len(Groups))
 	for _, group := range Groups {
 		consumers[group] = NewConsumerGroup(kafkaPorts, group, config)
 	}
+
 	return KafkaState{
 		HomeDir:       homeDir,
 		Admin:         admin,

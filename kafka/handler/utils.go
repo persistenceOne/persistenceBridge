@@ -28,22 +28,27 @@ func contains(s []sdk.ValAddress, e sdk.ValAddress) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 func ValidatorsInDelegations(delegationResponses stakingTypes.DelegationResponses) []sdk.ValAddress {
 	var validators []sdk.ValAddress
+
 	for _, delegation := range delegationResponses {
 		validators = append(validators, delegation.Delegation.GetValidatorAddr())
 	}
+
 	return validators
 }
 
 func TotalDelegations(delegationResponses stakingTypes.DelegationResponses) sdk.Int {
 	sum := sdk.ZeroInt()
+
 	for _, delegation := range delegationResponses {
 		sum = sum.Add(delegation.Balance.Amount)
 	}
+
 	return sum
 }
 
@@ -51,6 +56,7 @@ func checkCount(currentCount, maxCount int) bool {
 	if currentCount < maxCount {
 		return true
 	}
+
 	return false
 }
 
@@ -59,31 +65,39 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 	if err != nil {
 		return loop, err
 	}
+
 	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), chain)
 	if err != nil {
 		errStatus, ok := status.FromError(err)
 		if ok && errStatus.Code() == codes.NotFound {
 			return loop, nil
 		}
+
 		return loop, err
 	}
+
 	delegatorValidators := ValidatorsInDelegations(delegatorDelegations)
+
 	for _, validator := range validators {
 		if contains(delegatorValidators, validator.Address) {
 			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
 				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 				ValidatorAddress: validator.Address.String(),
 			}
+
 			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(withdrawRewardsMsg)
 			if err != nil {
 				logging.Error("Failed to Marshal WithdrawMessage, Error:", err)
+
 				return loop, err
 			} else {
 				err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
 				if err2 != nil {
 					logging.Error("failed to produce withdrawRewards to queue ToTendermint")
+
 					return loop, err2
 				}
+
 				loop = loop - 1
 				if loop == 0 {
 					return loop, nil
@@ -91,5 +105,6 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 			}
 		}
 	}
+
 	return loop, nil
 }

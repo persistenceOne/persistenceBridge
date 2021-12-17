@@ -10,9 +10,10 @@ import (
 )
 
 func NewConsumerGroup(kafkaPorts []string, groupID string, config *sarama.Config) sarama.ConsumerGroup {
-	consumerGroup, Error := sarama.NewConsumerGroup(kafkaPorts, groupID, config)
-	if Error != nil {
-		panic(Error)
+	consumerGroup, err := sarama.NewConsumerGroup(kafkaPorts, groupID, config)
+	if err != nil {
+		panic(err)
 	}
+
 	return consumerGroup
 }

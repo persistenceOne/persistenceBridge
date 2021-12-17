@@ -18,8 +18,10 @@ import (
 func TestAddCommand(t *testing.T) {
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
+
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
+
 	database.Close()
 
 	validatorName := "Binance"
@@ -27,13 +29,16 @@ func TestAddCommand(t *testing.T) {
 
 	cmd := AddCommand()
 	cmd.SetArgs([]string{validatorAddress, validatorName})
+
 	err = cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
 	require.Nil(t, err)
+
 	err = cmd.Execute()
 	require.Nil(t, err)
 
 	database, err = db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
+
 	address, _ := sdk.ValAddressFromBech32(validatorAddress)
 	validator, err := db.GetValidator(address)
 	require.Nil(t, err)

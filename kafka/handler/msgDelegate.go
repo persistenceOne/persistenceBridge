@@ -21,6 +21,7 @@ import (
 func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -29,9 +30,14 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	}()
 
 	claimMsgChan := claim.Messages()
-	var kafkaMsg *sarama.ConsumerMessage
-	var ok bool
+
+	var (
+		kafkaMsg *sarama.ConsumerMessage
+		ok       bool
+	)
+
 	sum := sdk.ZeroInt()
+
 ConsumerLoop:
 	for {
 		select {
@@ -39,6 +45,7 @@ ConsumerLoop:
 			if !ok {
 				break ConsumerLoop
 			}
+
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
@@ -48,6 +55,7 @@ ConsumerLoop:
 			if err != nil {
 				return err
 			}
+
 			switch txMsg := msg.(type) {
 			case *stakingTypes.MsgDelegate:
 				sum = sum.Add(txMsg.Amount.Amount)
@@ -64,10 +72,13 @@ ConsumerLoop:
 		if err != nil {
 			return err
 		}
+
 		if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count < len(validators) {
 			logging.Error("Delegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
+
 			return nil
 		}
+
 		delegationAmount := sum.QuoRaw(int64(len(validators)))
 		delegationChange := sum.ModRaw(int64(len(validators)))
 
@@ -80,11 +91,15 @@ ConsumerLoop:
 					Amount: delegationAmount,
 				},
 			}
+
 			if i == len(validators)-1 {
 				delegateMsg.Amount.Amount = delegateMsg.Amount.Amount.Add(delegationChange)
 			}
+
 			if !delegateMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
-				msgBytes, err := m.ProtoCodec.MarshalInterface(delegateMsg)
+				var msgBytes []byte
+
+				msgBytes, err = m.ProtoCodec.MarshalInterface(delegateMsg)
 				if err != nil {
 					return err
 				}
@@ -92,12 +107,16 @@ ConsumerLoop:
 				err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
 				if err != nil {
 					logging.Error("failed to produce message from: MsgDelegate to ToTendermint")
+
 					return err
 				}
+
 				m.Count++
 			}
 		}
+
 		session.MarkMessage(kafkaMsg, "")
 	}
+
 	return nil
 }

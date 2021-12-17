@@ -68,6 +68,7 @@ func TestGetValidators(t *testing.T) {
 	validatorSlice, err := GetValidators()
 
 	var testValidators []Validator
+
 	err = iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
 

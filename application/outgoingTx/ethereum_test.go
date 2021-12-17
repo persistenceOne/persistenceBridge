@@ -38,13 +38,15 @@ func TestEthereumWrapToken(t *testing.T) {
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, err)
+
 	txHash, err := EthereumWrapToken(ethereumClient, wrapTokenMsg)
-	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, txHash)
-	require.Equal(t, true, re.MatchString(txHash.String()))
 	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txHash))
 	require.NotEqual(t, nil, txHash)
 	require.Equal(t, 32, len(txHash))
+
+	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
+	require.Equal(t, true, re.MatchString(txHash.String()))
 }
 
 func TestSendTxToEth(t *testing.T) {
@@ -53,6 +55,7 @@ func TestSendTxToEth(t *testing.T) {
 
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
+
 	ethAddress, _ := casp.GetEthAddress()
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
 	addresses := make([]common.Address, 1)
@@ -61,8 +64,10 @@ func TestSendTxToEth(t *testing.T) {
 	amounts[0] = big.NewInt(1)
 	txdata, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
 	require.Nil(t, err)
+
 	txToETHhash, err := sendTxToEth(ethClient, &ethAddress, nil, txdata)
 	require.Nil(t, err)
+
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(txToETHhash.String()))
 	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txToETHhash))
@@ -77,16 +82,21 @@ func TestGetEthSignature(t *testing.T) {
 
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
+
 	address, _ := casp.GetEthAddress()
 	ctx := context.Background()
 	chainID, err := ethClient.ChainID(ctx)
 	require.Nil(t, err)
+
 	gasPrice, err := ethClient.SuggestGasPrice(ctx)
 	require.Nil(t, err)
+
 	nonce, err := ethClient.PendingNonceAt(ctx, ethBridgeAdmin)
 	require.Nil(t, err)
+
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
 	require.Nil(t, err)
+
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
 	addresses[0] = address
@@ -102,6 +112,7 @@ func TestGetEthSignature(t *testing.T) {
 		Data:     txdata,
 		To:       &address,
 	})
+
 	signer := types.NewEIP155Signer(chainID)
 	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx, signer)
 	require.Nil(t, errorGettingSignature, "Error getting signature response")
@@ -118,6 +129,7 @@ func TestSetEthBridgeAdmin(t *testing.T) {
 
 	err := setEthBridgeAdmin()
 	require.Nil(t, err)
+
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
 	require.NotEqual(t, "0x0000000000000000000000000000000000000000", ethBridgeAdmin, "ETH Bridge Admin alreadu set")

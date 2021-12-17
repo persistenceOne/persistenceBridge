@@ -19,13 +19,17 @@ type ValidatorRPC struct{}
 
 func (a *ValidatorRPC) GetValidators(_ string, result *[]db.Validator) error {
 	r, err := db.GetValidators()
+
 	*result = r
+
 	return err
 }
 
 func (a *ValidatorRPC) GetByValidatorAddress(valAddress sdk.ValAddress, result *db.Validator) error {
 	r, err := db.GetValidator(valAddress)
+
 	*result = r
+
 	return err
 }
 
@@ -34,8 +38,11 @@ func (a *ValidatorRPC) AddValidator(validator db.Validator, result *[]db.Validat
 	if err != nil {
 		return err
 	}
+
 	r, err := db.GetValidators()
+
 	*result = r
+
 	return err
 }
 
@@ -44,8 +51,10 @@ func (a *ValidatorRPC) DeleteValidator(address sdk.ValAddress, result *[]db.Vali
 	if err != nil {
 		return err
 	}
+
 	r, err := db.GetValidators()
 	*result = r
+
 	return err
 }
 
@@ -53,6 +62,7 @@ func (a *ValidatorRPC) DeleteValidator(address sdk.ValAddress, result *[]db.Vali
 
 func StartServer(rpcEndpoint string) {
 	validatorRPC := new(ValidatorRPC)
+
 	err := rpc.Register(validatorRPC)
 	if err != nil {
 		logging.Fatal("error registering ValidatorRPC:", err)
@@ -61,6 +71,7 @@ func StartServer(rpcEndpoint string) {
 	rpc.HandleHTTP()
 
 	logging.Info("Starting RPC server on:", rpcEndpoint)
+
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/validators", validators)
 

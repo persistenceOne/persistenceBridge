@@ -26,6 +26,7 @@ import (
 func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
+
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
@@ -38,56 +39,71 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
 		if err != nil {
 			logging.Error("Stopping Tendermint Listener, onNewBlock err:", err)
+
 			shutdown.SetTMStopped(true)
+
 			return
 		}
 
 		if shutdown.GetBridgeStopSignal() {
 			if shutdown.GetKafkaConsumerClosed() {
 				logging.Info("Stopping Tendermint Listener!!!")
+
 				shutdown.SetTMStopped(true)
+
 				return
 			}
 
 			time.Sleep(5 * time.Second)
+
 			continue
 		}
 
 		abciInfo, err := chain.Client.ABCIInfo(ctx)
 		if err != nil {
 			logging.Error("Unable to fetch tendermint ABCI info:", err)
+
 			time.Sleep(sleepDuration)
+
 			continue
 		}
 
 		cosmosStatus, err := db.GetCosmosStatus()
 		if err != nil {
 			logging.Error("Stopping Tendermint Listener, unable to get status, Error:", err)
+
 			shutdown.SetTMStopped(true)
+
 			return
 		}
 
 		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > 5 {
 			processHeight := cosmosStatus.LastCheckHeight + 1
+
 			logging.Info("Tendermint Block:", processHeight)
 
 			resultTxs, err := getAllTxResults(ctx, chain, processHeight)
 			if err != nil {
 				time.Sleep(sleepDuration)
+
 				continue
 			}
 
 			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
 			if err != nil {
 				logging.Error("Unable to handle tendermint txs at height:", processHeight, "ERR:", err)
+
 				time.Sleep(sleepDuration)
+
 				continue
 			}
 
 			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
 				logging.Error("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
+
 				shutdown.SetTMStopped(true)
+
 				return
 			}
 		}
@@ -98,12 +114,14 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([]*coreTypes.ResultTx, error) {
 	var resultTxs []*coreTypes.ResultTx
+
 	page := 1
 	txsMaxPerPage := 100
 
 	txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &page, &txsMaxPerPage, "asc")
 	if err != nil {
 		logging.Error("Unable to fetch tendermint txs for block:", height, "page:", page, "ERR:", err)
+
 		return resultTxs, err
 	}
 
@@ -118,6 +136,7 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 		txSearchResult, err = chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &i, &txsMaxPerPage, "asc")
 		if err != nil {
 			logging.Error("Unable to fetch tendermint txs for block:", height, "page:", i, "ERR:", err)
+
 			return resultTxs, err
 		}
 

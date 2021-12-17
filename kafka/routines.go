@@ -26,9 +26,10 @@ func KafkaClose(kafkaState utils.KafkaState, end, ended chan bool) func() {
 		end <- true
 		end <- true
 		end <- true
-		_ = <-ended
-		_ = <-ended
-		_ = <-ended
+
+		<-ended
+		<-ended
+		<-ended
 
 		logging.Info("closing all kafka clients")
 
@@ -79,6 +80,7 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
 		case <-end:
 			logging.Info("Stopping ToEth Consumer!!!")
 			ended <- true
+
 			return
 		default:
 			logging.Debug("Next Routine Eth")
@@ -133,6 +135,7 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 		case <-end:
 			logging.Info("Stopping To-Tendermint Consumer!!!")
 			ended <- true
+
 			return
 		default:
 			logging.Debug("Next Routine Tendermint")
@@ -171,7 +174,9 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 				logging.Info("Stopping Unbondings Consumer!!!")
 
 				ended <- true
+
 				ticker.Stop()
+
 				return
 			case <-ticker.C:
 				logging.Debug("Next Routine Unbond")
@@ -187,6 +192,7 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 
 				ended <- true
 				ticker.Stop()
+
 				return
 			case <-ticker.C:
 				logging.Debug("Next Routine Unbond")

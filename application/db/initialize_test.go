@@ -19,8 +19,10 @@ func TestInitializeDB(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	var ethStart int64 = 4772131
-	var tmStart int64 = 1
+	var (
+		ethStart int64 = 4772131
+		tmStart  int64 = 1
+	)
 
 	database, err := InitializeDB(constants.TestHomeDir, tmStart, ethStart)
 	require.Nil(t, err)
@@ -32,9 +34,11 @@ func TestInitializeDB(t *testing.T) {
 	require.Nil(t, err)
 
 	ethHeight := ethStatus.LastCheckHeight + 1
-	cosmosHeight := cosmosLastCheckHeight.LastCheckHeight + 1
 	require.Equal(t, ethStart, ethHeight)
+
+	cosmosHeight := cosmosLastCheckHeight.LastCheckHeight + 1
 	require.Equal(t, tmStart, cosmosHeight)
+
 	database.Close()
 
 	database, err = OpenDB(constants.TestHomeDir)

@@ -20,6 +20,7 @@ import (
 func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -29,8 +30,10 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 
 	claimMsgChan := claim.Messages()
 
-	var kafkaMsg *sarama.ConsumerMessage
-	var ok bool
+	var (
+		kafkaMsg *sarama.ConsumerMessage
+		ok       bool
+	)
 
 ConsumerLoop:
 	for {

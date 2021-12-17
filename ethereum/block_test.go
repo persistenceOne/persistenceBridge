@@ -98,6 +98,7 @@ func TestHandleBlock(t *testing.T) {
 	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
+
 	encodingConfig := application.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithJSONMarshaler(encodingConfig.Marshaler).

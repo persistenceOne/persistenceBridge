@@ -31,6 +31,7 @@ var tmPublicKey cryptotypes.PubKey
 // LogMessagesAndBroadcast filters msgs to check repeated withdraw reward message
 func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	msgsTypes := ""
+
 	for _, msg := range msgs {
 		if msg.Type() == bankTypes.TypeMsgSend {
 			sendCoin := msg.(*bankTypes.MsgSend)
@@ -39,7 +40,9 @@ func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight
 			msgsTypes = msgsTypes + msg.Type() + " "
 		}
 	}
+
 	logging.Info("Messages to tendermint:", msgsTypes)
+
 	return tendermintSignAndBroadcastMsgs(chain, msgs, "pStake@PersistenceOne", timeoutHeight)
 }
 
@@ -51,19 +54,26 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 			return nil, err
 		}
 	}
+
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmPublicKey, msgs, memo, timeoutHeight)
 	if err != nil {
 		return nil, err
 	}
-	signature, err := getTMSignature(bytesToSign)
+
+	var signature []byte
+
+	signature, err = getTMSignature(bytesToSign)
 	if err != nil {
 		return nil, err
 	}
 
-	txRes, err := broadcastTMTx(chain, tmPublicKey, signature, txB, txF)
+	var txRes *sdk.TxResponse
+
+	txRes, err = broadcastTMTx(chain, tmPublicKey, signature, txB, txF)
 	if err != nil {
 		return nil, err
 	}
+
 	return txRes, err
 }
 
@@ -78,6 +88,7 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	}
 
 	var adjusted uint64
+
 	_, adjusted, err = tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
 	if err != nil {
 		return []byte{}, nil, txFactory, err
@@ -86,6 +97,7 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	txFactory = txFactory.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
 
 	var txBuilder client.TxBuilder
+
 	txBuilder, err = tx.BuildUnsignedTx(txFactory, msgs...)
 	if err != nil {
 		return []byte{}, nil, txFactory, err
@@ -118,6 +130,7 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	}
 
 	var bytesToSign []byte
+
 	bytesToSign, err = ctx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
 	if err != nil {
 		return []byte{}, txBuilder, txFactory, err
@@ -153,6 +166,7 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 	}
 
 	var txBytes []byte
+
 	txBytes, err = ctx.TxConfig.TxEncoder()(txBuilder.GetTx())
 	if err != nil {
 		return nil, err
@@ -170,6 +184,7 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	}
 
 	var signatureResponse caspResponses.SignOperationResponse
+
 	signatureResponse, err = casp.GetCASPSignature(operationID)
 	if err != nil {
 		return nil, err

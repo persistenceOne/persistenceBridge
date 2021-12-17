@@ -51,9 +51,12 @@ func IterateOutgoingTmTx(operation func(key []byte, value []byte) error) error {
 
 func CountTotalOutgoingTendermintTx() (int, error) {
 	total := 0
+
 	err := iterateKeys(outgoingTendermintTxPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
 		total = total + 1
+
 		return nil
 	})
+
 	return total, err
 }

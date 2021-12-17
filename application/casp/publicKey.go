@@ -27,19 +27,23 @@ func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 		X:     &x,
 		Y:     &y,
 	}
+
 	pubkeyObject := (*btcec.PublicKey)(&pubKey)
 	pk := pubkeyObject.SerializeCompressed()
+
 	return &secp256k1.PubKey{Key: pk}
 }
 
 // GetEthPubKey Should include prefix "04"
 func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	x, y := getXY(caspPubKey)
+
 	publicKey := ecdsa.PublicKey{
 		Curve: crypto.S256(),
 		X:     &x,
 		Y:     &y,
 	}
+
 	return publicKey
 }
 
@@ -49,9 +53,9 @@ func getXY(caspPubKey string) (big.Int, big.Int) {
 	if err != nil {
 		logging.Fatal(err)
 	}
-	var x big.Int
-	x.SetBytes(pubKeyBytes[0:32])
-	var y big.Int
-	y.SetBytes(pubKeyBytes[32:])
-	return x, y
+
+	x := big.NewInt(0).SetBytes(pubKeyBytes[0:32])
+	y := big.NewInt(0).SetBytes(pubKeyBytes[32:])
+
+	return *x, *y
 }

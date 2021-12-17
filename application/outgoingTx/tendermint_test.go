@@ -28,9 +28,12 @@ import (
 func TestLogMessagesAndBroadcast(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
+
 	tenderMintAddress, err := casp.GetTendermintAddress()
 	require.Nil(t, err)
+
 	configuration.SetPStakeAddress(tenderMintAddress)
+
 	chain := setUpChain(t)
 
 	msg := &bankTypes.MsgSend{
@@ -38,25 +41,30 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 		ToAddress:   "cosmos19u3y3gx35509fwxj5s0fzsz85qs452d8t4da06",
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.PStakeDenom, 1)),
 	}
+
 	txResponse, err := LogMessagesAndBroadcast(chain, []sdk.Msg{msg}, 200)
 	require.Nil(t, err)
-
-	re := regexp.MustCompile(`^[0-9a-fA-f]{64}`)
 	require.NotNil(t, txResponse)
-	require.Equal(t, true, re.MatchString(txResponse.TxHash))
 	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(txResponse))
 	require.Equal(t, reflect.TypeOf(""), reflect.TypeOf(txResponse.String()))
+
+	re := regexp.MustCompile(`^[0-9a-fA-f]{64}`)
+	require.Equal(t, true, re.MatchString(txResponse.TxHash))
 }
 
 func TestBroadcastTMTx(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
+
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Nil(t, err)
+
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Nil(t, err)
+
 	configuration.SetPStakeAddress(tmAddress)
+
 	chain := setUpChain(t)
 	msg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
@@ -66,10 +74,13 @@ func TestBroadcastTMTx(t *testing.T) {
 
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmpPubKey, []sdk.Msg{msg}, "pStake@PersistenceOne", 200)
 	require.Nil(t, err)
+
 	signature, err := getTMSignature(bytesToSign)
 	require.Nil(t, err)
+
 	broadcastTMmsg, err := broadcastTMTx(chain, tmpPubKey, signature, txB, txF)
 	require.Nil(t, err)
+
 	re := regexp.MustCompile(`^[0-9a-fA-F]`)
 	require.Equal(t, true, re.MatchString(broadcastTMmsg.TxHash))
 	require.Equal(t, 66, broadcastTMmsg.Size())
@@ -89,6 +100,7 @@ func TestGetTMBytesToSign(t *testing.T) {
 	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
+
 	chain := setUpChain(t)
 
 	msg := &bankTypes.MsgSend{

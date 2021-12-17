@@ -42,6 +42,7 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 
 	if chain.KeyExists(chain.Key) {
 		logging.Info("deleting old key", chain.Key)
+
 		err = chain.Keybase.Delete(chain.Key)
 		if err != nil {
 			return chain, err
@@ -56,9 +57,11 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	if err = chain.Start(); err != nil {
 		if err != tendermintService.ErrAlreadyStarted {
 			chain.Error(err)
+
 			return chain, err
 		}
 	}
+
 	return chain, nil
 }
 
@@ -66,6 +69,7 @@ func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
 	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
 		panic("account prefix is empty")
 	}
+
 	bech32PrefixAccAddr := configuration.GetAppConfig().Tendermint.AccountPrefix
 	bech32PrefixAccPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixPublic
 	bech32PrefixValAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
@@ -77,7 +81,8 @@ func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
 	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
 	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
 	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
-	// Do not seal the config.
+
+	// Do not seal the config
 
 	tmAddress, err := casp.GetTendermintAddress()
 	if err != nil {

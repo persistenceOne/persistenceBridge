@@ -23,6 +23,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	config := utils.SaramaConfig()
 
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -32,18 +33,22 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 
 	claimMsgChan := claim.Messages()
 
-	var kafkaMsg *sarama.ConsumerMessage
-	var ok bool
-	var redelegationSourceAddress sdk.ValAddress
+	var (
+		kafkaMsg                  *sarama.ConsumerMessage
+		ok                        bool
+		redelegationSourceAddress sdk.ValAddress
+	)
 
 	select {
 	case kafkaMsg, ok = <-claimMsgChan:
 		if !ok {
 			return errors.New("kafka returned error message")
 		}
+
 		if kafkaMsg == nil {
 			return errors.New("kafka returned nil message")
 		}
+
 		redelegationSourceAddress = kafkaMsg.Value
 	default:
 		return nil
@@ -55,12 +60,15 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	}
 
 	// query validator delegation
-	delegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), m.Chain)
+	var delegations stakingTypes.DelegationResponses
+
+	delegations, err = tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), m.Chain)
 	if err != nil {
 		return err
 	}
 
 	totalRedistributeAmount := sdk.ZeroInt()
+
 	for _, delegation := range delegations {
 		if delegation.Delegation.ValidatorAddress == redelegationSourceAddress.String() {
 			totalRedistributeAmount = delegation.Balance.Amount
@@ -69,7 +77,9 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 
 	if totalRedistributeAmount.Equal(sdk.ZeroInt()) {
 		logging.Info("No Delegations to Redelegate for validator src Address", redelegationSourceAddress.String())
+
 		session.MarkMessage(kafkaMsg, "")
+
 		return nil
 	}
 
@@ -91,7 +101,9 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 		}
 
 		if !msgRedelegate.Amount.Amount.LTE(sdk.ZeroInt()) {
-			msgBytes, err := m.ProtoCodec.MarshalInterface(msgRedelegate)
+			var msgBytes []byte
+
+			msgBytes, err = m.ProtoCodec.MarshalInterface(msgRedelegate)
 			if err != nil {
 				return err
 			}
@@ -99,6 +111,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
 			if err != nil {
 				logging.Error("failed to produce message from topic Redelegate to ToTendermint")
+
 				return err
 			}
 

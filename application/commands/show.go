@@ -31,6 +31,7 @@ func ShowCommand() *cobra.Command {
 			}
 
 			pStakeConfig := configuration.InitConfig()
+
 			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
@@ -95,7 +96,9 @@ func ShowCommand() *cobra.Command {
 			return nil
 		},
 	}
+
 	showCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
 	showCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+
 	return showCommand
 }

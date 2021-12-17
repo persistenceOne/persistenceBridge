@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	caspResponses "github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -36,21 +37,29 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 	if len(msgs) == 0 {
 		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
 	}
+
 	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
+
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(constants.TokenWrapperABI))
 	if err != nil {
 		return common.Hash{}, err
 	}
+
 	addresses := make([]common.Address, len(msgs))
 	amounts := make([]*big.Int, len(msgs))
+
 	for i, msg := range msgs {
 		addresses[i] = msg.Address
 		amounts[i] = msg.Amount
 	}
-	bytesData, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
+
+	var bytesData []byte
+
+	bytesData, err = tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
 	if err != nil {
 		return common.Hash{}, err
 	}
+
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
 }
 
@@ -62,22 +71,27 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 			return common.Hash{}, err
 		}
 	}
+
 	nonce, err := client.PendingNonceAt(ctx, ethBridgeAdmin)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	gasTipCap, err := client.SuggestGasTipCap(ctx)
+	var gasTipCap *big.Int
+
+	gasTipCap, err = client.SuggestGasTipCap(ctx)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	chainID, err := client.ChainID(ctx)
+	var chainID *big.Int
+
+	chainID, err = client.ChainID(ctx)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	//TODO set it as conf parameter
+	// TODO set it as conf parameter
 	gasFeeCap := big.NewInt(300000000000)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
@@ -92,12 +106,20 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 	})
 
 	signer := types.NewLondonSigner(chainID)
-	caspSignature, v, err := getEthSignature(tx, signer) //Signature is of 64 bytes, need to append V value
+
+	var (
+		caspSignature []byte
+		v             int
+	)
+
+	caspSignature, v, err = getEthSignature(tx, signer) // Signature is of 64 bytes, need to append V value
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	signedTx, err := tx.WithSignature(signer, append(caspSignature, byte(v)))
+	var signedTx *types.Transaction
+
+	signedTx, err = tx.WithSignature(signer, append(caspSignature, byte(v)))
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -106,45 +128,62 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 	if err != nil {
 		logging.Error("Broadcasting ETH Tx:", signedTx.Hash().String(), "Error:", err.Error())
 	}
+
 	return signedTx.Hash(), err
 }
 
-//getEthSignature returns R and S in byte array and V value as int
+// getEthSignature returns R and S in byte array and V value as int
 func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
 	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
+
 	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
 	if err != nil {
 		return nil, -1, err
 	}
-	signatureResponse, err := casp.GetCASPSignature(operationID)
+
+	var signatureResponse caspResponses.SignOperationResponse
+
+	signatureResponse, err = casp.GetCASPSignature(operationID)
 	if err != nil {
 		return nil, -1, err
 	}
+
 	if len(signatureResponse.Signatures) == 0 {
 		return nil, -1, fmt.Errorf("ethereum signature not found from casp for operation %s", operationID)
 	}
-	signature, err := hex.DecodeString(signatureResponse.Signatures[0])
+
+	var signature []byte
+
+	signature, err = hex.DecodeString(signatureResponse.Signatures[0])
 	if err != nil {
 		return nil, -1, err
 	}
+
 	return signature, signatureResponse.V[0], nil
 }
 
 func setEthBridgeAdmin() error {
 	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
 		logging.Warn("outgoingTx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
+
 		return nil
 	}
+
 	logging.Info("outgoingTx: setting ethereum bridge admin from casp")
+
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {
 		return err
 	}
+
 	if len(uncompressedPublicKeys.Items) == 0 {
 		logging.Error("no eth public keys got from casp")
+
 		return err
 	}
+
 	publicKey := casp.GetEthPubKey(uncompressedPublicKeys.Items[0])
 	ethBridgeAdmin = crypto.PubkeyToAddress(publicKey)
+
 	return nil
 }

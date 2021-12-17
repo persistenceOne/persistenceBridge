@@ -47,47 +47,50 @@ func TestGetAccountLimiter(t *testing.T) {
 }
 
 func TestAccountLimiterKey(t *testing.T) {
-	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	acc := AccountLimiter{
-		AccountAddress: Address,
+		AccountAddress: address,
 		Amount:         sdk.OneInt(),
 	}
 
 	key := acc.Key()
+	require.NotEqual(t, nil, key)
+
 	expectedKey := accountLimiterPrefix.GenerateStoreKey(acc.AccountAddress.Bytes())
 	require.Equal(t, reflect.TypeOf(key), reflect.TypeOf(expectedKey))
 	require.Equal(t, expectedKey, key)
-	require.NotEqual(t, nil, key)
 }
 
 func TestAccountLimiterValidate(t *testing.T) {
-	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
 	acc1 := AccountLimiter{
-		AccountAddress: Address,
+		AccountAddress: address,
 		Amount:         sdk.OneInt(),
 	}
 	acc2 := AccountLimiter{
-		AccountAddress: Address,
+		AccountAddress: address,
 		Amount:         sdk.ZeroInt(),
 	}
 
 	err := acc1.Validate()
 	require.Nil(t, err)
+
 	err = acc2.Validate()
 	require.Equal(t, "invalid amount", err.Error())
 }
 
 func TestAccountLimiterValue(t *testing.T) {
-	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	acc := AccountLimiter{
-		AccountAddress: Address,
+		AccountAddress: address,
 		Amount:         sdk.OneInt(),
 	}
 
 	expectedValue, err := acc.Value()
-	value, _ := json.Marshal(acc)
 	require.Nil(t, err)
+
+	value, _ := json.Marshal(acc)
 	require.Equal(t, expectedValue, value)
 }
 
@@ -103,10 +106,10 @@ func TestSetAccountLimiter(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	Address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
 	acc := AccountLimiter{
-		AccountAddress: Address,
+		AccountAddress: address,
 		Amount:         sdk.OneInt(),
 	}
 
@@ -127,6 +130,7 @@ func TestGetTotalTokensWrapped(t *testing.T) {
 		AccountAddress: address1,
 		Amount:         sdk.OneInt(),
 	}
+
 	err = SetAccountLimiter(acc)
 	require.Nil(t, err)
 

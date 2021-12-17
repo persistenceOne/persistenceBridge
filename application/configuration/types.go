@@ -147,5 +147,6 @@ func (config tendermintConfig) GetPStakeAddress() string {
 	if config.pStakeAddress == "" {
 		log.Fatalln("pStakeAddress not set")
 	}
+
 	return config.pStakeAddress
 }

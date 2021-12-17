@@ -18,6 +18,7 @@ import (
 func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
 	defer func() {
 		err := producer.Close()
 		if err != nil {
@@ -26,8 +27,12 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 	}()
 
 	claimMsgChan := claim.Messages()
-	var kafkaMsg *sarama.ConsumerMessage
-	var ok bool
+
+	var (
+		kafkaMsg *sarama.ConsumerMessage
+		ok       bool
+	)
+
 ConsumerLoop:
 	for {
 		select {
@@ -35,16 +40,21 @@ ConsumerLoop:
 			if !ok {
 				break ConsumerLoop
 			}
+
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
+
 			err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				//TODO @Puneet return err?? ~ can return, since already logging no logic changes.
+				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 				logging.Error("failed to produce from MsgUnbond to ToTendermint, error:", err)
+
 				break ConsumerLoop
 			}
+
 			session.MarkMessage(kafkaMsg, "")
+
 			m.Count++
 			if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 				break ConsumerLoop

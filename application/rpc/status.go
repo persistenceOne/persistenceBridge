@@ -32,9 +32,11 @@ func status(w http.ResponseWriter, _ *http.Request) {
 		errResponse.Message = err.Error()
 
 		var b []byte
+
 		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
@@ -47,20 +49,24 @@ func status(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	var ethStatus db.Status
+
 	ethStatus, err = db.GetEthereumStatus()
 	if err != nil {
 		errResponse.Message = err.Error()
 
 		var b []byte
+
 		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
@@ -68,20 +74,24 @@ func status(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	var unboundEpoch db.UnboundEpochTime
+
 	unboundEpoch, err = db.GetUnboundEpochTime()
 	if err != nil {
 		errResponse.Message = err.Error()
 
 		var b []byte
+
 		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
@@ -89,20 +99,24 @@ func status(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	var totalWrapped sdk.Int
+
 	totalWrapped, err = db.GetTotalTokensWrapped()
 	if err != nil {
 		errResponse.Message = err.Error()
 
 		var b []byte
+
 		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
 		_, err = w.Write(b)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
+
 			return
 		}
 
@@ -117,15 +131,18 @@ func status(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	var b []byte
+
 	b, err = json.Marshal(status)
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
+
 		return
 	}
 
 	_, err = w.Write(b)
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
+
 		return
 	}
 

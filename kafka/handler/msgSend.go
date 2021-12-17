@@ -19,12 +19,14 @@ import (
 func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
 	defer func() {
 		err := producer.Close()
 		if err != nil {
 			logging.Error("failed to close producer in topic: MsgSend, error:", err)
 		}
 	}()
+
 	validators, err := db.GetValidators()
 	if err != nil {
 		return err
@@ -37,8 +39,12 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 
 	if loop > 0 {
 		claimMsgChan := claim.Messages()
-		var kafkaMsg *sarama.ConsumerMessage
-		var ok bool
+
+		var (
+			kafkaMsg *sarama.ConsumerMessage
+			ok       bool
+		)
+
 	ConsumerLoop:
 		for {
 			select {
@@ -55,15 +61,20 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 					if err != nil {
 						return err
 					}
+
 					m.WithdrawRewards = true
 				}
-				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
+
+				err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {
-					//TODO @Puneet return err?? ~ can return, since already logging no logic changes.
+					// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 					logging.Error("failed to produce from: MsgSend to: ToTendermint")
+
 					break ConsumerLoop
 				}
+
 				session.MarkMessage(kafkaMsg, "")
+
 				loop--
 				if loop == 0 {
 					break ConsumerLoop
@@ -73,5 +84,6 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 			}
 		}
 	}
+
 	return nil
 }

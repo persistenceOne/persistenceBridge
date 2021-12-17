@@ -28,8 +28,10 @@ func (m MsgHandler) HandleToTendermint(session sarama.ConsumerGroupSession, clai
 	ticker := time.NewTicker(configuration.GetAppConfig().Kafka.ToTendermint.Ticker)
 	defer ticker.Stop()
 
-	var kafkaMsg *sarama.ConsumerMessage
-	var ok bool
+	var (
+		kafkaMsg *sarama.ConsumerMessage
+		ok       bool
+	)
 
 ConsumerLoop:
 	for {
@@ -117,6 +119,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 					for _, msg := range msgs {
 						if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
 							var msgBytes []byte
+
 							msgBytes, err = handler.ProtoCodec.MarshalInterface(msg)
 							if err != nil {
 								logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)

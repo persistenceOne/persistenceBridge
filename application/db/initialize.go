@@ -21,6 +21,7 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	db = dbTemp
 
 	if tendermintStart > 0 {
@@ -36,6 +37,7 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 			return db, err
 		}
 	}
+
 	_, err = GetUnboundEpochTime()
 	if err == badger.ErrKeyNotFound {
 		err = SetUnboundEpochTime(time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
@@ -52,6 +54,7 @@ func OpenDB(dbPath string) (*badger.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	db = dbTemp
 
 	return db, nil
