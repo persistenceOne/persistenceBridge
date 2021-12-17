@@ -6,8 +6,9 @@
 package main
 
 import (
-	"github.com/persistenceOne/persistenceBridge/application/commands"
 	"github.com/spf13/cobra"
+
+	"github.com/persistenceOne/persistenceBridge/application/commands"
 )
 
 func main() {

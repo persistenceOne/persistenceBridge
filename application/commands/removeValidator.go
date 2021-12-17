@@ -7,19 +7,21 @@ package commands
 
 import (
 	"errors"
+	"log"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
-	"github.com/spf13/cobra"
-	"log"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 func RemoveCommand() *cobra.Command {

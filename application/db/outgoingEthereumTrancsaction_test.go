@@ -8,13 +8,15 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"reflect"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 )
 
 func TestDeleteOutgoingEthereumTx(t *testing.T) {

@@ -6,21 +6,23 @@
 package outgoingTx
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/relayer/helpers"
-	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceBridge/application/casp"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/relayer/helpers"
+	"github.com/cosmos/relayer/relayer"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/casp"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 )
 
 func TestLogMessagesAndBroadcast(t *testing.T) {
@@ -51,7 +53,7 @@ func TestBroadcastTMTx(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
-	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 	configuration.SetPStakeAddress(tmAddress)
@@ -80,7 +82,7 @@ func TestGetTMBytesToSign(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	require.Equal(t, nil, err)
-	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.PublicKeys[0])
+	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
 	configuration.SetPStakeAddress(tmAddress)

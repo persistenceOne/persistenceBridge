@@ -10,6 +10,7 @@ import (
 
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
+
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 

@@ -7,10 +7,12 @@ package db
 
 import (
 	"encoding/json"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestSetStatus(t *testing.T) {

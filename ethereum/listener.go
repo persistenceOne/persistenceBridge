@@ -7,12 +7,14 @@ package ethereum
 
 import (
 	"context"
-	"github.com/Shopify/sarama"
 	"math/big"
 	"time"
 
+	"github.com/Shopify/sarama"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/ethclient"
+
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"

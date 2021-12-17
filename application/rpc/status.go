@@ -7,8 +7,9 @@ package rpc
 
 import (
 	"encoding/json"
-	"github.com/persistenceOne/persistenceBridge/application/db"
 	"net/http"
+
+	"github.com/persistenceOne/persistenceBridge/application/db"
 )
 
 type statusResponse struct {

@@ -7,12 +7,13 @@ package casp
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	caspResponses "github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"time"
 )
 
 // GetCASPSigningOperationID description should be small

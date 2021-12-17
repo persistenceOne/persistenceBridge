@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v3"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )
 

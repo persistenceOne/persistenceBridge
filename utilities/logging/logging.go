@@ -7,8 +7,9 @@ package logging
 
 import (
 	"fmt"
-	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
+
+	tb "gopkg.in/tucnak/telebot.v2"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )

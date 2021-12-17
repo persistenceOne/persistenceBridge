@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 

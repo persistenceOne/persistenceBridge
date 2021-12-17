@@ -6,12 +6,14 @@
 package tendermint
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestAddressIsDelegatorToValidator(t *testing.T) {

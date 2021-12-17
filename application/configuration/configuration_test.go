@@ -6,10 +6,12 @@
 package configuration
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 )
 
 func TestGetAppConfig(t *testing.T) {

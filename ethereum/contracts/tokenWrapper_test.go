@@ -6,13 +6,15 @@
 package contracts
 
 import (
+	"math/big"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
+
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestOnWithdrawUTokens(t *testing.T) {

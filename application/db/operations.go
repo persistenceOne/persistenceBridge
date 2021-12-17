@@ -7,6 +7,7 @@ package db
 
 import (
 	"github.com/dgraph-io/badger/v3"
+
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 

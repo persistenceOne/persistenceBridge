@@ -7,15 +7,17 @@ package contracts
 
 import (
 	"context"
+	"strings"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/stretchr/testify/require"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 func TestContracts(t *testing.T) {

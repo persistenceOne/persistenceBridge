@@ -8,9 +8,10 @@ package configuration
 import (
 	"errors"
 	"fmt"
+	"net/url"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"net/url"
 )
 
 // Validate :panics if config is not valid

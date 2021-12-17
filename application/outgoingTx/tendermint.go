@@ -17,11 +17,12 @@ import (
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 var tmPublicKey cryptotypes.PubKey

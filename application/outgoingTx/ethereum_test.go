@@ -7,21 +7,24 @@ package outgoingTx
 
 import (
 	"context"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/persistenceOne/persistenceBridge/application/casp"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"math/big"
 	"reflect"
 	"regexp"
 	"strings"
 
-	"github.com/stretchr/testify/require"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+
+	"github.com/persistenceOne/persistenceBridge/application/casp"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestEthereumWrapToken(t *testing.T) {

@@ -7,6 +7,7 @@ package db
 
 import (
 	"encoding/json"
+
 	"github.com/dgraph-io/badger/v3"
 )
 

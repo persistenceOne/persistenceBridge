@@ -6,15 +6,18 @@
 package tendermint
 
 import (
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"time"
+
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 
 	"github.com/cosmos/relayer/helpers"
 	"github.com/cosmos/relayer/relayer"
+	tendermintService "github.com/tendermint/tendermint/libs/service"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	tendermintService "github.com/tendermint/tendermint/libs/service"
 )
 
 func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {

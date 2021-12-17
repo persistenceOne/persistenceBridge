@@ -7,11 +7,13 @@ package tendermint
 
 import (
 	"context"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/stretchr/testify/require"
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
+
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestGetAllTxResults(t *testing.T) {

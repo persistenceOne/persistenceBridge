@@ -6,8 +6,9 @@
 package testing
 
 import (
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/spf13/cobra"
+
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func GetCmdWithConfig() *cobra.Command {

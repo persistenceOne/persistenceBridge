@@ -8,6 +8,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 )
 

@@ -7,15 +7,17 @@ package kafka
 
 import (
 	"context"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/ethereum/go-ethereum/ethclient"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/handler"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"time"
 )
 
 // KafkaClose: closes all kafka connections

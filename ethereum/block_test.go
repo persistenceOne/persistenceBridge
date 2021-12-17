@@ -7,6 +7,10 @@ package ethereum
 
 import (
 	"context"
+	"math/big"
+	"os"
+	"testing"
+
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -14,6 +18,8 @@ import (
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/stretchr/testify/require"
+
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -24,10 +30,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
-	"math/big"
-	"os"
-	"testing"
 )
 
 func TestCollectEthTx(t *testing.T) {

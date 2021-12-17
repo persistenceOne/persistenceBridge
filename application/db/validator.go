@@ -7,6 +7,7 @@ package db
 
 import (
 	"encoding/json"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dgraph-io/badger/v3"
 )

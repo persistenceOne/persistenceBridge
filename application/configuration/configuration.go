@@ -13,8 +13,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/spf13/cobra"
+
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 var appConfig *config

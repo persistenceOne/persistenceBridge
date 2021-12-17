@@ -6,8 +6,9 @@
 package constants
 
 import (
-	"github.com/Shopify/sarama"
 	"time"
+
+	"github.com/Shopify/sarama"
 )
 
 var (

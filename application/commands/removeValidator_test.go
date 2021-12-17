@@ -6,11 +6,13 @@
 package commands
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestRemoveCommand(t *testing.T) {

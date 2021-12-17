@@ -7,12 +7,21 @@ package commands
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/spf13/cobra"
+
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -25,13 +34,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"github.com/spf13/cobra"
-	"log"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 func StartCommand() *cobra.Command {

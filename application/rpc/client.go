@@ -6,9 +6,11 @@
 package rpc
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/db"
 	"net/rpc"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/persistenceOne/persistenceBridge/application/db"
 )
 
 func AddValidator(validator db.Validator, rpcEndpoint string) ([]db.Validator, error) {

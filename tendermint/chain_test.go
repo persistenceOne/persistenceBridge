@@ -6,14 +6,16 @@
 package tendermint
 
 import (
-	"github.com/cosmos/relayer/relayer"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/cosmos/relayer/relayer"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 )
 
 func TestInitializeAndStartChain(t *testing.T) {

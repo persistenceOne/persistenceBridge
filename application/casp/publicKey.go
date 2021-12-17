@@ -8,12 +8,14 @@ package casp
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"math/big"
+
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"math/big"
 )
 
 // GetTMPubKey Should include prefix "04"

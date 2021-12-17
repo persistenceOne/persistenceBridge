@@ -6,11 +6,13 @@
 package casp
 
 import (
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 )
 
 func TestGetCASPSignature(t *testing.T) {

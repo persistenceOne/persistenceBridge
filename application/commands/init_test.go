@@ -6,12 +6,14 @@
 package commands
 
 import (
-	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/stretchr/testify/require"
 	"path/filepath"
 	"testing"
+
+	"github.com/BurntSushi/toml"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestInitCommand(t *testing.T) {

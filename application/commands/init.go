@@ -7,14 +7,16 @@ package commands
 
 import (
 	"bytes"
-	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+	"github.com/spf13/cobra"
+
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func InitCommand() *cobra.Command {

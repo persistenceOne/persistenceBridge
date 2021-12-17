@@ -70,4 +70,20 @@ else
 	tar -czvf release/persistenceBridge-${GOOS}-${GOARCH}.tar.gz --directory=build/${GOOS}/${GOARCH} persistenceBridge
 endif
 
+lintci:
+	golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 --config .golangci.yaml
+.PHONY: lintci
 
+lintci-install:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.43.0
+.PHONY: lintci-install
+
+lintci-remove:
+	rm $(GOPATH)/bin/golangci-lint
+.PHONY: lintci-remove
+
+lintci-update: lintci-remove lintci-install
+.PHONY: lintci-update
+
+goimports:
+	goimports -local="github.com/persistenceOne/persistenceBridge" -w .

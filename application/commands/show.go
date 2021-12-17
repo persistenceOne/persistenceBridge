@@ -6,16 +6,18 @@
 package commands
 
 import (
+	"log"
+	"path/filepath"
+
 	"github.com/BurntSushi/toml"
+	"github.com/spf13/cobra"
+
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
-	"github.com/spf13/cobra"
-	"log"
-	"path/filepath"
 )
 
 func ShowCommand() *cobra.Command {

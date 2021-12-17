@@ -7,9 +7,10 @@ package db
 
 import (
 	"encoding/binary"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGenerateStoreKey(t *testing.T) {

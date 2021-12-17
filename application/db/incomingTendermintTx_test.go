@@ -9,10 +9,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestAddToPendingIncomingTendermintTx(t *testing.T) {

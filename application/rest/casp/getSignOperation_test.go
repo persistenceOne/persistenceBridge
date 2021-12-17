@@ -6,10 +6,12 @@
 package casp
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGetSignOperation(t *testing.T) {

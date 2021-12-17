@@ -7,11 +7,13 @@ package db
 
 import (
 	"encoding/json"
+	"testing"
+
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestAddIncomingEthereumTx(t *testing.T) {

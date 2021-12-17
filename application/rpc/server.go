@@ -10,6 +10,7 @@ import (
 	"net/rpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )

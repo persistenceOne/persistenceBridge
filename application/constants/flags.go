@@ -6,9 +6,10 @@
 package constants
 
 import (
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"os"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
 )
 
 const (

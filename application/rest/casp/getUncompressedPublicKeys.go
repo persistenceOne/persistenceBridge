@@ -9,12 +9,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
-	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func GetUncompressedTMPublicKeys() (casp.UncompressedPublicKeysResponse, error) {

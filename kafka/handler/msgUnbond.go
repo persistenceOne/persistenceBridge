@@ -7,7 +7,9 @@ package handler
 
 import (
 	"errors"
+
 	"github.com/Shopify/sarama"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
