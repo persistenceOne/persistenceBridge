@@ -39,7 +39,7 @@ func TestCountTotalOutgoingTendermintTx(t *testing.T) {
 	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 
 	expectedTotal, err := CountTotalOutgoingTendermintTx()
-	expectedTotal = expectedTotal + 1
+	expectedTotal++
 
 	tendermintTransaction := OutgoingTendermintTransaction{
 		TxHash: txHash,

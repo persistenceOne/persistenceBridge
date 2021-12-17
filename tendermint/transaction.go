@@ -26,7 +26,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleTxSearchResult(clientCtx *client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for i, transaction := range resultTxs {
 		logging.Info("Tendermint TX:", transaction.Hash.String(), fmt.Sprintf("(%d)", i+1))
 
@@ -43,15 +43,9 @@ func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.Res
 	return nil
 }
 
-func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreTypes.ResultTx) error {
+func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCoreTypes.ResultTx) error {
 	if txQueryResult.TxResult.GetCode() == 0 {
-		/*
-			// Should be used if txQueryResult.Tx is string
-			decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)
-			if err != nil {
-				return txMsgs, err
-			}
-		*/
+		// Should be used if txQueryResult.Tx is string: `decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)`
 
 		txInterface, err := clientCtx.TxConfig.TxDecoder()(txQueryResult.Tx)
 		if err != nil {
@@ -73,7 +67,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 						for _, coin := range txMsg.Amount {
 							// Do not check for TendermintTxToKafka exists.
 							if !db.CheckIncomingTendermintTxExists(txQueryResult.Hash, uint(i), coin.Denom) {
-								err = db.AddIncomingTendermintTx(db.IncomingTendermintTx{
+								err = db.AddIncomingTendermintTx(&db.IncomingTendermintTx{
 									TxHash:      txQueryResult.Hash,
 									MsgIndex:    uint(i),
 									Denom:       coin.Denom,
@@ -107,7 +101,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 	return nil
 }
 
-func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
+func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
 	tmTxToKafkaList, err := db.GetAllTendermintTxToKafka()
 	if err != nil {
 		logging.Fatal(err)
@@ -145,7 +139,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 
 			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "amount:", tx.Amount.String())
 
-			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaProducer)
 			if err != nil {
 				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
 			}
@@ -164,7 +158,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 	}
 }
 
-func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
+func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
 	msg := &banktypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
 		ToAddress:   toAddress,
@@ -178,7 +172,7 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncPr
 
 	logging.Info("REVERT: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
 
-	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
+	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaProducer)
 	if err != nil {
 		logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))
 	}

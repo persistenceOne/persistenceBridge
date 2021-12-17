@@ -53,7 +53,7 @@ func CountTotalOutgoingTendermintTx() (int, error) {
 	total := 0
 
 	err := iterateKeys(outgoingTendermintTxPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
-		total = total + 1
+		total++
 
 		return nil
 	})

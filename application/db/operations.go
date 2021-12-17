@@ -41,9 +41,9 @@ func keyExists(key []byte) bool {
 	if err != nil {
 		if err == badger.ErrKeyNotFound {
 			return false
-		} else {
-			logging.Fatal(err)
 		}
+
+		logging.Fatal(err)
 	}
 
 	return true

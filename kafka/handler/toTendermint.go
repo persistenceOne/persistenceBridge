@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
@@ -71,10 +72,10 @@ ConsumerLoop:
 func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec) ([]sdk.Msg, error) {
 	var msgs []sdk.Msg
 
-	for _, kafkaMsg := range kafkaMsgs {
+	for i := range kafkaMsgs {
 		var msg sdk.Msg
 
-		err := protoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
+		err := protoCodec.UnmarshalInterface(kafkaMsgs[i].Value, &msg)
 		if err != nil {
 			return nil, err
 		}
@@ -117,23 +118,25 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 					}()
 
 					for _, msg := range msgs {
-						if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
-							var msgBytes []byte
-
-							msgBytes, err = handler.ProtoCodec.MarshalInterface(msg)
-							if err != nil {
-								logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
-								// TODO @Puneet continue or return? ~ this case should never come, log(ALERT), continue
-							}
-
-							err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
-							if err != nil {
-								logging.Error("Retry txs: Failed to add msg to kafka queue, Msg:", msg.String(), "Error:", err)
-								// TODO @Puneet continue or return? ~ let it continue, log the message, will have to send manually.
-							}
-
-							logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
+						if msg.Type() == distributionTypes.TypeMsgWithdrawDelegatorReward {
+							continue
 						}
+
+						var msgBytes []byte
+
+						msgBytes, err = handler.ProtoCodec.MarshalInterface(msg)
+						if err != nil {
+							logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
+							// TODO @Puneet continue or return? ~ this case should never come, log(ALERT), continue
+						}
+
+						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
+						if err != nil {
+							logging.Error("Retry txs: Failed to add msg to kafka queue, Msg:", msg.String(), "Error:", err)
+							// TODO @Puneet continue or return? ~ let it continue, log the message, will have to send manually.
+						}
+
+						logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
 					}
 				}()
 

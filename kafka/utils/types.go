@@ -41,7 +41,7 @@ type KafkaState struct {
 }
 
 // NewKafkaState : returns a kafka state
-func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.TopicDetail) KafkaState {
+func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.TopicDetail) *KafkaState {
 	config := SaramaConfig()
 	admin := KafkaAdmin(kafkaPorts, config)
 
@@ -64,7 +64,7 @@ func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.Topic
 		consumers[group] = NewConsumerGroup(kafkaPorts, group, config)
 	}
 
-	return KafkaState{
+	return &KafkaState{
 		HomeDir:       homeDir,
 		Admin:         admin,
 		ConsumerGroup: consumers,

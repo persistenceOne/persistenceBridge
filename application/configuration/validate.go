@@ -14,8 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Validate :panics if config is not valid
-func (config config) validate() error {
+// Validate: panics if config is not valid
+func (config *config) validate() error {
 	if err := config.Ethereum.validate(); err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (config config) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config ethereumConfig) validate() error {
+func (config *ethereumConfig) validate() error {
 	if config.GasLimit <= 0 {
 		return fmt.Errorf("invalid eth gas limit")
 	}
@@ -53,7 +53,7 @@ func (config ethereumConfig) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config tendermintConfig) validate() error {
+func (config *tendermintConfig) validate() error {
 	if config.pStakeAddress == "" {
 		return fmt.Errorf("pStakeAddress empty")
 	}
@@ -91,7 +91,7 @@ func (config tendermintConfig) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config kafkaConfig) validate() error {
+func (config *kafkaConfig) validate() error {
 	if config.TopicDetail.ReplicationFactor < 1 {
 		return errors.New("replicationFactor has to be atleast 1")
 	}
@@ -111,7 +111,7 @@ func (config kafkaConfig) validate() error {
 	return nil
 }
 
-func (config caspConfig) validate() error {
+func (config *caspConfig) validate() error {
 	if config.VaultID == "" {
 		return fmt.Errorf("casp vault id empty")
 	}
@@ -139,7 +139,7 @@ func (config caspConfig) validate() error {
 	return nil
 }
 
-func (config telegramBot) validate() error {
+func (config *telegramBot) validate() error {
 	if (config.ChatID != 0 && config.Token == "") || (config.ChatID == 0 && config.Token != "") {
 		return fmt.Errorf("telegram bot configuration invalid")
 	}

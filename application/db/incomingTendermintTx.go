@@ -93,8 +93,8 @@ func GetIncomingTendermintTx(txHash tmBytes.HexBytes, msgIndex uint, denom strin
 	return tmInTx, err
 }
 
-func AddIncomingTendermintTx(t IncomingTendermintTx) error {
-	return set(&t)
+func AddIncomingTendermintTx(t *IncomingTendermintTx) error {
+	return set(t)
 }
 
 func CheckIncomingTendermintTxExists(txHash tmBytes.HexBytes, msgIndex uint, denom string) bool {

@@ -122,20 +122,22 @@ ConsumerLoop:
 		}
 
 		for _, unbondMsg := range unbondMsgs {
-			if !unbondMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
-				var msgBytes []byte
+			if unbondMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
+				continue
+			}
 
-				msgBytes, err = m.ProtoCodec.MarshalInterface(unbondMsg)
-				if err != nil {
-					return err
-				}
+			var msgBytes []byte
 
-				err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
-				if err != nil {
-					logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
+			msgBytes, err = m.ProtoCodec.MarshalInterface(unbondMsg)
+			if err != nil {
+				return err
+			}
 
-					return err
-				}
+			err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
+			if err != nil {
+				logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
+
+				return err
 			}
 		}
 

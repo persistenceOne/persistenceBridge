@@ -66,7 +66,7 @@ func TestOnNewBlock(t *testing.T) {
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Nil(t, err)
 
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, kafkaProducer)
 	require.Nil(t, err)
 
 	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
@@ -89,6 +89,6 @@ func TestOnNewBlock(t *testing.T) {
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Nil(t, err)
 
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, kafkaProducer)
 	require.Nil(t, err)
 }

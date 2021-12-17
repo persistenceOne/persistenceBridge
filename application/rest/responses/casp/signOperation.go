@@ -55,7 +55,7 @@ type SignOperationResponse struct {
 	} `json:"collectedData"`
 }
 
-func (response SignOperationResponse) GetPendingParticipantsApprovals() error {
+func (response *SignOperationResponse) GetPendingParticipantsApprovals() error {
 	result := "OperationID: " + response.OperationID
 
 	if len(response.Groups) == 0 {
@@ -66,16 +66,16 @@ func (response SignOperationResponse) GetPendingParticipantsApprovals() error {
 		totalApproval := 0
 		membersAwaiting := ""
 
-		for _, member := range group.Members {
-			if member.ApprovedAt == "" {
-				membersAwaiting = membersAwaiting + member.Name + ", "
+		for i := range group.Members {
+			if group.Members[i].ApprovedAt == "" {
+				membersAwaiting = membersAwaiting + group.Members[i].Name + ", "
 			} else {
 				totalApproval++
 			}
 		}
 
 		if totalApproval < group.RequiredApprovals {
-			result = result + fmt.Sprintf(", Group: %s (Order: %d) have pending %d more approvals from members [%s]", group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
+			result += fmt.Sprintf(", Group: %s (Order: %d) have pending %d more approvals from members [%s]", group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
 		}
 	}
 

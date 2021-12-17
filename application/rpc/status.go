@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/persistenceOne/persistenceBridge/application/db"
 )
 

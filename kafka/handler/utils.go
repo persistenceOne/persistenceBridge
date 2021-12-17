@@ -98,7 +98,7 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 					return loop, err2
 				}
 
-				loop = loop - 1
+				loop--
 				if loop == 0 {
 					return loop, nil
 				}

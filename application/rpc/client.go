@@ -43,7 +43,7 @@ func RemoveValidator(validatorAddr sdk.ValAddress, rpcEndpoint string) ([]db.Val
 	return result, err
 }
 
-func ShowValidators(empty string, rpcEndpoint string) ([]db.Validator, error) {
+func ShowValidators(empty, rpcEndpoint string) ([]db.Validator, error) {
 	var result []db.Validator
 
 	client, err := rpc.DialHTTP("tcp", rpcEndpoint)

@@ -49,9 +49,9 @@ func GetAccountLimiter(address sdk.AccAddress) (AccountLimiter, error) {
 	if err != nil {
 		if err == badger.ErrKeyNotFound {
 			return acc, nil
-		} else {
-			return acc, err
 		}
+
+		return acc, err
 	}
 
 	err = json.Unmarshal(b, &acc)

@@ -61,10 +61,8 @@ func TestGetXY(t *testing.T) {
 	require.Nil(t, err, "Failed to get casp Response")
 
 	x, y := getXY(uncompressedPublicKeys.Items[0])
-	require.Equal(t, 32, len(y.Bytes()))
-	require.Equal(t, 32, len(y.Bytes()))
-	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(x))
-	require.Equal(t, reflect.TypeOf(big.Int{}), reflect.TypeOf(y))
 	require.NotNil(t, x)
 	require.NotNil(t, y)
+	require.Equal(t, 32, len(y.Bytes()))
+	require.Equal(t, 32, len(y.Bytes()))
 }

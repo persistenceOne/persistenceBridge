@@ -7,6 +7,7 @@ package outgoingTx
 
 import (
 	"os"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -48,7 +49,7 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(txResponse))
 	require.Equal(t, reflect.TypeOf(""), reflect.TypeOf(txResponse.String()))
 
-	re := regexp.MustCompile(`^[0-9a-fA-f]{64}`)
+	re := regexp.MustCompile(`^[0-9A-f]{64}`)
 	require.Equal(t, true, re.MatchString(txResponse.TxHash))
 }
 
@@ -175,7 +176,7 @@ func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 
 func setUpChain(t *testing.T) *relayer.Chain {
 	dirname, _ := os.UserHomeDir()
-	homePath := strings.Join([]string{dirname, "/.persistenceBridge"}, "/")
+	homePath := path.Join(dirname, ".persistenceBridge")
 
 	chain := &relayer.Chain{}
 	chain.Key = "unusedKey"

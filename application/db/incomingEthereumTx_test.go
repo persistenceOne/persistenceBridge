@@ -20,12 +20,13 @@ func TestAddIncomingEthereumTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	ethInTx := IncomingEthereumTx{
+	ethInTx := &IncomingEthereumTx{
 		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
 		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
 		MsgBytes: nil,
 		MsgType:  "",
 	}
+
 	err = AddIncomingEthereumTx(ethInTx)
 	require.Equal(t, "empty MsgBytes", err.Error())
 
@@ -42,12 +43,13 @@ func TestGetIncomingEthereumTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	ethInTx := IncomingEthereumTx{
+	ethInTx := &IncomingEthereumTx{
 		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
 		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
 		MsgBytes: []byte("Msg"),
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
+
 	err = AddIncomingEthereumTx(ethInTx)
 	require.Nil(t, err)
 
@@ -58,7 +60,8 @@ func TestGetIncomingEthereumTx(t *testing.T) {
 	err = db.Close()
 	require.Nil(t, err)
 
-	ethInTx = IncomingEthereumTx{}
+	ethInTx = &IncomingEthereumTx{}
+
 	_, err = GetIncomingEthereumTx(ethInTx.TxHash)
 	require.Equal(t, "DB Closed", err.Error())
 }

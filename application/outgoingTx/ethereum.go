@@ -17,12 +17,12 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	caspResponses "github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	caspResponses "github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
@@ -133,33 +133,39 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 }
 
 // getEthSignature returns R and S in byte array and V value as int
-func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
+func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature []byte, v int, err error) {
+	v = -1
+
 	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
 
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
+	var operationID string
+
+	operationID, err = casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
 	if err != nil {
-		return nil, -1, err
+		return
 	}
 
 	var signatureResponse caspResponses.SignOperationResponse
 
 	signatureResponse, err = casp.GetCASPSignature(operationID)
 	if err != nil {
-		return nil, -1, err
+		return
 	}
 
 	if len(signatureResponse.Signatures) == 0 {
-		return nil, -1, fmt.Errorf("ethereum signature not found from casp for operation %s", operationID)
+		err = fmt.Errorf("ethereum signature not found from casp for operation %s", operationID)
+
+		return
 	}
 
-	var signature []byte
-
-	signature, err = hex.DecodeString(signatureResponse.Signatures[0])
+	caspSignature, err = hex.DecodeString(signatureResponse.Signatures[0])
 	if err != nil {
-		return nil, -1, err
+		return
 	}
 
-	return signature, signatureResponse.V[0], nil
+	v = signatureResponse.V[0]
+
+	return
 }
 
 func setEthBridgeAdmin() error {

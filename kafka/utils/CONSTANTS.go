@@ -21,16 +21,18 @@ var Groups = []string{GroupEthUnbond,
 	GroupToEth, GroupRetryTendermint, GroupToTendermint,
 }
 
-//Topics
+// Topics
 
-const ToEth = "to-ethereum"
-const ToTendermint = "to-tendermint"
-const MsgSend = "msg-send"          //priority3
-const MsgDelegate = "msg-delegate"  //priority2
-const MsgUnbond = "msg-unbond"      //priority1
-const EthUnbond = "ethereum-unbond" //flushes every 3 days
-const Redelegate = "redelegate"
-const RetryTendermint = "retry-tendermint"
+const (
+	ToEth           = "to-ethereum"
+	ToTendermint    = "to-tendermint"
+	MsgSend         = "msg-send"        // priority3
+	MsgDelegate     = "msg-delegate"    // priority2
+	MsgUnbond       = "msg-unbond"      // priority1
+	EthUnbond       = "ethereum-unbond" // flushes every 3 days
+	Redelegate      = "redelegate"
+	RetryTendermint = "retry-tendermint"
+)
 
 // Topics : is list of topics
 var Topics = []string{

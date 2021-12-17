@@ -10,7 +10,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -28,10 +28,10 @@ type SignDataRequest struct {
 	AllowConcurrentKeyUsage bool     `json:"allowConcurrentKeyUsage"`
 }
 
-func SignData(dataToSign []string, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
+func SignData(dataToSign, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
 	var response casp.PostSignDataResponse
 
-	//Encode the data
+	// Encode the data
 	postBody, _ := json.Marshal(SignDataRequest{
 		DataToSign:              dataToSign,
 		Description:             description,
@@ -64,7 +64,7 @@ func SignData(dataToSign []string, publicKeys []string, description string) (cas
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return response, false, err
 	}

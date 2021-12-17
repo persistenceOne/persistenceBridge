@@ -74,10 +74,10 @@ ConsumerLoop:
 func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingTx.WrapTokenMsg, error) {
 	msgs := make([]outgoingTx.WrapTokenMsg, len(kafkaMsgs))
 
-	for i, kafkaMsg := range kafkaMsgs {
+	for i := range kafkaMsgs {
 		var msg outgoingTx.WrapTokenMsg
 
-		err := json.Unmarshal(kafkaMsg.Value, &msg)
+		err := json.Unmarshal(kafkaMsgs[i].Value, &msg)
 		if err != nil {
 			return nil, err
 		}
@@ -111,8 +111,8 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			}
 		}()
 
-		for i, kafkaMsg := range kafkaMsgs {
-			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToEth, producer)
+		for i := range kafkaMsgs {
+			err = utils.ProducerDeliverMessage(kafkaMsgs[i].Value, utils.ToEth, producer)
 			if err != nil {
 				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "error:", err)
 				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.

@@ -63,8 +63,8 @@ func GetIncomingEthereumTx(txHash common.Hash) (IncomingEthereumTx, error) {
 	return ethInTx, err
 }
 
-func AddIncomingEthereumTx(t IncomingEthereumTx) error {
-	return set(&t)
+func AddIncomingEthereumTx(t *IncomingEthereumTx) error {
+	return set(t)
 }
 
 func CheckIncomingEthereumTxExists(txHash common.Hash) bool {

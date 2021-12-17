@@ -9,7 +9,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -26,7 +26,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 		},
 	}}
 
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s", configuration.GetAppConfig().CASP.URL, operationID), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s", configuration.GetAppConfig().CASP.URL, operationID), http.NoBody)
 	if err != nil {
 		return response, err
 	}
@@ -41,7 +41,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 	defer resp.Body.Close()
 
 	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return response, err
 	}

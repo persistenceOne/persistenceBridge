@@ -57,8 +57,8 @@ func GetAllEthereumTxToKafka() ([]EthereumTxToKafka, error) {
 	return ethTxToKafkaList, err
 }
 
-func AddEthereumTxToKafka(t EthereumTxToKafka) error {
-	return set(&t)
+func AddEthereumTxToKafka(t *EthereumTxToKafka) error {
+	return set(t)
 }
 
 func DeleteEthereumTxToKafka(txHash common.Hash) error {

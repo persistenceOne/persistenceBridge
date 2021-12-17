@@ -25,7 +25,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Block, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleBlock(client *ethclient.Client, ctx context.Context, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range block.Transactions() {
 		if transaction.To() != nil {
 			var contract contracts2.ContractI
@@ -54,8 +54,8 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 	return nil
 }
 
-func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts2.ContractI) error {
-	receipt, err := client.TransactionReceipt(*ctx, transaction.Hash())
+func collectEthTx(client *ethclient.Client, ctx context.Context, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts2.ContractI) error {
+	receipt, err := client.TransactionReceipt(ctx, transaction.Hash())
 	if err != nil {
 		logging.Error("Unable to get receipt of tx:", transaction.Hash().String(), "Error:", err)
 
@@ -95,7 +95,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 					return err
 				}
 
-				err = db.AddIncomingEthereumTx(db.IncomingEthereumTx{
+				err = db.AddIncomingEthereumTx(&db.IncomingEthereumTx{
 					TxHash:   transaction.Hash(),
 					MsgBytes: msgBytes,
 					Sender:   sender,
@@ -105,7 +105,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 					return err
 				}
 
-				err = db.AddEthereumTxToKafka(db.EthereumTxToKafka{
+				err = db.AddEthereumTxToKafka(&db.EthereumTxToKafka{
 					TxHash: transaction.Hash(),
 				})
 
@@ -119,7 +119,7 @@ func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *co
 	return nil
 }
 
-func produceToKafka(kafkaProducer *sarama.SyncProducer) {
+func produceToKafka(kafkaProducer sarama.SyncProducer) {
 	ethTxToKafkaList, err := db.GetAllEthereumTxToKafka()
 	if err != nil {
 		logging.Fatal(err)
@@ -146,7 +146,7 @@ func produceToKafka(kafkaProducer *sarama.SyncProducer) {
 
 		logging.Info("[ETH Listener] Adding to kafka producer:", producer, "of txHash:", ethTxToTM.TxHash.String(), "msgType:", ethTxToTM.MsgType, "sender:", ethTxToTM.Sender.String())
 
-		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, *kafkaProducer)
+		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, kafkaProducer)
 		if err != nil {
 			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
 		}

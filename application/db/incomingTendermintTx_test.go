@@ -21,7 +21,7 @@ func TestAddToPendingIncomingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	tmInTx := IncomingTendermintTx{
+	tmInTx := &IncomingTendermintTx{
 		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
 		MsgIndex:    0,
 		Denom:       "stake",
@@ -40,7 +40,7 @@ func TestSetIncomingTendermintTxProduced(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	tmInTx := IncomingTendermintTx{
+	tmInTx := &IncomingTendermintTx{
 		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
 		MsgIndex:    0,
 		Denom:       "stake",
@@ -65,7 +65,7 @@ func TestGetIncomingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	tmInTx := IncomingTendermintTx{
+	tmInTx := &IncomingTendermintTx{
 		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
 		MsgIndex:    0,
 		Denom:       "stake",
@@ -84,7 +84,8 @@ func TestGetIncomingTendermintTx(t *testing.T) {
 	err = db.Close()
 	require.Nil(t, err)
 
-	tmInTx = IncomingTendermintTx{}
+	tmInTx = &IncomingTendermintTx{}
+
 	_, err = GetIncomingTendermintTx(tmInTx.TxHash, 0, "stake")
 	require.Equal(t, "DB Closed", err.Error())
 }

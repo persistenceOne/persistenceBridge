@@ -74,7 +74,9 @@ func QueryDB(cdc *codec.LegacyAmino, kafkaDB *dbm.GoLevelDB) http.HandlerFunc {
 			output, err := cdc.MarshalJSON("The ticket ID does not exist, it must have been deleted, Query the chain to know")
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(fmt.Sprintf("ticket ID does not exist. Error: %s", err.Error())))
+
+				_, _ = fmt.Fprintf(w, "ticket ID does not exist. Error: %s", err.Error())
+
 				return
 			}
 			w.WriteHeader(http.StatusBadRequest)

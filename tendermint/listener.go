@@ -23,7 +23,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
+func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
 
@@ -36,7 +36,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
-		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
+		err := onNewBlock(ctx, initClientCtx, chain, kafkaProducer, protoCodec)
 		if err != nil {
 			logging.Error("Stopping Tendermint Listener, onNewBlock err:", err)
 
@@ -89,7 +89,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				continue
 			}
 
-			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
+			err = handleTxSearchResult(initClientCtx, resultTxs, kafkaProducer, protoCodec)
 			if err != nil {
 				logging.Error("Unable to handle tendermint txs at height:", processHeight, "ERR:", err)
 

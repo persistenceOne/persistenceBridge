@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -35,7 +34,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 		},
 	}}
 
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/coins/%d/accounts/0/chains/all/addresses?encoding=uncompressed", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID, coinType), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/coins/%d/accounts/0/chains/all/addresses?encoding=uncompressed", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID, coinType), http.NoBody)
 	if err != nil {
 		return response, err
 	}
@@ -59,7 +58,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	// Read the response body
 	var body []byte
 
-	body, err = ioutil.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return response, err
 	}

@@ -17,7 +17,7 @@ import (
 )
 
 // GetCASPSigningOperationID description should be small
-func GetCASPSigningOperationID(dataToSign []string, publicKeys []string, description string) (string, error) {
+func GetCASPSigningOperationID(dataToSign, publicKeys []string, description string) (string, error) {
 	for {
 		signDataResponse, busy, err := caspQueries.SignData(dataToSign, publicKeys, description)
 

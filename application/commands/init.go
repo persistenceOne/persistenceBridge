@@ -7,7 +7,6 @@ package commands
 
 import (
 	"bytes"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -43,7 +42,7 @@ func InitCommand() *cobra.Command {
 				panic(err)
 			}
 
-			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0644); err != nil {
+			if err := os.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0o644); err != nil {
 				panic(err)
 			}
 
@@ -52,7 +51,8 @@ func InitCommand() *cobra.Command {
 			return nil
 		},
 	}
-	//This will always be used from flag
+
+	// This will always be used from flag
 	cmd.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
 
 	cmd.Flags().String(constants2.FlagEthereumEndPoint, constants2.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
