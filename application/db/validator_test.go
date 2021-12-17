@@ -56,10 +56,12 @@ func TestGetValidators(t *testing.T) {
 
 	var testValidator Validator
 	testValidator.Address = validatorAddress
+
 	b, err := get(testValidator.Key())
 	require.Nil(t, err)
 
 	err = json.Unmarshal(b, &testValidator)
+	require.Nil(t, err)
 
 	require.Equal(t, expectedValidator, testValidator)
 
@@ -68,11 +70,14 @@ func TestGetValidators(t *testing.T) {
 	var testValidators []Validator
 	err = iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
+
 		err := json.Unmarshal(value, &v)
 		if err != nil {
 			return err
 		}
+
 		testValidators = append(testValidators, v)
+
 		return nil
 	})
 
@@ -89,15 +94,15 @@ func TestValidatorKey(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	Validator := Validator{
+	validator := Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	}
 
-	expectedKey := Validator.Key()
-	Key := Validator.prefix().GenerateStoreKey(Validator.Address)
+	expectedKey := validator.Key()
+	key := validator.prefix().GenerateStoreKey(validator.Address)
 
-	require.Equal(t, expectedKey, Key)
+	require.Equal(t, expectedKey, key)
 }
 
 func TestValidatorPrefix(t *testing.T) {
@@ -107,14 +112,15 @@ func TestValidatorPrefix(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	Validator := Validator{
+	validator := Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	}
-	Prefix := Validator.prefix()
 
-	require.Equal(t, reflect.TypeOf(Prefix), reflect.TypeOf(validatorPrefix))
-	require.Equal(t, Prefix, validatorPrefix)
+	prefix := validator.prefix()
+
+	require.Equal(t, reflect.TypeOf(prefix), reflect.TypeOf(validatorPrefix))
+	require.Equal(t, prefix, validatorPrefix)
 }
 
 func TestValidatorValue(t *testing.T) {
@@ -124,14 +130,15 @@ func TestValidatorValue(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	Validator := Validator{
+	validator := Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	}
-	expectedValue, err := Validator.Value()
+
+	expectedValue, err := validator.Value()
 	require.Nil(t, err)
 
-	value, err := json.Marshal(Validator)
+	value, err := json.Marshal(validator)
 	require.Nil(t, err)
 
 	require.Equal(t, expectedValue, value)

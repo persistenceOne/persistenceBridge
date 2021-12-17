@@ -67,8 +67,8 @@ func RemoveCommand() *cobra.Command {
 			producer := utils.NewProducer(strings.Split(kafkaPorts, ","), config)
 
 			defer func() {
-				err := producer.Close()
-				if err != nil {
+				innerErr := producer.Close()
+				if innerErr != nil {
 					log.Printf("failed to close producer in topic: %v\n", utils.MsgUnbond)
 				}
 			}()

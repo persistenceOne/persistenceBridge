@@ -19,14 +19,14 @@ func TestDeleteOutgoingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: txhash,
+		TxHash: txHash,
 	}
 
 	_ = SetOutgoingTendermintTx(tendermintTransaction)
 
-	err = DeleteOutgoingTendermintTx(txhash)
+	err = DeleteOutgoingTendermintTx(txHash)
 	require.Nil(t, err)
 
 	db.Close()
@@ -36,13 +36,13 @@ func TestCountTotalOutgoingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 
 	expectedTotal, err := CountTotalOutgoingTendermintTx()
 	expectedTotal = expectedTotal + 1
 
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: txhash,
+		TxHash: txHash,
 	}
 
 	err = SetOutgoingTendermintTx(tendermintTransaction)
@@ -64,12 +64,13 @@ func TestIterateOutgoingTmTx(t *testing.T) {
 		var transactions []OutgoingTendermintTransaction
 		var tmTx OutgoingTendermintTransaction
 
-		err := json.Unmarshal(value, &tmTx)
-		if err != nil {
-			return err
+		innerErr := json.Unmarshal(value, &tmTx)
+		if innerErr != nil {
+			return innerErr
 		}
 
 		transactions = append(transactions, tmTx)
+
 		return nil
 	}
 
@@ -83,12 +84,12 @@ func TestNewOutgoingTMTransaction(t *testing.T) {
 	db, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 
-	txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: txhash,
+		TxHash: txHash,
 	}
 
-	newTendermintTransaction := NewOutgoingTMTransaction(txhash)
+	newTendermintTransaction := NewOutgoingTMTransaction(txHash)
 
 	require.Equal(t, reflect.TypeOf(tendermintTransaction), reflect.TypeOf(newTendermintTransaction))
 	require.Equal(t, tendermintTransaction, newTendermintTransaction)
@@ -104,6 +105,7 @@ func TestSetOutgoingTendermintTx(t *testing.T) {
 	tendermintTransaction := OutgoingTendermintTransaction{
 		TxHash: Txhash,
 	}
+
 	err = SetOutgoingTendermintTx(tendermintTransaction)
 	require.Nil(t, err)
 
@@ -115,11 +117,11 @@ func TestTendermintOutgoingTransactionKey(t *testing.T) {
 		TxHash: "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F",
 	}
 
-	Key := outgoingTendermintTxPrefix.GenerateStoreKey([]byte(tendermintTransaction.TxHash))
+	key := outgoingTendermintTxPrefix.GenerateStoreKey([]byte(tendermintTransaction.TxHash))
 
 	expectedKey := tendermintTransaction.Key()
-	require.Equal(t, reflect.TypeOf(Key), reflect.TypeOf(expectedKey))
-	require.Equal(t, expectedKey, Key)
+	require.Equal(t, reflect.TypeOf(key), reflect.TypeOf(expectedKey))
+	require.Equal(t, expectedKey, key)
 }
 
 func TestTendermintOutgoingTransactionValidate(t *testing.T) {

@@ -22,7 +22,7 @@ func TestOnStake(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
 
@@ -30,7 +30,7 @@ func TestOnStake(t *testing.T) {
 	i.SetInt64(1000)
 	arr := []interface{}{common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")), i}
 	stakeMsg, ercAddress, err := onStake(arr)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	require.Equal(t, common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")).String(), ercAddress.String())
 
@@ -43,7 +43,7 @@ func TestOnUnStake(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
 
@@ -51,7 +51,7 @@ func TestOnUnStake(t *testing.T) {
 	i.SetInt64(1000)
 	arr := []interface{}{common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")), i}
 	UnStakeMsg, ercAddress, err := onUnStake(arr)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	require.Equal(t, common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")).String(), ercAddress.String())
 

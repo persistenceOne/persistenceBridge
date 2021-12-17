@@ -19,12 +19,12 @@ func TestGetUncompressedPublicKeys(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	funcResponse, err := GetUncompressedTMPublicKeys()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	require.Equal(t, funcResponse.AccountName, "tendermint")
 	require.Equal(t, 1, len(funcResponse.Items))
 
 	funcResponse, err = GetUncompressedEthPublicKeys()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	require.Equal(t, funcResponse.AccountName, "ethereum")
 	require.Equal(t, 1, len(funcResponse.Items))
 }

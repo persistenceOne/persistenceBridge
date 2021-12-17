@@ -30,6 +30,7 @@ func TestDeleteOutgoingEthereumTx(t *testing.T) {
 			Amount:  big.NewInt(1),
 		}},
 	}
+
 	err = SetOutgoingEthereumTx(ethTransaction)
 	require.Nil(t, err)
 
@@ -56,12 +57,14 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 		Address: Address,
 		Amount:  big.NewInt(1),
 	}
+
 	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: tx,
 	}
+
 	err := ethTransaction.Validate()
 	require.Nil(t, err)
 
@@ -71,6 +74,7 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 	}
 	err = ethTransaction.Validate()
 	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
+
 	emptyTransaction := OutgoingEthereumTransaction{}
 	require.Equal(t, "tx hash is empty", emptyTransaction.Validate().Error())
 }
@@ -83,6 +87,7 @@ func TestOutgoingEthereumTransactionValue(t *testing.T) {
 			Amount:  big.NewInt(1),
 		}},
 	}
+
 	expectedValue, _ := json.Marshal(ethTransaction)
 	value, err := ethTransaction.Value()
 	require.Nil(t, err)
@@ -100,8 +105,9 @@ func TestIterateEthTx(t *testing.T) {
 
 	function := func(key []byte, value []byte) error {
 		var ethTx OutgoingEthereumTransaction
-		err := json.Unmarshal(value, &ethTx)
-		require.Nil(t, err)
+		innerErr := json.Unmarshal(value, &ethTx)
+		require.Nil(t, innerErr)
+
 		return nil
 	}
 
@@ -117,12 +123,14 @@ func TestNewETHTransaction(t *testing.T) {
 		Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 		Amount:  big.NewInt(1),
 	}}
+
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   txHash,
 		Messages: messages,
 	}
 
 	outgoingEthereumTransaction := NewOutgoingETHTransaction(txHash, messages)
+
 	err := outgoingEthereumTransaction.Validate()
 	require.Nil(t, err)
 

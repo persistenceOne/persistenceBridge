@@ -104,13 +104,16 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 	if err != nil {
 		logging.Fatal(err)
 	}
+
 	for _, tmTxToKafka := range tmTxToKafkaList {
 		tx, err := db.GetIncomingTendermintTx(tmTxToKafka.TxHash, tmTxToKafka.MsgIndex, tmTxToKafka.Denom)
 		if err != nil {
 			logging.Fatal(fmt.Errorf("failed to get IncomingTendermintTx by TendermintTxToKafka [TM Listener]: %s", err.Error()))
 		}
+
 		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
 		var ethAddress goEthCommon.Address
+
 		if validEthMemo {
 			ethAddress = goEthCommon.HexToAddress(tx.Memo)
 			validEthMemo = goEthCommon.Address{}.String() != tx.Memo
@@ -118,24 +121,32 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 
 		if tx.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
 			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String())
+
 			ethTxMsg := outgoingTx.WrapTokenMsg{
 				Address: ethAddress,
 				Amount:  tx.Amount.BigInt(),
 			}
-			msgBytes, err := json.Marshal(ethTxMsg)
+
+			var msgBytes []byte
+			msgBytes, err = json.Marshal(ethTxMsg)
 			if err != nil {
 				panic(err)
 			}
+
 			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "amount:", tx.Amount.String())
+
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 			if err != nil {
 				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
+
 			logging.Info("Reverting coins,TxHash:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Coin:", revertToken.String())
+
 			revertCoins(tx.FromAddress, sdk.NewCoins(revertToken), kafkaProducer, protoCodec)
 		}
+
 		err = db.DeleteTendermintTxToKafka(tx.TxHash, tx.MsgIndex, tx.Denom)
 		if err != nil {
 			logging.Fatal(err)
@@ -149,11 +160,14 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncPr
 		ToAddress:   toAddress,
 		Amount:      coins,
 	}
+
 	msgBytes, err := protoCodec.MarshalInterface(msg)
 	if err != nil {
 		logging.Fatal(err)
 	}
+
 	logging.Info("REVERT: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
+
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
 		logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))

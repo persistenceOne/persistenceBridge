@@ -19,17 +19,16 @@ func Get(url string, target interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
+		innerErr := Body.Close()
 		if err != nil {
-			panic(err)
+			panic(innerErr)
 		}
 	}(r.Body)
 
-	if err := json.NewDecoder(r.Body).Decode(target); err == io.EOF {
+	if err = json.NewDecoder(r.Body).Decode(target); err == io.EOF {
 		return nil
-	} else if err != nil {
-		return err
 	}
 
 	return err

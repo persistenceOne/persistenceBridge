@@ -110,9 +110,9 @@ func StartCommand() *cobra.Command {
 			}
 
 			defer func(db *badger.DB) {
-				err := db.Close()
-				if err != nil {
-					log.Println("Error while closing DB: ", err.Error())
+				innerErr := db.Close()
+				if innerErr != nil {
+					log.Println("Error while closing DB: ", innerErr.Error())
 				}
 			}(db)
 

@@ -22,10 +22,13 @@ import (
 func (m MsgHandler) HandleToEth(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var kafkaMsgs []sarama.ConsumerMessage
 	claimMsgChan := claim.Messages()
+
 	ticker := time.NewTicker(configuration.GetAppConfig().Kafka.ToEth.Ticker)
 	defer ticker.Stop()
+
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
+
 ConsumerLoop:
 	for {
 		select {
@@ -50,27 +53,33 @@ ConsumerLoop:
 	if len(kafkaMsgs) == 0 {
 		return nil
 	}
+
 	if kafkaMsg == nil {
 		return errors.New("kafka returned nil message")
 	}
+
 	err := SendBatchToEth(kafkaMsgs, m)
 	if err != nil {
 		return err
 	}
+
 	session.MarkMessage(kafkaMsg, "")
 	return nil
 }
 
 func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingTx.WrapTokenMsg, error) {
 	msgs := make([]outgoingTx.WrapTokenMsg, len(kafkaMsgs))
+
 	for i, kafkaMsg := range kafkaMsgs {
 		var msg outgoingTx.WrapTokenMsg
 		err := json.Unmarshal(kafkaMsg.Value, &msg)
 		if err != nil {
 			return nil, err
 		}
+
 		msgs[i] = msg
 	}
+
 	return msgs, nil
 }
 
@@ -80,17 +89,19 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 	if err != nil {
 		return err
 	}
+
 	logging.Info("batched messages to send to ETH:", msgs)
 
 	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
 		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
+
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 		defer func() {
-			err := producer.Close()
-			if err != nil {
-				logging.Error("failed to close producer in topic: SendBatchToEth, err:", err)
+			innerErr := producer.Close()
+			if innerErr != nil {
+				logging.Error("failed to close producer in topic: SendBatchToEth, err:", innerErr)
 			}
 		}()
 
@@ -101,6 +112,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.
 			}
 		}
+
 		return err
 	} else {
 		err = db.SetOutgoingEthereumTx(db.NewOutgoingETHTransaction(hash, msgs))
@@ -108,6 +120,8 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			logging.Fatal(err)
 		}
 	}
+
 	logging.Info("Broadcast Eth Tx hash:", hash.String())
+
 	return nil
 }

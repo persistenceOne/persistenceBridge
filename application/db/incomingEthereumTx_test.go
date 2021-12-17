@@ -33,7 +33,7 @@ func TestAddIncomingEthereumTx(t *testing.T) {
 	ethInTx.MsgBytes = []byte("Msg")
 
 	err = AddIncomingEthereumTx(ethInTx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	db.Close()
 }
@@ -49,7 +49,7 @@ func TestGetIncomingEthereumTx(t *testing.T) {
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
 	err = AddIncomingEthereumTx(ethInTx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	tx, err := GetIncomingEthereumTx(ethInTx.TxHash)
 	require.Nil(t, err)

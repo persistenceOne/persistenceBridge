@@ -28,12 +28,12 @@ func TestOnNewBlock(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
 
@@ -64,10 +64,10 @@ func TestOnNewBlock(t *testing.T) {
 	}
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
 	address = common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
@@ -87,8 +87,8 @@ func TestOnNewBlock(t *testing.T) {
 	}
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 }

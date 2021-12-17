@@ -26,14 +26,14 @@ func TestShowCommand(t *testing.T) {
 		Address: valAddress,
 		Name:    "binance",
 	})
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	database.Close()
 
 	cmd := ShowCommand()
 	err = cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	err = cmd.Execute()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	database, err = db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)

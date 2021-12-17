@@ -22,7 +22,7 @@ func TestInitializeAndStartChain(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 	initAndStartChain, err := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	re := regexp.MustCompile(`^cosmos$`)
 	require.Equal(t, true, re.MatchString(initAndStartChain.AccountPrefix))
 	require.Equal(t, reflect.TypeOf(&relayer.Chain{}), reflect.TypeOf(initAndStartChain))

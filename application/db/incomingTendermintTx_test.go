@@ -30,7 +30,7 @@ func TestAddToPendingIncomingTendermintTx(t *testing.T) {
 		Memo:        "",
 	}
 	err = AddIncomingTendermintTx(tmInTx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	db.Close()
 }
@@ -48,7 +48,7 @@ func TestSetIncomingTendermintTxProduced(t *testing.T) {
 		Memo:        "",
 	}
 	err = AddIncomingTendermintTx(tmInTx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	tx, err := GetIncomingTendermintTx(tmInTx.TxHash, 0, "stake")
 	require.Nil(t, err)
@@ -74,7 +74,7 @@ func TestGetIncomingTendermintTx(t *testing.T) {
 		Memo:        "",
 	}
 	err = AddIncomingTendermintTx(tmInTx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	tx, err := GetIncomingTendermintTx(tmInTx.TxHash, 0, "stake")
 	require.Nil(t, err)

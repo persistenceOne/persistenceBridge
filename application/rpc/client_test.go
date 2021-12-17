@@ -19,7 +19,7 @@ var rpcRunning bool
 
 func TestAddValidator(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32("cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf")
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	validatorName := "binance"
 	rpcEndpoint := "127.0.0.1:4040"
@@ -42,7 +42,7 @@ func TestAddValidator(t *testing.T) {
 
 	validatorsGet, err := db.GetValidators()
 	require.Equal(t, validators, validatorsGet)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
@@ -50,7 +50,7 @@ func TestAddValidator(t *testing.T) {
 
 func TestRemoveValidator(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32("cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf")
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	validatorName := "binance"
 	rpcEndpoint := "127.0.0.1:4040"
@@ -97,7 +97,7 @@ func TestShowValidators(t *testing.T) {
 	defer database.Close()
 
 	validators, err := ShowValidators("", rpcEndpoint)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	validatorsGet, err2 := db.GetValidators()
 	require.Equal(t, nil, err2)

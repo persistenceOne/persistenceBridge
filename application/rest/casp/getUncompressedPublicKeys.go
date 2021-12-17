@@ -38,22 +38,30 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	if err != nil {
 		return response, err
 	}
+
 	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
-	resp, err := client.Do(request)
+
+	var resp *http.Response
+	resp, err = client.Do(request)
 	if err != nil {
 		return response, err
 	}
+
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			logging.Error(fmt.Errorf("casp error while getting UncompressedPublicKeys: %v", err))
+		innerErr := Body.Close()
+		if innerErr != nil {
+			logging.Error(fmt.Errorf("casp error while getting UncompressedPublicKeys: %v", innerErr))
 		}
 	}(resp.Body)
-	//Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+
+	// Read the response body
+	var body []byte
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return response, err
 	}
+
 	err = json.Unmarshal(body, &response)
+
 	return response, err
 }

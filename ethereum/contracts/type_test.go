@@ -36,7 +36,7 @@ func TestContracts(t *testing.T) {
 
 	contract.SetABI(constants2.LiquidStakingABI)
 	contractABI, err := abi.JSON(strings.NewReader(constants2.LiquidStakingABI))
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	require.Equal(t, contractABI, contract.GetABI())
 
 	i := 0
@@ -52,13 +52,15 @@ func TestContracts(t *testing.T) {
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	// Test tx in block interrupted
-	ctx, _ := context.WithCancel(context.Background())
-	tx, _, _ := ethereumClient.TransactionByHash(ctx, common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	tx, _, err := ethereumClient.TransactionByHash(ctx, common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
 
 	method, _, err := contract.GetMethodAndArguments(tx.Data())
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	require.Equal(t, "stake", method.Name)
 }

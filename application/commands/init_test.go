@@ -20,12 +20,12 @@ func TestInitCommand(t *testing.T) {
 	cmd := InitCommand()
 
 	err := cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	err = cmd.Execute()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	config := configuration.InitConfig()
 	_, err = toml.DecodeFile(filepath.Join(constants2.TestHomeDir, "config.toml"), &config)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 }

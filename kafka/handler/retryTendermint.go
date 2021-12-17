@@ -26,9 +26,12 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
 		}
 	}()
+
 	claimMsgChan := claim.Messages()
+
 	var kafkaMsg *sarama.ConsumerMessage
 	var ok bool
+
 ConsumerLoop:
 	for {
 		select {
@@ -36,31 +39,40 @@ ConsumerLoop:
 			if !ok {
 				break ConsumerLoop
 			}
+
 			if kafkaMsg == nil {
 				return errors.New("kafka returned nil message")
 			}
+
 			var msg sdk.Msg
 			err := m.ProtoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
 			if err != nil {
 				return err
 			}
+
 			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
-				loop, err := WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain)
+				var loop int
+
+				loop, err = WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain)
 				if err != nil {
 					return err
 				}
+
 				m.WithdrawRewards = true
 				m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
 			}
 
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				//TODO @Puneet return err?? ~ can return, since already logging no logic changes.
+				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, error:", err)
+
 				break ConsumerLoop
 			}
+
 			session.MarkMessage(kafkaMsg, "")
 			m.Count++
+
 			if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 				break ConsumerLoop
 			}
@@ -68,5 +80,6 @@ ConsumerLoop:
 			break ConsumerLoop
 		}
 	}
+
 	return nil
 }

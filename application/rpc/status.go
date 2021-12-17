@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 )
 
@@ -30,7 +31,8 @@ func status(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		errResponse.Message = err.Error()
 
-		b, err := json.Marshal(errResponse)
+		var b []byte
+		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
@@ -44,30 +46,13 @@ func status(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	ethStatus, err := db.GetEthereumStatus()
+	var ethStatus db.Status
+	ethStatus, err = db.GetEthereumStatus()
 	if err != nil {
 		errResponse.Message = err.Error()
 
-		b, err := json.Marshal(errResponse)
-		if err != nil {
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-
-		_, err = w.Write(b)
-		if err != nil {
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-
-		return
-	}
-
-	unboundEpoch, err := db.GetUnboundEpochTime()
-	if err != nil {
-		errResponse.Message = err.Error()
-
-		b, err := json.Marshal(errResponse)
+		var b []byte
+		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
@@ -82,11 +67,34 @@ func status(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	totalWrapped, err := db.GetTotalTokensWrapped()
+	var unboundEpoch db.UnboundEpochTime
+	unboundEpoch, err = db.GetUnboundEpochTime()
 	if err != nil {
 		errResponse.Message = err.Error()
 
-		b, err := json.Marshal(errResponse)
+		var b []byte
+		b, err = json.Marshal(errResponse)
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+
+		_, err = w.Write(b)
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+
+		return
+	}
+
+	var totalWrapped sdk.Int
+	totalWrapped, err = db.GetTotalTokensWrapped()
+	if err != nil {
+		errResponse.Message = err.Error()
+
+		var b []byte
+		b, err = json.Marshal(errResponse)
 		if err != nil {
 			_, _ = w.Write([]byte(err.Error()))
 			return
@@ -108,7 +116,8 @@ func status(w http.ResponseWriter, _ *http.Request) {
 		TotalWrapped:     totalWrapped.String(),
 	}
 
-	b, err := json.Marshal(status)
+	var b []byte
+	b, err = json.Marshal(status)
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
 		return

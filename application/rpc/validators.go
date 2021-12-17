@@ -23,7 +23,8 @@ func validators(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		errResponse.Message = err.Error()
 
-		b, err := json.Marshal(errResponse)
+		var b []byte
+		b, err = json.Marshal(errResponse)
 		if err != nil {
 			w.Write([]byte(err.Error()))
 			return
@@ -38,17 +39,20 @@ func validators(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validatorResponse := validatorResponse{Validators: validators}
+	response := validatorResponse{Validators: validators}
 
-	b, err := json.Marshal(validatorResponse)
+	var b []byte
+	b, err = json.Marshal(response)
 	if err != nil {
 		w.Write([]byte(err.Error()))
+
 		return
 	}
 
 	_, err = w.Write(b)
 	if err != nil {
 		w.Write([]byte(err.Error()))
+
 		return
 	}
 

@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,8 +22,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-
-	"testing"
 
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +37,7 @@ func TestEthereumWrapToken(t *testing.T) {
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	txHash, err := EthereumWrapToken(ethereumClient, wrapTokenMsg)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, txHash)
@@ -61,9 +60,9 @@ func TestSendTxToEth(t *testing.T) {
 	addresses[0] = ethAddress
 	amounts[0] = big.NewInt(1)
 	txdata, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	txToETHhash, err := sendTxToEth(ethClient, &ethAddress, nil, txdata)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(txToETHhash.String()))
 	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txToETHhash))
@@ -81,19 +80,19 @@ func TestGetEthSignature(t *testing.T) {
 	address, _ := casp.GetEthAddress()
 	ctx := context.Background()
 	chainID, err := ethClient.ChainID(ctx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	gasPrice, err := ethClient.SuggestGasPrice(ctx)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	nonce, err := ethClient.PendingNonceAt(ctx, ethBridgeAdmin)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
 	addresses[0] = address
 	amounts[0] = big.NewInt(1)
 	txdata, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	tx := types.NewTx(&types.LegacyTx{
 		Nonce:    nonce,
@@ -118,7 +117,7 @@ func TestSetEthBridgeAdmin(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	err := setEthBridgeAdmin()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
 	require.NotEqual(t, "0x0000000000000000000000000000000000000000", ethBridgeAdmin, "ETH Bridge Admin alreadu set")

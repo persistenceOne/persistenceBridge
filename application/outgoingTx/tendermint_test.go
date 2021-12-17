@@ -29,7 +29,7 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 	tenderMintAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	configuration.SetPStakeAddress(tenderMintAddress)
 	chain := setUpChain(t)
 
@@ -39,7 +39,7 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(configuration.GetAppConfig().Tendermint.PStakeDenom, 1)),
 	}
 	txResponse, err := LogMessagesAndBroadcast(chain, []sdk.Msg{msg}, 200)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	re := regexp.MustCompile(`^[0-9a-fA-f]{64}`)
 	require.NotNil(t, txResponse)
@@ -52,10 +52,10 @@ func TestBroadcastTMTx(t *testing.T) {
 	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	configuration.SetPStakeAddress(tmAddress)
 	chain := setUpChain(t)
 	msg := &bankTypes.MsgSend{
@@ -65,11 +65,11 @@ func TestBroadcastTMTx(t *testing.T) {
 	}
 
 	bytesToSign, txB, txF, err := getTMBytesToSign(chain, tmpPubKey, []sdk.Msg{msg}, "pStake@PersistenceOne", 200)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	signature, err := getTMSignature(bytesToSign)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	broadcastTMmsg, err := broadcastTMTx(chain, tmpPubKey, signature, txB, txF)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	re := regexp.MustCompile(`^[0-9a-fA-F]`)
 	require.Equal(t, true, re.MatchString(broadcastTMmsg.TxHash))
 	require.Equal(t, 66, broadcastTMmsg.Size())
@@ -82,11 +82,11 @@ func TestGetTMBytesToSign(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	tmpPubKey := casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	tmAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
 	chain := setUpChain(t)
@@ -131,7 +131,7 @@ func TestSetTMPublicKey(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	err := setTMPublicKey()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 	require.NotNil(t, tmPublicKey)
 	require.Equal(t, 20, len(tmPublicKey.Address()))
 }
@@ -141,7 +141,7 @@ func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	configuration.SetPStakeAddress(tmAddress)
 
@@ -153,7 +153,7 @@ func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 
 	chain := setUpChain(t)
 	tmSignAndBroadcastMsg, err := tendermintSignAndBroadcastMsgs(chain, []sdk.Msg{msg}, "", 0)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	re := regexp.MustCompile(`^[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(tmSignAndBroadcastMsg.TxHash))
@@ -175,21 +175,21 @@ func setUpChain(t *testing.T) *relayer.Chain {
 	chain.TrustingPeriod = "21h"
 
 	to, err := time.ParseDuration("10s")
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	err = chain.Init(homePath, to, nil, true)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	if chain.KeyExists(chain.Key) {
 		err = chain.Keybase.Delete(chain.Key)
-		require.Equal(t, nil, err)
+		require.Nil(t, err)
 	}
 
 	_, err = helpers.KeyAddOrRestore(chain, chain.Key, uint32(118))
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	err = chain.Start()
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	return chain
 }
