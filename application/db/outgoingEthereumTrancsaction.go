@@ -43,6 +43,16 @@ func (w WrapTokenMsg) Validate() error {
 	return nil
 }
 
+func NewWrapTokenMsg(fromAddress sdkTypes.AccAddress, tmTxHash tmBytes.HexBytes, stakingAmount *big.Int, ethAddress common.Address, wrapAmount *big.Int) WrapTokenMsg {
+	return WrapTokenMsg{
+		FromAddress:      fromAddress,
+		TendermintTxHash: tmTxHash,
+		Address:          ethAddress,
+		StakingAmount:    stakingAmount,
+		WrapAmount:       wrapAmount,
+	}
+}
+
 func NewOutgoingETHTransaction(txHash common.Hash, msgs []WrapTokenMsg) OutgoingEthereumTransaction {
 	return OutgoingEthereumTransaction{TxHash: txHash, Messages: msgs}
 }

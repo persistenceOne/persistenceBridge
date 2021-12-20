@@ -10,7 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	goEthCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -53,7 +54,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
-			case *banktypes.MsgSend:
+			case *bankTypes.MsgSend:
 				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetWrapAddress() {
 					if memo != "DO_NOT_REVERT" {
 						for _, coin := range txMsg.Amount {
@@ -115,21 +116,33 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			}
 			stakingAmount := sdk.NewDecFromInt(tx.Amount).Mul(ratio).TruncateInt()
 			wrapAmount := tx.Amount.Sub(stakingAmount)
-			ethTxMsg := db.WrapTokenMsg{
-				FromAddress:      fromAddress,
-				TendermintTxHash: tx.TxHash,
-				Address:          ethAddress,
-				StakingAmount:    stakingAmount.BigInt(),
-				WrapAmount:       wrapAmount.BigInt(),
-			}
+
+			ethTxMsg := db.NewWrapTokenMsg(fromAddress, tx.TxHash, stakingAmount.BigInt(), ethAddress, wrapAmount.BigInt())
 			msgBytes, err := json.Marshal(ethTxMsg)
 			if err != nil {
 				panic(err)
 			}
-			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "amount:", tx.Amount.String())
+			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "wrap amount:", wrapAmount.String(), "direct staking amount:", stakingAmount.String())
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 			if err != nil {
 				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
+			}
+
+			if stakingAmount.GTE(sdk.ZeroInt()) {
+				stakingMsg := &stakingTypes.MsgDelegate{
+					DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
+					ValidatorAddress: "",
+					Amount:           sdk.NewCoin(configuration.GetAppConfig().Tendermint.Denom, stakingAmount),
+				}
+				stakingMsgBytes, err := protoCodec.MarshalInterface(stakingMsg)
+				if err != nil {
+					logging.Fatal("Tendermint Listener: Staking Message marshalling failed:", err.Error())
+				}
+				logging.Info("Adding direct staking msg to kafka producer MsgDelegate, from:", tx.FromAddress, "to:", ethAddress.String(), "direct staking amount:", stakingAmount.String())
+				err = utils.ProducerDeliverMessage(stakingMsgBytes, utils.MsgDelegate, *kafkaProducer)
+				if err != nil {
+					logging.Fatal("failed to add staking msg to kafka queue MsgDelegate [TM Listener]: %s", err.Error())
+				}
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
@@ -144,7 +157,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 }
 
 func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
-	msg := &banktypes.MsgSend{
+	msg := &bankTypes.MsgSend{
 		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   toAddress,
 		Amount:      coins,
