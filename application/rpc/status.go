@@ -143,9 +143,5 @@ func status(w http.ResponseWriter, _ *http.Request) {
 	_, err = w.Write(b)
 	if err != nil {
 		_, _ = w.Write([]byte(err.Error()))
-
-		return
 	}
-
-	return
 }

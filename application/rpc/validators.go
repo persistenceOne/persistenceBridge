@@ -66,9 +66,5 @@ func validators(w http.ResponseWriter, _ *http.Request) {
 		if httpErr != nil {
 			logging.Error("%w: %v, previous error %v", ErrHTTPWriter, httpErr, err)
 		}
-
-		return
 	}
-
-	return
 }

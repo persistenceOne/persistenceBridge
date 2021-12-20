@@ -53,11 +53,7 @@ func TotalDelegations(delegationResponses stakingTypes.DelegationResponses) sdk.
 }
 
 func checkCount(currentCount, maxCount int) bool {
-	if currentCount < maxCount {
-		return true
-	}
-
-	return false
+	return currentCount < maxCount
 }
 
 func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.SyncProducer, chain *relayer.Chain) (int, error) {

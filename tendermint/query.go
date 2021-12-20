@@ -16,11 +16,8 @@ import (
 
 func AddressIsDelegatorToValidator(delegatorAddress, validatorAddress string, chain *relayer.Chain) bool {
 	_, err := QueryValidatorDelegator(delegatorAddress, validatorAddress, chain)
-	if err != nil {
-		return false
-	}
 
-	return true
+	return err == nil
 }
 
 func QueryValidatorDelegator(delegatorAddress, validatorAddress string, chain *relayer.Chain) (stakingTypes.Validator, error) {

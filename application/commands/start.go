@@ -132,7 +132,7 @@ func StartCommand() *cobra.Command {
 				log.Fatalln("no validator has been added")
 			} else {
 				for i, validator := range validators {
-					fmt.Println(fmt.Sprintf("%d. Name: %s, Address: %s", i+1, validator.Name, validator.Address))
+					fmt.Printf("%d. Name: %s, Address: %s\n", i+1, validator.Name, validator.Address)
 				}
 			}
 
