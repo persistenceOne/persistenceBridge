@@ -69,7 +69,7 @@ ConsumerLoop:
 }
 
 func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec) ([]sdk.Msg, error) {
-	var msgs []sdk.Msg
+	msgs := make([]sdk.Msg, len(kafkaMsgs))
 
 	for i := range kafkaMsgs {
 		var msg sdk.Msg
@@ -79,7 +79,7 @@ func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *co
 			return nil, err
 		}
 
-		msgs = append(msgs, msg)
+		msgs[i] = msg
 	}
 
 	return msgs, nil

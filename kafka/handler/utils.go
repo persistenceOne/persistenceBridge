@@ -33,10 +33,10 @@ func contains(s []sdk.ValAddress, e sdk.ValAddress) bool {
 }
 
 func ValidatorsInDelegations(delegationResponses stakingTypes.DelegationResponses) []sdk.ValAddress {
-	var validators []sdk.ValAddress
+	validators := make([]sdk.ValAddress, len(delegationResponses))
 
-	for _, delegation := range delegationResponses {
-		validators = append(validators, delegation.Delegation.GetValidatorAddr())
+	for i, delegation := range delegationResponses {
+		validators[i] = delegation.Delegation.GetValidatorAddr()
 	}
 
 	return validators
