@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package handler
 
 import (
@@ -101,15 +106,17 @@ ConsumerLoop:
 		}
 
 		for _, unbondMsg := range unbondMsgs {
-			msgBytes, err := m.ProtoCodec.MarshalInterface(unbondMsg)
-			if err != nil {
-				return err
-			}
+			if !unbondMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
+				msgBytes, err := m.ProtoCodec.MarshalInterface(unbondMsg)
+				if err != nil {
+					return err
+				}
 
-			err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
-			if err != nil {
-				logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
-				return err
+				err = utils.ProducerDeliverMessage(msgBytes, utils.MsgUnbond, producer)
+				if err != nil {
+					logging.Error("failed to produce message from: EthUnbond to: MsgUnbond")
+					return err
+				}
 			}
 		}
 		session.MarkMessage(kafkaMsg, "")

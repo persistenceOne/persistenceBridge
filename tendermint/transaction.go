@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package tendermint
 
 import (
@@ -21,7 +26,8 @@ import (
 )
 
 func handleTxSearchResult(clientCtx client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
-	for _, transaction := range resultTxs {
+	for i, transaction := range resultTxs {
+		logging.Info("Tendermint TX:", transaction.Hash.String(), fmt.Sprintf("(%d)", i+1))
 		err := collectAllWrapAndRevertTxs(clientCtx, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())

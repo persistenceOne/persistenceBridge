@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package handler
 
 import (
@@ -76,17 +81,19 @@ ConsumerLoop:
 			if i == len(validators)-1 {
 				delegateMsg.Amount.Amount = delegateMsg.Amount.Amount.Add(delegationChange)
 			}
-			msgBytes, err := m.ProtoCodec.MarshalInterface(delegateMsg)
-			if err != nil {
-				return err
-			}
+			if !delegateMsg.Amount.Amount.LTE(sdk.ZeroInt()) {
+				msgBytes, err := m.ProtoCodec.MarshalInterface(delegateMsg)
+				if err != nil {
+					return err
+				}
 
-			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
-			if err != nil {
-				logging.Error("failed to produce message from: MsgDelegate to ToTendermint")
-				return err
+				err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+				if err != nil {
+					logging.Error("failed to produce message from: MsgDelegate to ToTendermint")
+					return err
+				}
+				m.Count++
 			}
-			m.Count++
 		}
 		session.MarkMessage(kafkaMsg, "")
 	}

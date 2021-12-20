@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package handler
 
 import (
@@ -79,17 +84,20 @@ func (m MsgHandler) HandleRedelegate(session sarama.ConsumerGroupSession, claim 
 		if i == len(validatorSet)-1 {
 			msgRedelegate.Amount.Amount = msgRedelegate.Amount.Amount.Add(redistributeChange)
 		}
-		msgBytes, err := m.ProtoCodec.MarshalInterface(msgRedelegate)
-		if err != nil {
-			return err
-		}
 
-		err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
-		if err != nil {
-			logging.Error("failed to produce message from topic Redelegate to ToTendermint")
-			return err
+		if !msgRedelegate.Amount.Amount.LTE(sdk.ZeroInt()) {
+			msgBytes, err := m.ProtoCodec.MarshalInterface(msgRedelegate)
+			if err != nil {
+				return err
+			}
+
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToTendermint, producer)
+			if err != nil {
+				logging.Error("failed to produce message from topic Redelegate to ToTendermint")
+				return err
+			}
+			m.Count++
 		}
-		m.Count++
 	}
 	session.MarkMessage(kafkaMsg, "")
 

@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package tendermint
 
 import (
@@ -61,7 +66,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			logging.Fatal("Stopping Tendermint Listener, cosmos status is less than 0")
 		}
 
-		if abciInfo.Response.LastBlockHeight > cosmosStatus.LastCheckHeight {
+		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > 5 {
 			processHeight := cosmosStatus.LastCheckHeight + 1
 			logging.Info("Tendermint Block:", processHeight)
 

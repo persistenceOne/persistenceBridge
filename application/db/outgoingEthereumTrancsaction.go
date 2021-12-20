@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package db
 
 import (
@@ -34,8 +39,11 @@ func (w WrapTokenMsg) Validate() error {
 	if len(w.TendermintTxHash.Bytes()) != 32 {
 		return fmt.Errorf("invalid tm tx hash")
 	}
-	if w.StakingAmount == nil && w.WrapAmount == nil {
-		return fmt.Errorf("both amounts nil")
+	if w.StakingAmount == nil {
+		return fmt.Errorf("staking amount is nil")
+	}
+	if w.WrapAmount == nil {
+		return fmt.Errorf("wrapping amount is nil")
 	}
 	if w.WrapAmount.String() == sdkTypes.ZeroInt().BigInt().String() && w.StakingAmount.String() == sdkTypes.ZeroInt().BigInt().String() {
 		return fmt.Errorf("both amounts zero")

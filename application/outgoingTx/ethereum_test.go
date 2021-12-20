@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package outgoingTx
 
 import (
@@ -25,8 +30,8 @@ func TestEthereumWrapToken(t *testing.T) {
 
 	ethAddress, _ := casp.GetEthAddress()
 	wrapTokenMsg := []db.WrapTokenMsg{{
-		Address: ethAddress,
-		Amount:  &big.Int{}},
+		Address:       ethAddress,
+		StakingAmount: &big.Int{}},
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)

@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package ethereum
 
 import (
@@ -131,8 +136,8 @@ func TestProduceToKafka(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg := db.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
+		Address:       Address,
+		StakingAmount: amt,
 	}
 	txd := []db.WrapTokenMsg{wrapTokenMsg}
 

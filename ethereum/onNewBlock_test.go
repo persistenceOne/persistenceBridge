@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package ethereum
 
 import (
@@ -39,8 +44,8 @@ func TestOnNewBlock(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg := db.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
+		Address:       Address,
+		StakingAmount: amt,
 	}
 	txd := []db.WrapTokenMsg{wrapTokenMsg}
 
@@ -51,7 +56,7 @@ func TestOnNewBlock(t *testing.T) {
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer, nil)
 	require.Equal(t, nil, err)
 
 	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
@@ -59,8 +64,8 @@ func TestOnNewBlock(t *testing.T) {
 	amt = new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg = db.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
+		Address:       Address,
+		StakingAmount: amt,
 	}
 	txd = []db.WrapTokenMsg{wrapTokenMsg}
 
@@ -71,7 +76,7 @@ func TestOnNewBlock(t *testing.T) {
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer, nil)
 	require.Equal(t, nil, err)
 
 }
