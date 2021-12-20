@@ -20,8 +20,10 @@ func TestSetValidators(t *testing.T) {
 	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	validatorName := "Binance"
-	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	const (
+		validatorName  = "Binance"
+		valoperAddress = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	)
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
@@ -39,8 +41,10 @@ func TestGetValidators(t *testing.T) {
 	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	validatorName := "Binance"
-	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	const (
+		validatorName  = "Binance"
+		valoperAddress = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	)
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
@@ -91,8 +95,10 @@ func TestGetValidators(t *testing.T) {
 }
 
 func TestValidatorKey(t *testing.T) {
-	validatorName := "Binance"
-	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	const (
+		validatorName  = "Binance"
+		valoperAddress = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	)
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
@@ -109,8 +115,10 @@ func TestValidatorKey(t *testing.T) {
 }
 
 func TestValidatorPrefix(t *testing.T) {
-	validatorName := "Binance"
-	valoperAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	const (
+		validatorName  = "Binance"
+		valoperAddress = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	)
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
@@ -151,8 +159,10 @@ func TestDeleteValidator(t *testing.T) {
 	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	validatorName := "StakingFund"
-	valoperAddress := "cosmosvaloper1000ya26q2cmh399q4c5aaacd9lmmdqp90kw2jn"
+	const (
+		validatorName  = "StakingFund"
+		valoperAddress = "cosmosvaloper1000ya26q2cmh399q4c5aaacd9lmmdqp90kw2jn"
+	)
 
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)

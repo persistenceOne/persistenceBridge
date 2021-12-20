@@ -19,7 +19,8 @@ func TestSetStatus(t *testing.T) {
 	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	name := "tx1"
+	const name = "tx1"
+
 	lastCheckHeight := int64(4772132)
 
 	err = setStatus(name, lastCheckHeight)

@@ -63,11 +63,14 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
 }
 
-const defaultGasFeeCap = 300000000000
+const (
+	defaultGasFeeCap = 300000000000
+)
 
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
-	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
+
+	if ethBridgeAdmin.String() == EthEmptyAddress {
 		err := setEthBridgeAdmin()
 		if err != nil {
 			return common.Hash{}, err
@@ -170,8 +173,10 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature 
 	return
 }
 
+var EthEmptyAddress = common.Address{}.String()
+
 func setEthBridgeAdmin() error {
-	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
+	if ethBridgeAdmin.String() != EthEmptyAddress {
 		logging.Warn("outgoingtx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 
 		return nil

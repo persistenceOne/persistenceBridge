@@ -137,5 +137,5 @@ func TestSetEthBridgeAdmin(t *testing.T) {
 
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
-	require.NotEqual(t, "0x0000000000000000000000000000000000000000", ethBridgeAdmin, "ETH Bridge Admin alreadu set")
+	require.NotEqual(t, EthEmptyAddress, ethBridgeAdmin, "ETH Bridge Admin alreadu set")
 }

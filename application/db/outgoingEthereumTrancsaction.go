@@ -14,6 +14,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 )
 
+var EthEmptyAddress = common.Address{}.String()
+
 type OutgoingEthereumTransaction struct {
 	TxHash   common.Hash
 	Messages []outgoingtx.WrapTokenMsg
@@ -38,7 +40,7 @@ func (ethTx *OutgoingEthereumTransaction) Value() ([]byte, error) {
 }
 
 func (ethTx *OutgoingEthereumTransaction) Validate() error {
-	if ethTx.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+	if ethTx.TxHash.String() == EthEmptyAddress {
 		return ErrEmptyTransaction
 	}
 

@@ -21,10 +21,12 @@ func TestRemoveCommand(t *testing.T) {
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
 
-	validatorName1 := "Binance"
-	validatorAddress1 := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
-	validatorName2 := "myAddress"
-	validatorAddress2 := "cosmosvaloper18r9630ruvesw76h2qand6pvdzjctpp6q4dlgm5"
+	const (
+		validatorName1    = "Binance"
+		validatorAddress1 = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+		validatorName2    = "myAddress"
+		validatorAddress2 = "cosmosvaloper18r9630ruvesw76h2qand6pvdzjctpp6q4dlgm5"
+	)
 
 	valAddress1, err := sdk.ValAddressFromBech32(validatorAddress1)
 	require.Nil(t, err)

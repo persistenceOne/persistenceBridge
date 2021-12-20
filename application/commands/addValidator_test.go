@@ -24,8 +24,10 @@ func TestAddCommand(t *testing.T) {
 
 	database.Close()
 
-	validatorName := "Binance"
-	validatorAddress := "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	const (
+		validatorName    = "Binance"
+		validatorAddress = "cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf"
+	)
 
 	cmd := AddCommand()
 	cmd.SetArgs([]string{validatorAddress, validatorName})

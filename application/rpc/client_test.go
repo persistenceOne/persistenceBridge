@@ -21,8 +21,10 @@ func TestAddValidator(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32("cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf")
 	require.Nil(t, err)
 
-	validatorName := "binance"
-	rpcEndpoint := "127.0.0.1:4040"
+	const (
+		validatorName = "binance"
+		rpcEndpoint   = "127.0.0.1:4040"
+	)
 
 	if !rpcRunning {
 		go StartServer(rpcEndpoint)
@@ -53,8 +55,10 @@ func TestRemoveValidator(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32("cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf")
 	require.Nil(t, err)
 
-	validatorName := "binance"
-	rpcEndpoint := "127.0.0.1:4040"
+	const (
+		validatorName = "binance"
+		rpcEndpoint   = "127.0.0.1:4040"
+	)
 
 	if !rpcRunning {
 		go StartServer(rpcEndpoint)

@@ -19,7 +19,8 @@ func TestDeleteOutgoingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+
 	tendermintTransaction := OutgoingTendermintTransaction{
 		TxHash: txHash,
 	}
@@ -36,7 +37,7 @@ func TestCountTotalOutgoingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 
 	expectedTotal, err := CountTotalOutgoingTendermintTx()
 	require.Nil(t, err)
@@ -84,7 +85,8 @@ func TestNewOutgoingTMTransaction(t *testing.T) {
 	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+
 	tendermintTransaction := OutgoingTendermintTransaction{
 		TxHash: txHash,
 	}
@@ -101,9 +103,10 @@ func TestSetOutgoingTendermintTx(t *testing.T) {
 	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
-	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: Txhash,
+		TxHash: txHash,
 	}
 
 	err = SetOutgoingTendermintTx(tendermintTransaction)
@@ -113,8 +116,10 @@ func TestSetOutgoingTendermintTx(t *testing.T) {
 }
 
 func TestTendermintOutgoingTransactionKey(t *testing.T) {
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F",
+		TxHash: txHash,
 	}
 
 	key := outgoingTendermintTxPrefix.GenerateStoreKey([]byte(tendermintTransaction.TxHash))
@@ -125,9 +130,10 @@ func TestTendermintOutgoingTransactionKey(t *testing.T) {
 }
 
 func TestTendermintOutgoingTransactionValidate(t *testing.T) {
-	txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: txhash,
+		TxHash: txHash,
 	}
 
 	err := tendermintTransaction.Validate()
@@ -135,9 +141,10 @@ func TestTendermintOutgoingTransactionValidate(t *testing.T) {
 }
 
 func TestTendermintOutgoingTransactionValue(t *testing.T) {
-	txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+
 	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: txhash,
+		TxHash: txHash,
 	}
 
 	value, _ := json.Marshal(tendermintTransaction)

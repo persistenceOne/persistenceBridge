@@ -133,20 +133,27 @@ func TestIncomingTendermintTxValidate(t *testing.T) {
 	tmInTx := IncomingTendermintTx{}
 	require.Equal(t, "empty tx hash", tmInTx.Validate().Error())
 
-	h, _ := hex.DecodeString("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9")
+	const (
+		txHash     = "DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"
+		denomA     = "a"
+		denomStake = "stake"
+		from       = "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f"
+	)
+
+	h, _ := hex.DecodeString(txHash)
 	tmInTx.TxHash = h
 	require.Equal(t, "empty denom", tmInTx.Validate().Error())
 
-	tmInTx.Denom = "a"
+	tmInTx.Denom = denomA
 	require.Equal(t, "invalid denom: a", tmInTx.Validate().Error())
 
-	tmInTx.Denom = "stake"
+	tmInTx.Denom = denomStake
 	require.Equal(t, "from address empty", tmInTx.Validate().Error())
 
-	tmInTx.FromAddress = "stake"
+	tmInTx.FromAddress = denomStake
 	require.Equal(t, "invalid from address", tmInTx.Validate().Error())
 
-	tmInTx.FromAddress = "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f"
+	tmInTx.FromAddress = from
 	require.Equal(t, "amount is nil", tmInTx.Validate().Error())
 
 	tmInTx.Amount = sdk.NewInt(-1)
