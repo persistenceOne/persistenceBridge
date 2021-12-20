@@ -17,7 +17,7 @@ type Validator struct {
 	Name    string
 }
 
-var _ DBI = &Validator{}
+var _ KeyValue = &Validator{}
 
 func (v *Validator) prefix() storeKeyPrefix {
 	return validatorPrefix

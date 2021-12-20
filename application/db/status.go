@@ -19,7 +19,7 @@ type Status struct {
 	LastCheckHeight int64
 }
 
-var _ DBI = &Status{}
+var _ KeyValue = &Status{}
 
 func (status *Status) prefix() storeKeyPrefix {
 	return statusPrefix

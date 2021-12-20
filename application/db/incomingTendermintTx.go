@@ -23,7 +23,7 @@ type IncomingTendermintTx struct {
 	Memo        string
 }
 
-var _ DBI = &IncomingTendermintTx{}
+var _ KeyValue = &IncomingTendermintTx{}
 
 func (t *IncomingTendermintTx) prefix() storeKeyPrefix {
 	return incomingTendermintTxPrefix

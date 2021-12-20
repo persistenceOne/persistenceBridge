@@ -120,11 +120,11 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 		}
 
 		return err
-	} else {
-		err = db.SetOutgoingEthereumTx(db.NewOutgoingETHTransaction(hash, msgs))
-		if err != nil {
-			logging.Fatal(err)
-		}
+	}
+
+	err = db.SetOutgoingEthereumTx(db.NewOutgoingETHTransaction(hash, msgs))
+	if err != nil {
+		logging.Fatal(err)
 	}
 
 	logging.Info("Broadcast Eth Tx hash:", hash.String())

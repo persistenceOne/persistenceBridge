@@ -66,7 +66,7 @@ func newTendermintConfig() *tendermintConfig {
 		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
 		AccountPrefix:     constants.DefaultAccountPrefix,
 		Node:              constants.DefaultTendermintNode,
-		ChainID:           constants.DefaultTendermintChainId,
+		ChainID:           constants.DefaultTendermintChainID,
 		CoinType:          constants.DefaultTendermintCoinType,
 	}
 }

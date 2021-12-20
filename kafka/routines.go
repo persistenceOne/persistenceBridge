@@ -20,8 +20,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-// KafkaClose: closes all kafka connections
-func KafkaClose(kafkaState *utils.KafkaState, end, ended chan bool) func() {
+// Close closes all kafka connections
+func Close(kafkaState *utils.KafkaState, end, ended chan bool) func() {
 	return func() {
 		end <- true
 		end <- true
@@ -49,11 +49,11 @@ func KafkaClose(kafkaState *utils.KafkaState, end, ended chan bool) func() {
 	}
 }
 
-// KafkaRoutine : starts kafka in a separate goRoutine, consumers will each start in different go routines
+// Routine : starts kafka in a separate goRoutine, consumers will each start in different go routines
 // no need to store any db, producers and consumers are inside kafkaState struct.
 // use kafka.ProducerDeliverMessage() -> to produce message
 // use kafka.TopicConsumer -> to consume messages.
-func KafkaRoutine(kafkaState *utils.KafkaState, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
+func Routine(kafkaState *utils.KafkaState, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	ctx := context.Background()
 
 	go consumeToEthMsgs(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)

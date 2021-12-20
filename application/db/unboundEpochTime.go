@@ -15,7 +15,7 @@ type UnboundEpochTime struct {
 	Epoch int64
 }
 
-var _ DBI = &UnboundEpochTime{}
+var _ KeyValue = &UnboundEpochTime{}
 
 func (u *UnboundEpochTime) prefix() storeKeyPrefix {
 	return unboundEpochTimePrefix

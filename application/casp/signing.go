@@ -52,7 +52,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 
 		attempts++
 
-		if signOperationResponse.Status == constants.PENDING {
+		if signOperationResponse.Status == constants.Pending {
 			logging.Info("CASP signing operation pending for", operationID)
 
 			err = signOperationResponse.GetPendingParticipantsApprovals()

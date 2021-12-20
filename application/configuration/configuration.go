@@ -119,13 +119,13 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.CASP.VaultID = caspVaultID
 		}
 
-		csapApiToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
+		csapAPIToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		if csapApiToken != "" {
-			appConfig.CASP.APIToken = csapApiToken
+		if csapAPIToken != "" {
+			appConfig.CASP.APIToken = csapAPIToken
 		}
 
 		caspTMPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPTMPublicKey)

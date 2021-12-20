@@ -90,18 +90,18 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 				logging.Error("Failed to Marshal WithdrawMessage, Error:", err)
 
 				return loop, err
-			} else {
-				err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
-				if err2 != nil {
-					logging.Error("failed to produce withdrawRewards to queue ToTendermint")
+			}
 
-					return loop, err2
-				}
+			err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
+			if err2 != nil {
+				logging.Error("failed to produce withdrawRewards to queue ToTendermint")
 
-				loop--
-				if loop == 0 {
-					return loop, nil
-				}
+				return loop, err2
+			}
+
+			loop--
+			if loop == 0 {
+				return loop, nil
 			}
 		}
 	}

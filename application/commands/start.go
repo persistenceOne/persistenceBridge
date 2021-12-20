@@ -163,7 +163,7 @@ func StartCommand() *cobra.Command {
 			end := make(chan bool)
 			ended := make(chan bool)
 
-			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
+			go kafka.Routine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
 
 			go rpc.StartServer(pStakeConfig.RPCEndpoint)
 
@@ -184,7 +184,7 @@ func StartCommand() *cobra.Command {
 				for {
 					if !shutdown.GetKafkaConsumerClosed() {
 						logging.Info("Stopping Kafka Routine!!!")
-						kafka.KafkaClose(kafkaState, end, ended)()
+						kafka.Close(kafkaState, end, ended)()
 						shutdown.SetKafkaConsumerClosed(true)
 					}
 

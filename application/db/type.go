@@ -5,7 +5,7 @@
 
 package db
 
-type DBI interface {
+type KeyValue interface {
 	prefix() storeKeyPrefix
 	Key() []byte
 	Value() ([]byte, error)

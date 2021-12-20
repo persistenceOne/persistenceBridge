@@ -6,7 +6,7 @@
 package constants
 
 const (
-	VAULT_BUSY             = "Vault is busy"
-	OPERATION_ID_NOT_FOUND = "Operation not found"
-	PENDING                = "PENDING"
+	VaultBusy           = "Vault is busy"
+	OperationIDNotFound = "Operation not found"
+	Pending             = "PENDING"
 )

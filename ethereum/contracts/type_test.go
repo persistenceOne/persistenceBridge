@@ -48,7 +48,7 @@ func TestContracts(t *testing.T) {
 			require.Equal(t, "stake", k)
 		}
 
-		i += 1
+		i++
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)

@@ -16,7 +16,7 @@ type EthereumTxToKafka struct {
 	TxHash common.Hash
 }
 
-var _ DBI = &EthereumTxToKafka{}
+var _ KeyValue = &EthereumTxToKafka{}
 
 func (t *EthereumTxToKafka) prefix() storeKeyPrefix {
 	return ethereumTxToKafkaPrefix

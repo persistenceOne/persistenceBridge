@@ -24,12 +24,12 @@ type SignOperationResponse struct {
 		Name    string `json:"name"`
 		Members []struct {
 			ApprovedAt           string `json:"approvedAt"`
-			Id                   string `json:"id"`
+			ID                   string `json:"id"`
 			IsApproved           bool   `json:"isApproved"`
 			Name                 string `json:"name"`
 			Status               string `json:"status"`
 			ApprovalGroupAccount struct {
-				Id   string `json:"id"`
+				ID   string `json:"id"`
 				Name string `json:"name"`
 			} `json:"approvalGroupAccount"`
 			Label        string `json:"label"`

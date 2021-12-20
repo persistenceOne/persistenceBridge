@@ -18,7 +18,7 @@ type AccountLimiter struct {
 	Amount         sdk.Int
 }
 
-var _ DBI = &AccountLimiter{}
+var _ KeyValue = &AccountLimiter{}
 
 func (a *AccountLimiter) prefix() storeKeyPrefix {
 	return accountLimiterPrefix

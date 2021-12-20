@@ -79,7 +79,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 				continue
 			}
 
-			err = handleBlock(client, ctx, block, kafkaProducer, protoCodec)
+			err = handleBlock(ctx, client, block, kafkaProducer, protoCodec)
 			if err != nil {
 				logging.Error("Unable to fetch handle ethereum block:", processHeight, "Error:", err)
 

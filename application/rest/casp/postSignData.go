@@ -82,11 +82,11 @@ func SignData(dataToSign, publicKeys []string, description string) (casp.PostSig
 			return response, false, err
 		}
 
-		if errResponse.Title == constants.VAULT_BUSY {
+		if errResponse.Title == constants.VaultBusy {
 			return response, true, nil
-		} else {
-			return response, false, errResponse
 		}
+
+		return response, false, errResponse
 	}
 
 	return response, false, err

@@ -49,7 +49,7 @@ func keyExists(key []byte) bool {
 	return true
 }
 
-func set(dbi DBI) error {
+func set(dbi KeyValue) error {
 	err := dbi.Validate()
 	if err != nil {
 		return err

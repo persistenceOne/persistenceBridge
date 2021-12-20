@@ -19,7 +19,7 @@ func NewOutgoingTMTransaction(txHash string) OutgoingTendermintTransaction {
 	return OutgoingTendermintTransaction{TxHash: txHash}
 }
 
-var _ DBI = &OutgoingTendermintTransaction{}
+var _ KeyValue = &OutgoingTendermintTransaction{}
 
 func (tmTx *OutgoingTendermintTransaction) prefix() storeKeyPrefix {
 	return outgoingTendermintTxPrefix

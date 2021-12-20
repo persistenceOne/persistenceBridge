@@ -57,7 +57,7 @@ var (
 	DefaultMinimumWrapAmount          = int64(5000000)
 	DefaultAccountPrefix              = "cosmos"
 	DefaultTendermintNode             = "http://127.0.0.1:26657"
-	DefaultTendermintChainId          = "test"
+	DefaultTendermintChainID          = "test"
 	DefaultTendermintCoinType         = uint32(118)
 	DefaultKafkaPorts                 = "localhost:9092"
 	DefaultCASPSignatureWaitTime      = 8 * time.Second

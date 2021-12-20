@@ -25,7 +25,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func handleBlock(client *ethclient.Client, ctx context.Context, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleBlock(ctx context.Context, client *ethclient.Client, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range block.Transactions() {
 		if transaction.To() != nil {
 			var contract contracts2.ContractI
@@ -39,7 +39,7 @@ func handleBlock(client *ethclient.Client, ctx context.Context, block *types.Blo
 			}
 
 			if contract != nil {
-				err := collectEthTx(client, ctx, protoCodec, transaction, contract)
+				err := collectEthTx(ctx, client, protoCodec, transaction, contract)
 				if err != nil {
 					logging.Error("Failed to process ethereum tx:", transaction.Hash().String())
 
@@ -54,7 +54,7 @@ func handleBlock(client *ethclient.Client, ctx context.Context, block *types.Blo
 	return nil
 }
 
-func collectEthTx(client *ethclient.Client, ctx context.Context, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts2.ContractI) error {
+func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts2.ContractI) error {
 	receipt, err := client.TransactionReceipt(ctx, transaction.Hash())
 	if err != nil {
 		logging.Error("Unable to get receipt of tx:", transaction.Hash().String(), "Error:", err)

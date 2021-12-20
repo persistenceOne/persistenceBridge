@@ -86,7 +86,7 @@ func TestCollectEthTx(t *testing.T) {
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 
-	err = collectEthTx(ethereumClient, ctx, protoCodec, tx, &contract)
+	err = collectEthTx(ctx, ethereumClient, protoCodec, tx, &contract)
 	require.Nil(t, err)
 }
 
@@ -136,7 +136,7 @@ func TestHandleBlock(t *testing.T) {
 
 	block, err := ethereumClient.BlockByNumber(ctx, processHeight)
 
-	err = handleBlock(ethereumClient, ctx, block, kafkaProducer, protoCodec)
+	err = handleBlock(ctx, ethereumClient, block, kafkaProducer, protoCodec)
 	require.Nil(t, err)
 }
 

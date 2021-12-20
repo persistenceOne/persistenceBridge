@@ -19,7 +19,7 @@ type IncomingEthereumTx struct {
 	MsgType  string
 }
 
-var _ DBI = &IncomingEthereumTx{}
+var _ KeyValue = &IncomingEthereumTx{}
 
 func (t *IncomingEthereumTx) prefix() storeKeyPrefix {
 	return incomingEthereumTxPrefix

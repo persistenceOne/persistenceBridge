@@ -23,7 +23,7 @@ func NewOutgoingETHTransaction(txHash common.Hash, msgs []outgoingTx.WrapTokenMs
 	return OutgoingEthereumTransaction{TxHash: txHash, Messages: msgs}
 }
 
-var _ DBI = &OutgoingEthereumTransaction{}
+var _ KeyValue = &OutgoingEthereumTransaction{}
 
 func (ethTx *OutgoingEthereumTransaction) prefix() storeKeyPrefix {
 	return outgoingEthereumTxPrefix

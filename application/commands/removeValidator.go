@@ -104,12 +104,12 @@ func RemoveCommand() *cobra.Command {
 				log.Println("IMPORTANT: No validator present to redelegate!!!")
 
 				return errors.New("need to have at least one validator to redelegate to")
-			} else {
-				log.Printf("Total validators %d:\n", len(validators))
+			}
 
-				for i, validator := range validators {
-					log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
-				}
+			log.Printf("Total validators %d:\n", len(validators))
+
+			for i, validator := range validators {
+				log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
 			}
 
 			time.Sleep(1 * time.Minute)

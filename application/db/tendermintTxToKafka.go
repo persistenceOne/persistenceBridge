@@ -20,7 +20,7 @@ type TendermintTxToKafka struct {
 	Denom    string
 }
 
-var _ DBI = &TendermintTxToKafka{}
+var _ KeyValue = &TendermintTxToKafka{}
 
 func (t *TendermintTxToKafka) prefix() storeKeyPrefix {
 	return tendermintTxToKafkaPrefix
