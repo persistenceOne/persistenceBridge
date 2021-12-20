@@ -37,6 +37,6 @@ func TestOnWithdrawUTokens(t *testing.T) {
 	require.NotNil(t, sendCoinMsgString)
 
 	arr = []interface{}{common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")), i, ""}
-	sendCoinMsg, ercAddress, err = onWithdrawUTokens(arr)
+	_, _, err = onWithdrawUTokens(arr)
 	require.Equal(t, "empty address string is not allowed", err.Error())
 }

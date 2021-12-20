@@ -19,7 +19,10 @@ type EncodingConfiguration struct {
 	InterfaceRegistry types.InterfaceRegistry
 	Marshaler         codec.Marshaler
 	TransactionConfig client.TxConfig
-	Amino             *codec.LegacyAmino
+
+	// fixme: remove deprecated
+	//nolint:staticcheck
+	Amino *codec.LegacyAmino
 }
 
 // MakeEncodingConfig creates an EncodingConfig for testing

@@ -16,7 +16,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (m *MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 
