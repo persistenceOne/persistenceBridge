@@ -42,7 +42,7 @@ func InitCommand() *cobra.Command {
 				panic(err)
 			}
 
-			if err := os.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0o644); err != nil {
+			if err := os.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0o600); err != nil {
 				panic(err)
 			}
 
