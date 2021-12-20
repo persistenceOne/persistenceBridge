@@ -76,11 +76,8 @@ func GetValidators() ([]Validator, error) {
 
 		return nil
 	})
-	if err != nil {
-		return validators, err
-	}
 
-	return validators, nil
+	return validators, err
 }
 
 func DeleteAllValidators() error {

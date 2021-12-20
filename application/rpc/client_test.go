@@ -39,6 +39,7 @@ func TestAddValidator(t *testing.T) {
 		Address: validatorAddress,
 		Name:    validatorName,
 	}, rpcEndpoint)
+	require.Nil(t, err)
 
 	validatorsGet, err := db.GetValidators()
 	require.Equal(t, validators, validatorsGet)
@@ -66,13 +67,19 @@ func TestRemoveValidator(t *testing.T) {
 
 	defer database.Close()
 
-	validators, err2 := AddValidator(db.Validator{
+	initialValidatorsSet, err := db.GetValidators()
+	require.Nil(t, err)
+
+	validators, err := AddValidator(db.Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	}, rpcEndpoint)
+	require.Nil(t, err)
+	require.Len(t, validators, len(initialValidatorsSet)+1)
 
-	validators, err2 = RemoveValidator(validatorAddress, rpcEndpoint)
-	require.Equal(t, nil, err2)
+	validators, err = RemoveValidator(validatorAddress, rpcEndpoint)
+	require.Equal(t, nil, err)
+	require.Len(t, validators, len(initialValidatorsSet))
 
 	validatorsGet, err2 := db.GetValidators()
 
@@ -81,6 +88,10 @@ func TestRemoveValidator(t *testing.T) {
 
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
+
+	validators, err = db.GetValidators()
+	require.Nil(t, err)
+	require.Len(t, validators, 0)
 }
 
 func TestShowValidators(t *testing.T) {

@@ -42,6 +42,7 @@ func TestInitializeDB(t *testing.T) {
 	database.Close()
 
 	database, err = OpenDB(constants.TestHomeDir)
+	require.Nil(t, err)
 
 	err = deleteKV(unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime)))
 	require.Nil(t, err)

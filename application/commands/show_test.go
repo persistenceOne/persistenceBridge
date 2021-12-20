@@ -18,15 +18,19 @@ import (
 func TestShowCommand(t *testing.T) {
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)
+
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
 
 	valAddress, err := sdk.ValAddressFromBech32("cosmosvaloper156gqf9837u7d4c4678yt3rl4ls9c5vuursrrzf")
+	require.Nil(t, err)
+
 	err = db.SetValidator(db.Validator{
 		Address: valAddress,
 		Name:    "binance",
 	})
 	require.Nil(t, err)
+
 	database.Close()
 
 	cmd := ShowCommand()

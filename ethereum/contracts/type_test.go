@@ -59,6 +59,7 @@ func TestContracts(t *testing.T) {
 	defer cancel()
 
 	tx, _, err := ethereumClient.TransactionByHash(ctx, common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea"))
+	require.Nil(t, err)
 
 	method, _, err := contract.GetMethodAndArguments(tx.Data())
 	require.Nil(t, err)

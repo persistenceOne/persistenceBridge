@@ -39,6 +39,7 @@ func TestOnNewBlock(t *testing.T) {
 
 	ctx := context.Background()
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
+	require.Nil(t, err)
 
 	database, err := db.OpenDB(constants2.TestDbDir)
 	require.Nil(t, err)

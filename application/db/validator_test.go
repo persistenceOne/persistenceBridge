@@ -66,15 +66,16 @@ func TestGetValidators(t *testing.T) {
 	require.Equal(t, expectedValidator, testValidator)
 
 	validatorSlice, err := GetValidators()
+	require.Nil(t, err)
 
 	var testValidators []Validator
 
 	err = iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
 
-		err := json.Unmarshal(value, &v)
-		if err != nil {
-			return err
+		innerErr := json.Unmarshal(value, &v)
+		if innerErr != nil {
+			return innerErr
 		}
 
 		testValidators = append(testValidators, v)
@@ -82,6 +83,7 @@ func TestGetValidators(t *testing.T) {
 		return nil
 	})
 
+	require.Nil(t, err)
 	require.Equal(t, reflect.TypeOf(validatorSlice), reflect.TypeOf(testValidators))
 	require.Equal(t, validatorSlice, testValidators)
 

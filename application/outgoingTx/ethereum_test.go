@@ -39,8 +39,10 @@ func TestEthereumWrapToken(t *testing.T) {
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, err)
 
-	txHash, err := EthereumWrapToken(ethereumClient, wrapTokenMsg)
+	var txHash common.Hash
+	txHash, err = EthereumWrapToken(ethereumClient, wrapTokenMsg)
 	require.NotNil(t, txHash)
+	require.Nil(t, err)
 	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txHash))
 	require.NotEqual(t, nil, txHash)
 	require.Equal(t, 32, len(txHash))
@@ -58,10 +60,13 @@ func TestSendTxToEth(t *testing.T) {
 
 	ethAddress, _ := casp.GetEthAddress()
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	require.Nil(t, err)
+
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
 	addresses[0] = ethAddress
 	amounts[0] = big.NewInt(1)
+
 	txdata, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
 	require.Nil(t, err)
 

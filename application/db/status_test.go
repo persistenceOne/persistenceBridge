@@ -45,6 +45,7 @@ func TestGetStatus(t *testing.T) {
 	require.Nil(t, err)
 
 	err = json.Unmarshal(b, &expectedStatus)
+	require.Nil(t, err)
 
 	status, err := getStatus(name)
 	require.Nil(t, err)
