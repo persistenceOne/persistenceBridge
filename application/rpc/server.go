@@ -58,7 +58,7 @@ func (a *ValidatorRPC) DeleteValidator(address sdk.ValAddress, result *[]db.Vali
 	return err
 }
 
-// can add db as an arguement.
+// can add db as an argument
 
 func StartServer(rpcEndpoint string) {
 	validatorRPC := new(ValidatorRPC)

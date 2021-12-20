@@ -30,7 +30,7 @@ func InitializeBot() (err error) {
 		}
 
 		if configuration.GetAppConfig().TelegramBot.ChatID != 0 {
-			Info("Sending initialising bot message...")
+			Info("Sending initializing bot message...")
 
 			err = sendMessage("pBridge bot initialized")
 			if err != nil {
