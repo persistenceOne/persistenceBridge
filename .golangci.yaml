@@ -108,7 +108,7 @@ linters-settings:
     allow-cuddle-declarations: false
 
   nestif:
-    min-complexity: 3
+    min-complexity: 41
 
 service:
   golangci-lint-version: 1.43.0
