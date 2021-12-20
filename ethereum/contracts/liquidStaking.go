@@ -28,6 +28,8 @@ var LiquidStaking = Contract{
 	},
 }
 
+// implements common interface
+// nolint:unparam
 func onStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
@@ -43,6 +45,8 @@ func onStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	return stakeMsg, ercAddress, nil
 }
 
+// implements common interface
+// nolint:unparam
 func onUnStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	ercAddress := arguments[0].(common.Address)
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
