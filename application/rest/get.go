@@ -15,8 +15,8 @@ import (
 var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 func Get(url string, target interface{}) error {
-	// a body is going to be closed later
-	//nolint:bodyclose
+	// nolint a body is going to be closed later
+	// nolint:bodyclose
 	r, err := httpClient.Get(url)
 	if err != nil {
 		return err

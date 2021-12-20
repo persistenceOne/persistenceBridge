@@ -20,8 +20,8 @@ type EncodingConfiguration struct {
 	Marshaler         codec.Marshaler
 	TransactionConfig client.TxConfig
 
-	// fixme: remove deprecated
-	//nolint:staticcheck
+	// nolint fixme: remove deprecated
+	// nolint:staticcheck
 	Amino *codec.LegacyAmino
 }
 

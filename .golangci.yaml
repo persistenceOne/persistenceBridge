@@ -8,6 +8,7 @@ linters:
     - interfacer # deprecated
     - scopelint # deprecated
     - nakedret
+    - nolintlint
     - varnamelen
   enable:
     - bodyclose
@@ -33,7 +34,6 @@ linters:
     - unparam
     - misspell
     - wsl
-    - nolintlint
     - tparallel
     - exhaustive
     - asciicheck

@@ -45,7 +45,7 @@ func SignData(dataToSign, publicKeys []string, description string) (casp.PostSig
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// we might like to skip it by purpose
+			// nolint we might like to skip it by purpose
 			// nolint: gosec
 			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
 		},

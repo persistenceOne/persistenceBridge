@@ -155,6 +155,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		logging.Info("cannot broadcast yet, tendermint txs pending")
 
 		const sleepPeriod = 4 * time.Second
+
 		time.Sleep(sleepPeriod)
 
 		countPendingTx, err = db.CountTotalOutgoingTendermintTx()

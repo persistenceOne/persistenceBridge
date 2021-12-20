@@ -75,30 +75,32 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 	delegatorValidators := ValidatorsInDelegations(delegatorDelegations)
 
 	for _, validator := range validators {
-		if contains(delegatorValidators, validator.Address) {
-			withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
-				ValidatorAddress: validator.Address.String(),
-			}
+		if !contains(delegatorValidators, validator.Address) {
+			continue
+		}
 
-			withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(withdrawRewardsMsg)
-			if err != nil {
-				logging.Error("Failed to Marshal WithdrawMessage, Error:", err)
+		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
+			DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+			ValidatorAddress: validator.Address.String(),
+		}
 
-				return loop, err
-			}
+		withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(withdrawRewardsMsg)
+		if err != nil {
+			logging.Error("Failed to Marshal WithdrawMessage, Error:", err)
 
-			err = utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
-			if err != nil {
-				logging.Error("failed to produce withdrawRewards to queue ToTendermint")
+			return loop, err
+		}
 
-				return loop, err
-			}
+		err = utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
+		if err != nil {
+			logging.Error("failed to produce withdrawRewards to queue ToTendermint")
 
-			loop--
-			if loop == 0 {
-				return loop, nil
-			}
+			return loop, err
+		}
+
+		loop--
+		if loop == 0 {
+			return loop, nil
 		}
 	}
 

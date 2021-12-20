@@ -22,7 +22,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// we might like to skip it by purpose
+			// nolint we might like to skip it by purpose
 			// nolint: gosec
 			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
 		},
