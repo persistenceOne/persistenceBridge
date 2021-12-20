@@ -7,6 +7,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -30,7 +31,7 @@ func validators(w http.ResponseWriter, _ *http.Request) {
 		if err != nil {
 			_, httpErr := w.Write([]byte(err.Error()))
 			if httpErr != nil {
-				logging.Error("%w: %v, marshall error %v", ErrHTTPWriter, httpErr, err)
+				logging.Error(fmt.Sprintf("%v: %v, marshall error %v", ErrHTTPWriter, httpErr, err))
 			}
 
 			return
@@ -39,7 +40,7 @@ func validators(w http.ResponseWriter, _ *http.Request) {
 		_, err = w.Write(b)
 		if err != nil {
 			_, httpErr := w.Write([]byte(err.Error()))
-			logging.Error("%w: %v, previous error %v", ErrHTTPWriter, httpErr, err)
+			logging.Error(fmt.Sprintf("%v: %v, previous error %v", ErrHTTPWriter, httpErr.Error(), err))
 			return
 		}
 
@@ -54,7 +55,7 @@ func validators(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		_, httpErr := w.Write([]byte(err.Error()))
 		if httpErr != nil {
-			logging.Error("%w: %v, marshall error %v", ErrHTTPWriter, httpErr, err)
+			logging.Error(fmt.Sprintf("%v: %v, marshall error %v", ErrHTTPWriter, httpErr, err))
 		}
 
 		return
@@ -64,7 +65,7 @@ func validators(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		_, httpErr := w.Write([]byte(err.Error()))
 		if httpErr != nil {
-			logging.Error("%w: %v, previous error %v", ErrHTTPWriter, httpErr, err)
+			logging.Error(fmt.Sprintf("%v: %v, previous error %v", ErrHTTPWriter, httpErr, err))
 		}
 	}
 }
