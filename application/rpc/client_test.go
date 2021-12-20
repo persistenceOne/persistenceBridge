@@ -30,7 +30,7 @@ func TestAddValidator(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -62,7 +62,7 @@ func TestRemoveValidator(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -103,7 +103,7 @@ func TestShowValidators(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()

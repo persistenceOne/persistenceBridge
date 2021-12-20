@@ -149,7 +149,7 @@ func produceToKafka(kafkaProducer sarama.SyncProducer) {
 
 		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, kafkaProducer)
 		if err != nil {
-			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "bridgeErr:", err)
+			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
 		}
 
 		err = db.DeleteEthereumTxToKafka(ethTxToTM.TxHash)

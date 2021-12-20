@@ -11,15 +11,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 )
 
 type OutgoingEthereumTransaction struct {
 	TxHash   common.Hash
-	Messages []outgoingTx.WrapTokenMsg
+	Messages []outgoingtx.WrapTokenMsg
 }
 
-func NewOutgoingETHTransaction(txHash common.Hash, msgs []outgoingTx.WrapTokenMsg) OutgoingEthereumTransaction {
+func NewOutgoingETHTransaction(txHash common.Hash, msgs []outgoingtx.WrapTokenMsg) OutgoingEthereumTransaction {
 	return OutgoingEthereumTransaction{TxHash: txHash, Messages: msgs}
 }
 

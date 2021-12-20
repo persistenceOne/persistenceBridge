@@ -17,7 +17,7 @@ import (
 )
 
 func TestAddIncomingEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	ethInTx := &IncomingEthereumTx{
@@ -40,7 +40,7 @@ func TestAddIncomingEthereumTx(t *testing.T) {
 }
 
 func TestGetIncomingEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	ethInTx := &IncomingEthereumTx{

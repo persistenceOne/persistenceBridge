@@ -1,8 +1,8 @@
 package casp
 
-import "github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+import "github.com/persistenceOne/persistenceBridge/utilities/consterr"
 
 const (
-	ErrCASPSign             = bridgeErr.Error("CASP SignOperation error")
-	ErrCASPUncompressedKeys = bridgeErr.Error("CASP error while getting UncompressedPublicKeys")
+	ErrCASPSign             = consterr.Error("CASP SignOperation error")
+	ErrCASPUncompressedKeys = consterr.Error("CASP error while getting UncompressedPublicKeys")
 )

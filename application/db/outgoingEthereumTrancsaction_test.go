@@ -16,16 +16,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 )
 
 func TestDeleteOutgoingEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{{
+		Messages: []outgoingtx.WrapTokenMsg{{
 			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 			Amount:  big.NewInt(1),
 		}},
@@ -43,7 +43,7 @@ func TestDeleteOutgoingEthereumTx(t *testing.T) {
 func TestOutgoingEthereumTransactionKey(t *testing.T) {
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{},
+		Messages: []outgoingtx.WrapTokenMsg{},
 	}
 
 	expectedKey := outgoingEthereumTxPrefix.GenerateStoreKey(ethTransaction.TxHash.Bytes())
@@ -53,12 +53,12 @@ func TestOutgoingEthereumTransactionKey(t *testing.T) {
 
 func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
+	wrapTokenMsg := outgoingtx.WrapTokenMsg{
 		Address: Address,
 		Amount:  big.NewInt(1),
 	}
 
-	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	tx := []outgoingtx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
@@ -70,7 +70,7 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 
 	ethTransaction = OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{},
+		Messages: []outgoingtx.WrapTokenMsg{},
 	}
 	err = ethTransaction.Validate()
 	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
@@ -82,7 +82,7 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 func TestOutgoingEthereumTransactionValue(t *testing.T) {
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{{
+		Messages: []outgoingtx.WrapTokenMsg{{
 			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 			Amount:  big.NewInt(1),
 		}},
@@ -100,7 +100,7 @@ func TestOutgoingEthereumTransactionPrefix(t *testing.T) {
 }
 
 func TestIterateEthTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
@@ -119,7 +119,7 @@ func TestIterateEthTx(t *testing.T) {
 
 func TestNewETHTransaction(t *testing.T) {
 	txHash := common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375")
-	messages := []outgoingTx.WrapTokenMsg{{
+	messages := []outgoingtx.WrapTokenMsg{{
 		Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 		Amount:  big.NewInt(1),
 	}}
@@ -139,12 +139,12 @@ func TestNewETHTransaction(t *testing.T) {
 }
 
 func TestSetEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{{
+		Messages: []outgoingtx.WrapTokenMsg{{
 			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 			Amount:  big.NewInt(1),
 		}},

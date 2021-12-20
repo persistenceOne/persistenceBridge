@@ -16,7 +16,7 @@ import (
 )
 
 func TestRemoveCommand(t *testing.T) {
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
@@ -54,7 +54,7 @@ func TestRemoveCommand(t *testing.T) {
 	err = cmd.Execute()
 	require.Nil(t, err)
 
-	database, err = db.OpenDB(constants2.TestDbDir)
+	database, err = db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	validators, err := db.GetValidators()

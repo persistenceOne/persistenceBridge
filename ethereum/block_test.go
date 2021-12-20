@@ -25,7 +25,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -41,7 +41,7 @@ func TestCollectEthTx(t *testing.T) {
 
 	configuration.SetPStakeAddress(tmAddress)
 
-	database, err := db.OpenDB(constants.TestDbDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -72,12 +72,12 @@ func TestCollectEthTx(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
+	wrapTokenMsg := outgoingtx.WrapTokenMsg{
 		Address: address,
 		Amount:  amt,
 	}
 
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd := []outgoingtx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   txHashSuccess,
@@ -121,7 +121,7 @@ func TestHandleBlock(t *testing.T) {
 		}
 	}(kafkaProducer)
 
-	database, err := db.OpenDB(constants.TestDbDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -151,7 +151,7 @@ func TestProduceToKafka(t *testing.T) {
 
 	configuration.SetPStakeAddress(tmAddress)
 
-	database, err := db.OpenDB(constants.TestDbDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -169,12 +169,12 @@ func TestProduceToKafka(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
+	wrapTokenMsg := outgoingtx.WrapTokenMsg{
 		Address: address,
 		Amount:  amt,
 	}
 
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd := []outgoingtx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   txHashSuccess,

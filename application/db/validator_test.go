@@ -17,7 +17,7 @@ import (
 )
 
 func TestSetValidators(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	validatorName := "Binance"
@@ -36,7 +36,7 @@ func TestSetValidators(t *testing.T) {
 }
 
 func TestGetValidators(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	validatorName := "Binance"
@@ -148,7 +148,7 @@ func TestValidatorValue(t *testing.T) {
 }
 
 func TestDeleteValidator(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	validatorName := "StakingFund"
@@ -170,7 +170,7 @@ func TestDeleteValidator(t *testing.T) {
 }
 
 func TestDeleteAllValidators(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	validatorName := "StakingFund"

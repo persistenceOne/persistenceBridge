@@ -16,7 +16,7 @@ import (
 )
 
 func TestSetStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	name := "tx1"
@@ -29,7 +29,7 @@ func TestSetStatus(t *testing.T) {
 }
 
 func TestGetStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	name := "tx1"
@@ -81,7 +81,7 @@ func TestStatusPrefix(t *testing.T) {
 }
 
 func TestSetCosmosStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	err = SetCosmosStatus(1)
@@ -96,7 +96,7 @@ func TestSetCosmosStatus(t *testing.T) {
 }
 
 func TestSetEthereumStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDbDir)
+	database, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	err = SetEthereumStatus(1)

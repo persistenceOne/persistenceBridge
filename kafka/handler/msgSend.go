@@ -21,7 +21,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: MsgSend, bridgeErr:", err)
+			logging.Error("failed to close producer in topic: MsgSend, error:", err)
 		}
 	}()
 

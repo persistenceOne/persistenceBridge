@@ -13,7 +13,7 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -70,11 +70,11 @@ ConsumerLoop:
 	return nil
 }
 
-func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingTx.WrapTokenMsg, error) {
-	msgs := make([]outgoingTx.WrapTokenMsg, len(kafkaMsgs))
+func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingtx.WrapTokenMsg, error) {
+	msgs := make([]outgoingtx.WrapTokenMsg, len(kafkaMsgs))
 
 	for i := range kafkaMsgs {
-		var msg outgoingTx.WrapTokenMsg
+		var msg outgoingtx.WrapTokenMsg
 
 		err := json.Unmarshal(kafkaMsgs[i].Value, &msg)
 		if err != nil {
@@ -96,9 +96,9 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 
 	logging.Info("batched messages to send to ETH:", msgs)
 
-	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
+	hash, err := outgoingtx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
-		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "bridgeErr:", err)
+		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
 
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
@@ -113,7 +113,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 		for i := range kafkaMsgs {
 			err = utils.ProducerDeliverMessage(kafkaMsgs[i].Value, utils.ToEth, producer)
 			if err != nil {
-				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "bridgeErr:", err)
+				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "error:", err)
 				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.
 			}
 		}

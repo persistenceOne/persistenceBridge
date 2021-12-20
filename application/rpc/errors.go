@@ -1,7 +1,7 @@
 package rpc
 
-import "github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+import "github.com/persistenceOne/persistenceBridge/utilities/consterr"
 
 const (
-	ErrHTTPWriter = bridgeErr.Error("can't write an error into HTTP response")
+	ErrHTTPWriter = consterr.Error("can't write an error into HTTP response")
 )

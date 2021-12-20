@@ -1,7 +1,7 @@
 package commands
 
-import "github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+import "github.com/persistenceOne/persistenceBridge/utilities/consterr"
 
 const (
-	ErrNoValidators = bridgeErr.Error("need to have at least one validator to redelegate to")
+	ErrNoValidators = consterr.Error("need to have at least one validator to redelegate to")
 )

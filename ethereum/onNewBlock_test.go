@@ -18,7 +18,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 )
@@ -41,7 +41,7 @@ func TestOnNewBlock(t *testing.T) {
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 	require.Nil(t, err)
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -52,12 +52,12 @@ func TestOnNewBlock(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
+	wrapTokenMsg := outgoingtx.WrapTokenMsg{
 		Address: address,
 		Amount:  amt,
 	}
 
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd := []outgoingtx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   txhashFail,
@@ -75,12 +75,12 @@ func TestOnNewBlock(t *testing.T) {
 	amt = new(big.Int)
 	amt.SetInt64(1000)
 
-	wrapTokenMsg = outgoingTx.WrapTokenMsg{
+	wrapTokenMsg = outgoingtx.WrapTokenMsg{
 		Address: address,
 		Amount:  amt,
 	}
 
-	txd = []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd = []outgoingtx.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction = db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,

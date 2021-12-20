@@ -1,9 +1,9 @@
 package casp
 
-import "github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+import "github.com/persistenceOne/persistenceBridge/utilities/consterr"
 
 const (
-	ErrNoPublicKeys              = bridgeErr.Error("no public keys got from casp")
-	ErrEmptyOperationID          = bridgeErr.Error("empty operationID")
-	ErrCantGetOperationApprovals = bridgeErr.Error("unable to get approvals for operation")
+	ErrNoPublicKeys              = consterr.Error("no public keys got from casp")
+	ErrEmptyOperationID          = consterr.Error("empty operationID")
+	ErrCantGetOperationApprovals = consterr.Error("unable to get approvals for operation")
 )

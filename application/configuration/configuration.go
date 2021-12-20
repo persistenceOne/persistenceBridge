@@ -218,7 +218,7 @@ func SetConfig(cmd *cobra.Command) *config {
 
 func ValidateAndSeal() {
 	if err := appConfig.validate(); err != nil {
-		log.Fatalf("configuration validation bridgeErr: %s", err.Error())
+		log.Fatalf("configuration validation error: %s", err.Error())
 	}
 
 	appConfig.seal = true

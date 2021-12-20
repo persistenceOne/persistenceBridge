@@ -3,7 +3,7 @@
  SPDX-License-Identifier: Apache-2.0
 */
 
-package outgoingTx
+package outgoingtx
 
 import (
 	"encoding/hex"
@@ -200,12 +200,12 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 
 func setTMPublicKey() error {
 	if tmPublicKey != nil {
-		logging.Warn("outgoingTx: casp tendermint public key already set to.", tmPublicKey.String(), "To change update config and restart.")
+		logging.Warn("outgoingtx: casp tendermint public key already set to.", tmPublicKey.String(), "To change update config and restart.")
 
 		return nil
 	}
 
-	logging.Info("outgoingTx: setting tendermint casp public key")
+	logging.Info("outgoingtx: setting tendermint casp public key")
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
 	if err != nil {

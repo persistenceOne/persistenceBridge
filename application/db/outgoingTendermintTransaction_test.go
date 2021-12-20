@@ -16,7 +16,7 @@ import (
 )
 
 func TestDeleteOutgoingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -33,7 +33,7 @@ func TestDeleteOutgoingTendermintTx(t *testing.T) {
 }
 
 func TestCountTotalOutgoingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -58,7 +58,7 @@ func TestCountTotalOutgoingTendermintTx(t *testing.T) {
 }
 
 func TestIterateOutgoingTmTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
@@ -81,7 +81,7 @@ func TestIterateOutgoingTmTx(t *testing.T) {
 }
 
 func TestNewOutgoingTMTransaction(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	txHash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -98,7 +98,7 @@ func TestNewOutgoingTMTransaction(t *testing.T) {
 }
 
 func TestSetOutgoingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"

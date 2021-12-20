@@ -16,7 +16,7 @@ import (
 )
 
 func TestAddCommand(t *testing.T) {
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	err = db.DeleteAllValidators()
@@ -36,7 +36,7 @@ func TestAddCommand(t *testing.T) {
 	err = cmd.Execute()
 	require.Nil(t, err)
 
-	database, err = db.OpenDB(constants2.TestDbDir)
+	database, err = db.OpenDB(constants2.TestDBDir)
 	require.Nil(t, err)
 
 	address, _ := sdk.ValAddressFromBech32(validatorAddress)

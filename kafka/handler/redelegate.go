@@ -25,7 +25,7 @@ func (m *MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: MsgDelegate, bridgeErr:", err)
+			logging.Error("failed to close producer in topic: MsgDelegate, error:", err)
 		}
 	}()
 

@@ -1,15 +1,15 @@
 package tendermint
 
 import (
-	"github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+	"github.com/persistenceOne/persistenceBridge/utilities/consterr"
 )
 
 const (
-	ErrUnmarshalOutgoingTransaction = bridgeErr.Error("failed to unmarshal OutgoingTendermintTransaction")
-	ErrInvalidTxHash                = bridgeErr.Error("invalid tx hash")
-	ErrParseTransaction             = bridgeErr.Error("unable to parse transaction into signing.Tx")
-	ErrTransactionMessageGeneration = bridgeErr.Error("failed to generate msgBytes")
-	ErrAddToKafkaQueue              = bridgeErr.Error("failed to add message(s) to kafka queue")
-	ErrPartialSend                  = bridgeErr.Error("added to IncomingTendermintTx but NOT to TendermintTxToKafka failed. Tx won't be added to kafka")
-	ErrGetIncomingTendermintTx      = bridgeErr.Error("failed to get IncomingTendermintTx by TendermintTxToKafka")
+	ErrUnmarshalOutgoingTransaction = consterr.Error("failed to unmarshal OutgoingTendermintTransaction")
+	ErrInvalidTxHash                = consterr.Error("invalid tx hash")
+	ErrParseTransaction             = consterr.Error("unable to parse transaction into signing.Tx")
+	ErrTransactionMessageGeneration = consterr.Error("failed to generate msgBytes")
+	ErrAddToKafkaQueue              = consterr.Error("failed to add message(s) to kafka queue")
+	ErrPartialSend                  = consterr.Error("added to IncomingTendermintTx but NOT to TendermintTxToKafka failed. Tx won't be added to kafka")
+	ErrGetIncomingTendermintTx      = consterr.Error("failed to get IncomingTendermintTx by TendermintTxToKafka")
 )

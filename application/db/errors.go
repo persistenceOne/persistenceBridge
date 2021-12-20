@@ -1,18 +1,18 @@
 package db
 
-import "github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+import "github.com/persistenceOne/persistenceBridge/utilities/consterr"
 
 const (
-	ErrInvalidAmount  = bridgeErr.Error("invalid amount")
-	ErrNilAmount      = bridgeErr.Error("amount is nil")
-	ErrNegativeAmount = bridgeErr.Error("amount less than 0")
+	ErrInvalidAmount  = consterr.Error("invalid amount")
+	ErrNilAmount      = consterr.Error("amount is nil")
+	ErrNegativeAmount = consterr.Error("amount less than 0")
 
-	ErrEmptyTransaction        = bridgeErr.Error("tx hash is empty")
-	ErrEmptyTransactionMessage = bridgeErr.Error("empty MsgBytes")
-	ErrNoTransactionMessages   = bridgeErr.Error("number of messages for ethHash is 0")
+	ErrEmptyTransaction        = consterr.Error("tx hash is empty")
+	ErrEmptyTransactionMessage = consterr.Error("empty MsgBytes")
+	ErrNoTransactionMessages   = consterr.Error("number of messages for ethHash is 0")
 
-	ErrInvalidTransactionType = bridgeErr.Error("invalid msg type")
-	ErrEmptyDenom             = bridgeErr.Error("empty denom")
-	ErrEmptyFromAddress       = bridgeErr.Error("from address empty")
-	ErrInvalidFromAddress     = bridgeErr.Error("invalid from address")
+	ErrInvalidTransactionType = consterr.Error("invalid msg type")
+	ErrEmptyDenom             = consterr.Error("empty denom")
+	ErrEmptyFromAddress       = consterr.Error("from address empty")
+	ErrInvalidFromAddress     = consterr.Error("invalid from address")
 )

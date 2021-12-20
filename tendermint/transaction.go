@@ -21,7 +21,7 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -125,7 +125,7 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 		if tx.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
 			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String())
 
-			ethTxMsg := outgoingTx.WrapTokenMsg{
+			ethTxMsg := outgoingtx.WrapTokenMsg{
 				Address: ethAddress,
 				Amount:  tx.Amount.BigInt(),
 			}

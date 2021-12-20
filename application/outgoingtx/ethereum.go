@@ -3,7 +3,7 @@
  SPDX-License-Identifier: Apache-2.0
 */
 
-package outgoingTx
+package outgoingtx
 
 import (
 	"context"
@@ -170,12 +170,12 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature 
 
 func setEthBridgeAdmin() error {
 	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
-		logging.Warn("outgoingTx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
+		logging.Warn("outgoingtx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 
 		return nil
 	}
 
-	logging.Info("outgoingTx: setting ethereum bridge admin from casp")
+	logging.Info("outgoingtx: setting ethereum bridge admin from casp")
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
 	if err != nil {

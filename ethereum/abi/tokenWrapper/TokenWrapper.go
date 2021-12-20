@@ -988,11 +988,11 @@ type TokenWrapperGenerateUTokensIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperGenerateUTokensIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1015,7 +1015,7 @@ func (it *TokenWrapperGenerateUTokensIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperGenerateUTokens)
@@ -1033,7 +1033,7 @@ func (it *TokenWrapperGenerateUTokensIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperGenerateUTokensIterator) Error() error {
 	return it.fail
 }
@@ -1151,11 +1151,11 @@ type TokenWrapperGenerateUTokensInBatchIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperGenerateUTokensInBatchIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1178,7 +1178,7 @@ func (it *TokenWrapperGenerateUTokensInBatchIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperGenerateUTokensInBatch)
@@ -1196,7 +1196,7 @@ func (it *TokenWrapperGenerateUTokensInBatchIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperGenerateUTokensInBatchIterator) Error() error {
 	return it.fail
 }
@@ -1288,11 +1288,11 @@ type TokenWrapperPausedIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperPausedIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1315,7 +1315,7 @@ func (it *TokenWrapperPausedIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperPaused)
@@ -1333,7 +1333,7 @@ func (it *TokenWrapperPausedIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperPausedIterator) Error() error {
 	return it.fail
 }
@@ -1422,11 +1422,11 @@ type TokenWrapperRoleAdminChangedIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperRoleAdminChangedIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1449,7 +1449,7 @@ func (it *TokenWrapperRoleAdminChangedIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperRoleAdminChanged)
@@ -1467,7 +1467,7 @@ func (it *TokenWrapperRoleAdminChangedIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperRoleAdminChangedIterator) Error() error {
 	return it.fail
 }
@@ -1584,11 +1584,11 @@ type TokenWrapperRoleGrantedIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperRoleGrantedIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1611,7 +1611,7 @@ func (it *TokenWrapperRoleGrantedIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperRoleGranted)
@@ -1629,7 +1629,7 @@ func (it *TokenWrapperRoleGrantedIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperRoleGrantedIterator) Error() error {
 	return it.fail
 }
@@ -1746,11 +1746,11 @@ type TokenWrapperRoleRevokedIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperRoleRevokedIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1773,7 +1773,7 @@ func (it *TokenWrapperRoleRevokedIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperRoleRevoked)
@@ -1791,7 +1791,7 @@ func (it *TokenWrapperRoleRevokedIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperRoleRevokedIterator) Error() error {
 	return it.fail
 }
@@ -1908,11 +1908,11 @@ type TokenWrapperSetFeesIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperSetFeesIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -1935,7 +1935,7 @@ func (it *TokenWrapperSetFeesIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperSetFees)
@@ -1953,7 +1953,7 @@ func (it *TokenWrapperSetFeesIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperSetFeesIterator) Error() error {
 	return it.fail
 }
@@ -2061,11 +2061,11 @@ type TokenWrapperSetMinimumValuesIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperSetMinimumValuesIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -2088,7 +2088,7 @@ func (it *TokenWrapperSetMinimumValuesIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperSetMinimumValues)
@@ -2106,7 +2106,7 @@ func (it *TokenWrapperSetMinimumValuesIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperSetMinimumValuesIterator) Error() error {
 	return it.fail
 }
@@ -2214,11 +2214,11 @@ type TokenWrapperSetUTokensContractIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperSetUTokensContractIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -2241,7 +2241,7 @@ func (it *TokenWrapperSetUTokensContractIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperSetUTokensContract)
@@ -2259,7 +2259,7 @@ func (it *TokenWrapperSetUTokensContractIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperSetUTokensContractIterator) Error() error {
 	return it.fail
 }
@@ -2358,11 +2358,11 @@ type TokenWrapperUnpausedIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperUnpausedIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -2385,7 +2385,7 @@ func (it *TokenWrapperUnpausedIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperUnpaused)
@@ -2403,7 +2403,7 @@ func (it *TokenWrapperUnpausedIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperUnpausedIterator) Error() error {
 	return it.fail
 }
@@ -2492,11 +2492,11 @@ type TokenWrapperWithdrawUTokensIterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperWithdrawUTokensIterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -2519,7 +2519,7 @@ func (it *TokenWrapperWithdrawUTokensIterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperWithdrawUTokens)
@@ -2537,7 +2537,7 @@ func (it *TokenWrapperWithdrawUTokensIterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperWithdrawUTokensIterator) Error() error {
 	return it.fail
 }
@@ -2658,11 +2658,11 @@ type TokenWrapperWithdrawUTokensV2Iterator struct {
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  ethereum.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred bridgeErr to stop iteration
+	fail error                 // Occurred error to stop iteration
 }
 
 // Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing bridgeErr, false is
+// are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *TokenWrapperWithdrawUTokensV2Iterator) Next() bool {
 	// If the iterator failed, stop iterating
@@ -2685,7 +2685,7 @@ func (it *TokenWrapperWithdrawUTokensV2Iterator) Next() bool {
 			return false
 		}
 	}
-	// Iterator still in progress, wait for either a data or an bridgeErr event
+	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
 		it.Event = new(TokenWrapperWithdrawUTokensV2)
@@ -2703,7 +2703,7 @@ func (it *TokenWrapperWithdrawUTokensV2Iterator) Next() bool {
 	}
 }
 
-// Error returns any retrieval or parsing bridgeErr occurred during filtering.
+// Error returns any retrieval or parsing error occurred during filtering.
 func (it *TokenWrapperWithdrawUTokensV2Iterator) Error() error {
 	return it.fail
 }

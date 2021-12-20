@@ -15,7 +15,7 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
+	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -101,7 +101,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		if countPendingTx == 0 {
 			var response *sdk.TxResponse
 
-			response, err = outgoingTx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
+			response, err = outgoingtx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
 			if err != nil {
 				logging.Error("Unable to broadcast tendermint messages:", err)
 
@@ -112,7 +112,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 					defer func() {
 						innerErr := producer.Close()
 						if innerErr != nil {
-							logging.Error("failed to close producer in topic: SendBatchToTendermint, bridgeErr:", innerErr)
+							logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", innerErr)
 						}
 					}()
 

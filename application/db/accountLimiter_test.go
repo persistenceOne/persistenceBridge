@@ -17,7 +17,7 @@ import (
 )
 
 func TestGetAccountLimiter(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	address1, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
@@ -103,7 +103,7 @@ func TestAccountLimiterPrefix(t *testing.T) {
 }
 
 func TestSetAccountLimiter(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
@@ -120,7 +120,7 @@ func TestSetAccountLimiter(t *testing.T) {
 }
 
 func TestGetTotalTokensWrapped(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	address1, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")

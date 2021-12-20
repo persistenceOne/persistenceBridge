@@ -1,4 +1,4 @@
-package bridgeErr
+package consterr
 
 import "fmt"
 

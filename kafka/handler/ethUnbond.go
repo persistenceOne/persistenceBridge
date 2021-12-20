@@ -25,7 +25,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: EthUnbond, bridgeErr:", err)
+			logging.Error("failed to close producer in topic: EthUnbond, error:", err)
 		}
 	}()
 

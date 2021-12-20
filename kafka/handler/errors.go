@@ -1,9 +1,9 @@
 package handler
 
-import "github.com/persistenceOne/persistenceBridge/utilities/bridgeErr"
+import "github.com/persistenceOne/persistenceBridge/utilities/consterr"
 
 const (
-	ErrKafkaNilMessage       = bridgeErr.Error("kafka returned nil message")
-	ErrKafkaErrorMessage     = bridgeErr.Error("kafka returned error message")
-	ErrTooFewDelegatedTokens = bridgeErr.Error("unbondings requested are greater than delegated tokens")
+	ErrKafkaNilMessage       = consterr.Error("kafka returned nil message")
+	ErrKafkaErrorMessage     = consterr.Error("kafka returned error message")
+	ErrTooFewDelegatedTokens = consterr.Error("unbondings requested are greater than delegated tokens")
 )

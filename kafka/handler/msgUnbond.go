@@ -20,7 +20,7 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: MsgUnbond, bridgeErr:", err)
+			logging.Error("failed to close producer in topic: MsgUnbond, error:", err)
 		}
 	}()
 
@@ -46,7 +46,7 @@ ConsumerLoop:
 			err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
 				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
-				logging.Error("failed to produce from MsgUnbond to ToTendermint, bridgeErr:", err)
+				logging.Error("failed to produce from MsgUnbond to ToTendermint, error:", err)
 
 				break ConsumerLoop
 			}

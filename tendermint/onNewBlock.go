@@ -39,7 +39,7 @@ func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.C
 
 		txResult, err := chain.Client.Tx(ctx, txHashBytes, true)
 		if err != nil {
-			if err.Error() == fmt.Sprintf("RPC bridgeErr -32603 - Internal bridgeErr: tx (%s) not found", tmTx.TxHash) {
+			if err.Error() == fmt.Sprintf("RPC error -32603 - Internal error: tx (%s) not found", tmTx.TxHash) {
 				logging.Info("Tendermint tx still pending:", tmTx.TxHash)
 
 				return nil

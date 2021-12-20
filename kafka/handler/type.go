@@ -38,49 +38,49 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	case utils.ToEth:
 		err := m.HandleToEth(session, claim)
 		if err != nil {
-			logging.Error("failed batch and handle for topic ToEth with bridgeErr:", err)
+			logging.Error("failed batch and handle for topic ToEth with error:", err)
 			return err
 		}
 	case utils.ToTendermint:
 		err := m.HandleToTendermint(session, claim)
 		if err != nil {
-			logging.Error("failed to handle for topic ToTendermint with bridgeErr:", err)
+			logging.Error("failed to handle for topic ToTendermint with error:", err)
 			return err
 		}
 	case utils.EthUnbond:
 		err := m.HandleEthUnbond(session, claim)
 		if err != nil {
-			logging.Error("failed to handle for topic EthUnbond with bridgeErr:", err)
+			logging.Error("failed to handle for topic EthUnbond with error:", err)
 			return err
 		}
 	case utils.MsgSend:
 		err := m.HandleMsgSend(session, claim)
 		if err != nil {
-			logging.Error("failed to handle MsgSend for topic MsgSend with bridgeErr:", err)
+			logging.Error("failed to handle MsgSend for topic MsgSend with error:", err)
 			return err
 		}
 	case utils.MsgDelegate:
 		err := m.HandleMsgDelegate(session, claim)
 		if err != nil {
-			logging.Error("failed to handle MsgDelegate for topic MsgDelegate with bridgeErr:", err)
+			logging.Error("failed to handle MsgDelegate for topic MsgDelegate with error:", err)
 			return err
 		}
 	case utils.MsgUnbond:
 		err := m.HandleMsgUnbond(session, claim)
 		if err != nil {
-			logging.Error("failed to handle for topic MsgUnbond with bridgeErr:", err)
+			logging.Error("failed to handle for topic MsgUnbond with error:", err)
 			return err
 		}
 	case utils.Redelegate:
 		err := m.HandleRelegate(session, claim)
 		if err != nil {
-			logging.Error("failed to handle for topic Redelegate with bridgeErr:", err)
+			logging.Error("failed to handle for topic Redelegate with error:", err)
 			return err
 		}
 	case utils.RetryTendermint:
 		err := m.HandleRetryTendermint(session, claim)
 		if err != nil {
-			logging.Error("failed to handle for topic RetryTendermint with bridgeErr:", err)
+			logging.Error("failed to handle for topic RetryTendermint with error:", err)
 			return err
 		}
 	}

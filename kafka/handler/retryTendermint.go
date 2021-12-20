@@ -22,7 +22,7 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic RetryTendermint, bridgeErr:", err)
+			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
 		}
 	}()
 
@@ -66,7 +66,7 @@ ConsumerLoop:
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
 				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
-				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, bridgeErr:", err)
+				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, error:", err)
 
 				break ConsumerLoop
 			}

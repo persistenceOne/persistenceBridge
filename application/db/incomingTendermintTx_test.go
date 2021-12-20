@@ -18,7 +18,7 @@ import (
 )
 
 func TestAddToPendingIncomingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	tmInTx := &IncomingTendermintTx{
@@ -37,7 +37,7 @@ func TestAddToPendingIncomingTendermintTx(t *testing.T) {
 }
 
 func TestSetIncomingTendermintTxProduced(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	tmInTx := &IncomingTendermintTx{
@@ -62,7 +62,7 @@ func TestSetIncomingTendermintTxProduced(t *testing.T) {
 }
 
 func TestGetIncomingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDbDir)
+	db, err := OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	tmInTx := &IncomingTendermintTx{
