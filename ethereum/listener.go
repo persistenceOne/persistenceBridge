@@ -21,6 +21,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
+const finality = 12
+
 func StartListening(client *ethclient.Client, sleepDuration time.Duration, brokers []string, protoCodec *codec.ProtoCodec) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
@@ -65,7 +67,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			return
 		}
 
-		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
+		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > finality {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 
 			logging.Info("Ethereum Block:", processHeight)

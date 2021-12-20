@@ -143,6 +143,8 @@ func consumeToTendermintMessages(ctx context.Context, state *utils.KafkaState,
 	}
 }
 
+const unboundCheckPeriod = 10 * time.Second
+
 func consumeUnbondings(ctx context.Context, state *utils.KafkaState,
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	ethUnbondConsumerGroup := state.ConsumerGroup[utils.GroupEthUnbond]
@@ -167,7 +169,7 @@ func consumeUnbondings(ctx context.Context, state *utils.KafkaState,
 				logging.Fatal(err)
 			}
 
-			ticker := time.NewTicker(10 * time.Second)
+			ticker := time.NewTicker(unboundCheckPeriod)
 
 			select {
 			case <-end:
@@ -184,7 +186,7 @@ func consumeUnbondings(ctx context.Context, state *utils.KafkaState,
 				ticker.Stop()
 			}
 		} else {
-			ticker := time.NewTicker(10 * time.Second)
+			ticker := time.NewTicker(unboundCheckPeriod)
 
 			select {
 			case <-end:

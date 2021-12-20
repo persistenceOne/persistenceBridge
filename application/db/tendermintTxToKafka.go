@@ -26,7 +26,7 @@ func (t *TendermintTxToKafka) prefix() storeKeyPrefix {
 }
 
 func (t *TendermintTxToKafka) Key() []byte {
-	msgIndexBytes := make([]byte, 2)
+	msgIndexBytes := make([]byte, msgUint16Len)
 	binary.LittleEndian.PutUint16(msgIndexBytes, uint16(t.MsgIndex))
 	denomBytes := []byte(t.Denom)
 

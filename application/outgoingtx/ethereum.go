@@ -63,6 +63,8 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 	return sendTxToEth(client, &contractAddress, nil, bytesData)
 }
 
+const defaultGasFeeCap = 300000000000
+
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
 	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
@@ -92,7 +94,7 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 	}
 
 	// TODO set it as conf parameter
-	gasFeeCap := big.NewInt(300000000000)
+	gasFeeCap := big.NewInt(defaultGasFeeCap)
 
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   chainID,

@@ -7,6 +7,7 @@ linters:
     - golint # deprecated
     - interfacer # deprecated
     - scopelint # deprecated
+    - nakedret
     - varnamelen
   enable:
     - bodyclose
@@ -22,7 +23,6 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - nakedret
     - prealloc
     - staticcheck
     - structcheck

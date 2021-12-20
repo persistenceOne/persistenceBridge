@@ -41,16 +41,14 @@ const (
 	FlagAccountPrefix               = "accountPrefix"
 	FlagTendermintNode              = "tmNode"
 	FlagTendermintChainID           = "chainID"
-)
 
-var (
 	DefaultTimeout                    = "10s"
 	DefaultEthereumEndPoint           = "wss://ropsten.infura.io/ws/v3/b21966541db246d398fb31402eec2c14"
 	DefaultTendermintSleepTime        = 3000     // ms
 	DefaultEthereumSleepTime          = 4500     // ms
 	DefaultTendermintStartHeight      = int64(0) // 0 will not change the db at start
 	DefaultEthereumStartHeight        = int64(0) // 0 will not change the db at start
-	DefaultPBridgeHome                = os.ExpandEnv("$HOME/.persistenceBridge")
+	DefaultPBridgeHomePath            = "$HOME/.persistenceBridge"
 	DefaultDenom                      = "stake"
 	DefaultEthGasLimit                = uint64(500000)
 	DefaultBroadcastMode              = flags.BroadcastAsync
@@ -63,4 +61,8 @@ var (
 	DefaultCASPSignatureWaitTime      = 8 * time.Second
 	DefaultCASPMaxGetSignatureAttempt = 5
 	DefaultRPCEndpoint                = "localhost:4040"
+)
+
+var (
+	DefaultPBridgeHome = os.ExpandEnv(DefaultPBridgeHomePath)
 )

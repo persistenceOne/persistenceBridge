@@ -176,6 +176,8 @@ func StartCommand() *cobra.Command {
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
+			const stopCheckPeriod = 100 * time.Millisecond
+
 			for sig := range signalChan {
 				logging.Info("STOP SIGNAL RECEIVED:", sig.String(), "(Might take around a minute to stop)")
 
@@ -192,7 +194,7 @@ func StartCommand() *cobra.Command {
 						return nil
 					}
 
-					time.Sleep(100 * time.Millisecond)
+					time.Sleep(stopCheckPeriod)
 				}
 			}
 

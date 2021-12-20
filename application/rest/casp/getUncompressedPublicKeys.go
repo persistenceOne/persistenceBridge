@@ -21,8 +21,10 @@ func GetUncompressedTMPublicKeys() (casp.UncompressedPublicKeysResponse, error) 
 	return getUncompressedPublicKeys(configuration.GetAppConfig().Tendermint.CoinType)
 }
 
+const ethCoinType = 60
+
 func GetUncompressedEthPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
-	return getUncompressedPublicKeys(60)
+	return getUncompressedPublicKeys(ethCoinType)
 }
 
 func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResponse, error) {

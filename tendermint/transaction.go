@@ -46,7 +46,6 @@ func handleTxSearchResult(clientCtx *client.Context, resultTxs []*tmCoreTypes.Re
 func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCoreTypes.ResultTx) error {
 	if txQueryResult.TxResult.GetCode() == 0 {
 		// Should be used if txQueryResult.Tx is string: `decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)`
-
 		txInterface, err := clientCtx.TxConfig.TxDecoder()(txQueryResult.Tx)
 		if err != nil {
 			return err

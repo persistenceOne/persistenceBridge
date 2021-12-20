@@ -23,6 +23,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
+const finality = 5
+
 func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
@@ -54,7 +56,9 @@ func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers
 				return
 			}
 
-			time.Sleep(5 * time.Second)
+			const timeToStopBridge = 5 * time.Second
+
+			time.Sleep(timeToStopBridge)
 
 			continue
 		}
@@ -77,7 +81,7 @@ func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers
 			return
 		}
 
-		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > 5 {
+		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > finality {
 			processHeight := cosmosStatus.LastCheckHeight + 1
 
 			logging.Info("Tendermint Block:", processHeight)

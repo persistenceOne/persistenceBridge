@@ -41,6 +41,7 @@ func validators(w http.ResponseWriter, _ *http.Request) {
 		if err != nil {
 			_, httpErr := w.Write([]byte(err.Error()))
 			logging.Error(fmt.Sprintf("%v: %v, previous error %v", ErrHTTPWriter, httpErr.Error(), err))
+
 			return
 		}
 

@@ -28,8 +28,10 @@ func (t *IncomingTendermintTx) prefix() storeKeyPrefix {
 	return incomingTendermintTxPrefix
 }
 
+const msgUint16Len = 2
+
 func (t *IncomingTendermintTx) Key() []byte {
-	msgIndexBytes := make([]byte, 2)
+	msgIndexBytes := make([]byte, msgUint16Len)
 
 	binary.LittleEndian.PutUint16(msgIndexBytes, uint16(t.MsgIndex))
 

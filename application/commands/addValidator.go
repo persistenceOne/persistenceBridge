@@ -21,10 +21,12 @@ import (
 )
 
 func AddCommand() *cobra.Command {
+	const argsCount = 2
+
 	addCommand := &cobra.Command{
 		Use:   "add [validatorOperatorAddress] [name]",
 		Short: "Add validator address to signing group",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(argsCount),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
 			if err != nil {
