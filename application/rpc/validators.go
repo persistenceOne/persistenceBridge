@@ -10,13 +10,14 @@ import (
 	"net/http"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 type validatorResponse struct {
 	Validators []db.Validator
 }
 
-func validators(w http.ResponseWriter, r *http.Request) {
+func validators(w http.ResponseWriter, _ *http.Request) {
 	var errResponse errorResponse
 
 	validators, err := db.GetValidators()
@@ -27,13 +28,18 @@ func validators(w http.ResponseWriter, r *http.Request) {
 
 		b, err = json.Marshal(errResponse)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, httpErr := w.Write([]byte(err.Error()))
+			if httpErr != nil {
+				logging.Error("%w: %v, marshall error %v", ErrHTTPWriter, httpErr, err)
+			}
+
 			return
 		}
 
 		_, err = w.Write(b)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			_, httpErr := w.Write([]byte(err.Error()))
+			logging.Error("%w: %v, previous error %v", ErrHTTPWriter, httpErr, err)
 			return
 		}
 
@@ -46,14 +52,20 @@ func validators(w http.ResponseWriter, r *http.Request) {
 
 	b, err = json.Marshal(response)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, httpErr := w.Write([]byte(err.Error()))
+		if httpErr != nil {
+			logging.Error("%w: %v, marshall error %v", ErrHTTPWriter, httpErr, err)
+		}
 
 		return
 	}
 
 	_, err = w.Write(b)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		_, httpErr := w.Write([]byte(err.Error()))
+		if httpErr != nil {
+			logging.Error("%w: %v, previous error %v", ErrHTTPWriter, httpErr, err)
+		}
 
 		return
 	}
