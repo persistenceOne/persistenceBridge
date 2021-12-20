@@ -75,7 +75,7 @@ func sendMessage(message string) error {
 	if bot != nil {
 		_, err := bot.Send(tb.ChatID(configuration.GetAppConfig().TelegramBot.ChatID), message)
 		if err != nil {
-			log.Println("Bot send message error:", err.Error())
+			log.Println("Bot send message bridgeErr:", err.Error())
 
 			return err
 		}

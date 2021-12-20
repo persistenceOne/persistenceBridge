@@ -65,7 +65,7 @@ func StartServer(rpcEndpoint string) {
 
 	err := rpc.Register(validatorRPC)
 	if err != nil {
-		logging.Fatal("error registering ValidatorRPC:", err)
+		logging.Fatal("bridgeErr registering ValidatorRPC:", err)
 	}
 
 	rpc.HandleHTTP()

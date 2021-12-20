@@ -72,7 +72,7 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 
 		method, arguments, err = contract.GetMethodAndArguments(transaction.Data())
 		if err != nil {
-			return fmt.Errorf("unable to get method and arguments of: %s Error: %s", contract.GetName(), err.Error())
+			return fmt.Errorf("%w of: %s Error: %s", ErrUnableGetMethodAndArgument, contract.GetName(), err.Error())
 		}
 
 		if processFunc, ok := contract.GetSDKMsgAndSender()[method.RawName]; ok {
@@ -83,14 +83,15 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 
 			msg, sender, err = processFunc(arguments)
 			if err != nil {
-				return fmt.Errorf("failed to process arguments of contract: %s method: %s for TX: %s Error: %s", contract.GetName(), method.RawName, transaction.Hash().String(), err.Error())
+				return fmt.Errorf("%w: %s method: %s for TX: %s Error: %s",
+					ErrFailedProcessArguments, contract.GetName(), method.RawName, transaction.Hash().String(), err.Error())
 			}
 
 			// Do not check for EthereumTxToKafka exists.
 			if !db.CheckIncomingEthereumTxExists(transaction.Hash()) {
 				var msgBytes []byte
 
-				msgBytes, err := protoCodec.MarshalInterface(msg)
+				msgBytes, err = protoCodec.MarshalInterface(msg)
 				if err != nil {
 					return err
 				}
@@ -110,7 +111,7 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 				})
 
 				if err != nil {
-					return fmt.Errorf("added to IncomingEthereumTx but NOT to EthereumTxToKafka failed. Tx won't be added to kafka: %v", err)
+					return fmt.Errorf("%w: %v", ErrCannotAddTxToKafka, err)
 				}
 			}
 		}
@@ -148,7 +149,7 @@ func produceToKafka(kafkaProducer sarama.SyncProducer) {
 
 		err = utils.ProducerDeliverMessage(ethTxToTM.MsgBytes, producer, kafkaProducer)
 		if err != nil {
-			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
+			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "bridgeErr:", err)
 		}
 
 		err = db.DeleteEthereumTxToKafka(ethTxToTM.TxHash)

@@ -85,7 +85,7 @@ func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCore
 									Denom:    coin.Denom,
 								})
 								if err != nil {
-									return fmt.Errorf("added to IncomingTendermintTx but NOT to TendermintTxToKafka failed. Tx won't be added to kafka: %v", err)
+									return fmt.Errorf("%w: %v", ErrPartialSend, err)
 								}
 							}
 						}
@@ -110,7 +110,7 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 	for _, tmTxToKafka := range tmTxToKafkaList {
 		tx, err := db.GetIncomingTendermintTx(tmTxToKafka.TxHash, tmTxToKafka.MsgIndex, tmTxToKafka.Denom)
 		if err != nil {
-			logging.Fatal(fmt.Errorf("failed to get IncomingTendermintTx by TendermintTxToKafka [TM Listener]: %s", err.Error()))
+			logging.Fatal(fmt.Errorf("%w [TM Listener]: %s", ErrGetIncomingTendermintTx, err.Error()))
 		}
 
 		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
@@ -141,7 +141,7 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaProducer)
 			if err != nil {
-				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
+				logging.Fatal(fmt.Errorf("%w ToEth [TM Listener]: %s", ErrAddToKafkaQueue, err.Error()))
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
@@ -174,6 +174,6 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer sarama.SyncPro
 
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaProducer)
 	if err != nil {
-		logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))
+		logging.Fatal(fmt.Errorf("%w ToEth [TM Listener REVERT]: %s", ErrAddToKafkaQueue, err.Error()))
 	}
 }

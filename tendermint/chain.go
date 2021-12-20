@@ -6,6 +6,7 @@
 package tendermint
 
 import (
+	"errors"
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
@@ -55,7 +56,7 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	}
 
 	if err = chain.Start(); err != nil {
-		if err != tendermintService.ErrAlreadyStarted {
+		if errors.Is(err, tendermintService.ErrAlreadyStarted) {
 			chain.Error(err)
 
 			return chain, err

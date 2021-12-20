@@ -6,8 +6,6 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -24,7 +22,7 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
+			logging.Error("failed to close producer in topic RetryTendermint, bridgeErr:", err)
 		}
 	}()
 
@@ -44,7 +42,7 @@ ConsumerLoop:
 			}
 
 			if kafkaMsg == nil {
-				return errors.New("kafka returned nil message")
+				return ErrKafkaNilMessage
 			}
 
 			var msg sdk.Msg
@@ -68,7 +66,7 @@ ConsumerLoop:
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
 				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
-				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, error:", err)
+				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, bridgeErr:", err)
 
 				break ConsumerLoop
 			}

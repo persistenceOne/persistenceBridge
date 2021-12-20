@@ -53,7 +53,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	defer func(Body io.ReadCloser) {
 		innerErr := Body.Close()
 		if innerErr != nil {
-			logging.Error(fmt.Errorf("casp error while getting UncompressedPublicKeys: %v", innerErr))
+			logging.Error(fmt.Errorf("%w: %v", ErrCASPUncompressedKeys, innerErr))
 		}
 	}(resp.Body)
 

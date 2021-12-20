@@ -7,7 +7,7 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dgraph-io/badger/v3"
@@ -34,7 +34,7 @@ func (a *AccountLimiter) Value() ([]byte, error) {
 
 func (a *AccountLimiter) Validate() error {
 	if a.Amount.LTE(sdk.ZeroInt()) {
-		return fmt.Errorf("invalid amount")
+		return ErrInvalidAmount
 	}
 
 	return nil
@@ -47,7 +47,7 @@ func GetAccountLimiter(address sdk.AccAddress) (AccountLimiter, error) {
 
 	b, err := get(acc.Key())
 	if err != nil {
-		if err == badger.ErrKeyNotFound {
+		if errors.Is(err, badger.ErrKeyNotFound) {
 			return acc, nil
 		}
 

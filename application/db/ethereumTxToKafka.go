@@ -7,7 +7,6 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -32,7 +31,7 @@ func (t *EthereumTxToKafka) Value() ([]byte, error) {
 
 func (t *EthereumTxToKafka) Validate() error {
 	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
-		return fmt.Errorf("tx hash is empty")
+		return ErrEmptyTransaction
 	}
 
 	return nil

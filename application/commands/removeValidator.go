@@ -6,7 +6,6 @@
 package commands
 
 import (
-	"errors"
 	"log"
 	"path/filepath"
 	"strings"
@@ -80,10 +79,9 @@ func RemoveCommand() *cobra.Command {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
 
-				var err2 error
-				validators, err2 = rpc.RemoveValidator(validatorAddress, rpcEndpoint)
-				if err2 != nil {
-					return err2
+				validators, err = rpc.RemoveValidator(validatorAddress, rpcEndpoint)
+				if err != nil {
+					return err
 				}
 			} else {
 				defer database.Close()
@@ -93,17 +91,16 @@ func RemoveCommand() *cobra.Command {
 					return err
 				}
 
-				var err2 error
-				validators, err2 = db.GetValidators()
-				if err2 != nil {
-					return err2
+				validators, err = db.GetValidators()
+				if err != nil {
+					return err
 				}
 			}
 
 			if len(validators) == 0 {
 				log.Println("IMPORTANT: No validator present to redelegate!!!")
 
-				return errors.New("need to have at least one validator to redelegate to")
+				return ErrNoValidators
 			}
 
 			log.Printf("Total validators %d:\n", len(validators))

@@ -35,7 +35,7 @@ func GetCASPSigningOperationID(dataToSign, publicKeys []string, description stri
 
 func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, error) {
 	if operationID == "" {
-		return caspResponses.SignOperationResponse{}, fmt.Errorf("empty operationID")
+		return caspResponses.SignOperationResponse{}, ErrEmptyOperationID
 	}
 
 	attempts := 0
@@ -61,7 +61,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 			}
 
 			if attempts >= configuration.GetAppConfig().CASP.MaxGetSignatureAttempts {
-				return signOperationResponse, fmt.Errorf("unable to get approvals for operation: %s", operationID)
+				return signOperationResponse, fmt.Errorf("%w: %s", ErrCantGetOperationApprovals, operationID)
 			}
 
 			continue

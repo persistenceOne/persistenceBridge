@@ -8,7 +8,6 @@ package db
 import (
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmBytes "github.com/tendermint/tendermint/libs/bytes"
@@ -40,11 +39,11 @@ func (t *TendermintTxToKafka) Value() ([]byte, error) {
 
 func (t *TendermintTxToKafka) Validate() error {
 	if len(t.TxHash.Bytes()) == 0 {
-		return fmt.Errorf("empty tx hash")
+		return ErrEmptyTransaction
 	}
 
 	if t.Denom == "" {
-		return fmt.Errorf("empty denom")
+		return ErrEmptyDenom
 	}
 
 	if err := sdk.ValidateDenom(t.Denom); err != nil {

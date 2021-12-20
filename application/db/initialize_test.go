@@ -60,7 +60,7 @@ func TestOpenDB(t *testing.T) {
 
 	newDb, err := OpenDB(constants.TestDbDir)
 	require.Nil(t, newDb)
-	require.Equal(t, "Cannot acquire directory lock on \""+constants.TestDbDir+"\".  Another process is using this Badger database. error: resource temporarily unavailable", err.Error())
+	require.Equal(t, "Cannot acquire directory lock on \""+constants.TestDbDir+"\".  Another process is using this Badger database. bridgeErr: resource temporarily unavailable", err.Error())
 
 	db.Close()
 }

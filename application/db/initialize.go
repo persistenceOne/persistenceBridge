@@ -6,6 +6,7 @@
 package db
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -39,7 +40,7 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 	}
 
 	_, err = GetUnboundEpochTime()
-	if err == badger.ErrKeyNotFound {
+	if errors.Is(err, badger.ErrKeyNotFound) {
 		err = SetUnboundEpochTime(time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
 		if err != nil {
 			return db, err

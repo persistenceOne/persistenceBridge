@@ -61,7 +61,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 			return response, err
 		}
 
-		return response, fmt.Errorf(errResponse.Title)
+		return response, fmt.Errorf("%w: %s", ErrCASPSign, errResponse.Title)
 	}
 
 	return response, err

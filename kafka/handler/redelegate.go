@@ -6,8 +6,6 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -27,7 +25,7 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: MsgDelegate, error:", err)
+			logging.Error("failed to close producer in topic: MsgDelegate, bridgeErr:", err)
 		}
 	}()
 
@@ -42,11 +40,11 @@ func (m MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sa
 	select {
 	case kafkaMsg, ok = <-claimMsgChan:
 		if !ok {
-			return errors.New("kafka returned error message")
+			return ErrKafkaErrorMessage
 		}
 
 		if kafkaMsg == nil {
-			return errors.New("kafka returned nil message")
+			return ErrKafkaNilMessage
 		}
 
 		redelegationSourceAddress = kafkaMsg.Value

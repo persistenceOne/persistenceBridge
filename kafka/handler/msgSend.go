@@ -6,8 +6,6 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/Shopify/sarama"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -23,7 +21,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: MsgSend, error:", err)
+			logging.Error("failed to close producer in topic: MsgSend, bridgeErr:", err)
 		}
 	}()
 
@@ -53,7 +51,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 					break ConsumerLoop
 				}
 				if kafkaMsg == nil {
-					return errors.New("kafka returned nil message")
+					return ErrKafkaNilMessage
 				}
 
 				if !m.WithdrawRewards {

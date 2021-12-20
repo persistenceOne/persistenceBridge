@@ -36,7 +36,8 @@ func SetPStakeAddress(tmAddress sdk.AccAddress) {
 		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
 			appConfig.Tendermint.pStakeAddress = tmAddress.String()
 		} else {
-			panic(fmt.Errorf("pStake wrap address prefix (%s) and config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
+			panic(fmt.Errorf("%w: address prefix (%s), config account prefix (%s)",
+				ErrIncorrectAccountPrefix, sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
 		}
 	}
 }
@@ -97,7 +98,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			if broadcastMode == flags.BroadcastBlock || broadcastMode == flags.BroadcastAsync || broadcastMode == flags.BroadcastSync {
 				appConfig.Tendermint.BroadcastMode = broadcastMode
 			} else {
-				log.Fatalln(fmt.Errorf("invalid broadcast mode"))
+				log.Fatalln(ErrInvalidBroadcastMode)
 			}
 		}
 
@@ -217,7 +218,7 @@ func SetConfig(cmd *cobra.Command) *config {
 
 func ValidateAndSeal() {
 	if err := appConfig.validate(); err != nil {
-		log.Fatalf("configuration validation error: %s", err.Error())
+		log.Fatalf("configuration validation bridgeErr: %s", err.Error())
 	}
 
 	appConfig.seal = true

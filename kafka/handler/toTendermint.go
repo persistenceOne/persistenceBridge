@@ -6,7 +6,6 @@
 package handler
 
 import (
-	"errors"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -56,7 +55,7 @@ ConsumerLoop:
 	}
 
 	if kafkaMsg == nil {
-		return errors.New("kafka returned nil message")
+		return ErrKafkaNilMessage
 	}
 
 	err := SendBatchToTendermint(kafkaMsgs, m)
@@ -113,7 +112,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 					defer func() {
 						innerErr := producer.Close()
 						if innerErr != nil {
-							logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", innerErr)
+							logging.Error("failed to close producer in topic: SendBatchToTendermint, bridgeErr:", innerErr)
 						}
 					}()
 

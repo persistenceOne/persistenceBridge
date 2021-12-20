@@ -59,7 +59,7 @@ func (response *SignOperationResponse) GetPendingParticipantsApprovals() error {
 	result := "OperationID: " + response.OperationID
 
 	if len(response.Groups) == 0 {
-		return fmt.Errorf("no groups found")
+		return ErrNoGroupsFound
 	}
 
 	for _, group := range response.Groups {
@@ -75,12 +75,13 @@ func (response *SignOperationResponse) GetPendingParticipantsApprovals() error {
 		}
 
 		if totalApproval < group.RequiredApprovals {
-			result += fmt.Sprintf(", Group: %s (Order: %d) have pending %d more approvals from members [%s]", group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
+			result += fmt.Sprintf(", Group: %s (Order: %d) have pending %d more approvals from members [%s]",
+				group.Name, group.Order, group.RequiredApprovals-totalApproval, membersAwaiting)
 		}
 	}
 
 	if result != "" {
-		return fmt.Errorf(result)
+		return fmt.Errorf("%w: %s", ErrPendingApprovals, result)
 	}
 
 	return nil

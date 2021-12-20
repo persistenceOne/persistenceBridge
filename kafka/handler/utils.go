@@ -92,11 +92,11 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 				return loop, err
 			}
 
-			err2 := utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
-			if err2 != nil {
+			err = utils.ProducerDeliverMessage(withdrawRewardsMsgBytes, utils.ToTendermint, producer)
+			if err != nil {
 				logging.Error("failed to produce withdrawRewards to queue ToTendermint")
 
-				return loop, err2
+				return loop, err
 			}
 
 			loop--

@@ -8,6 +8,7 @@ package ethereum
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/Shopify/sarama"
@@ -25,12 +26,12 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 
 		err := json.Unmarshal(value, &ethTx)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal OutgoingEthereumTransaction %s [ETH onNewBlock]: %s", string(key), err.Error())
+			return fmt.Errorf("%w %s [ETH onNewBlock]: %s", ErrTxUnmarshal, string(key), err.Error())
 		}
 
 		txReceipt, err := client.TransactionReceipt(ctx, ethTx.TxHash)
 		if err != nil {
-			if txReceipt == nil && err == ethereum.NotFound {
+			if txReceipt == nil && errors.Is(err, ethereum.NotFound) {
 				logging.Info("Broadcast ethereum tx pending:", ethTx.TxHash)
 			} else {
 				logging.Error("Receipt fetch failed [onNewBlock] eth tx:", ethTx.TxHash.String(), "Error:", err)

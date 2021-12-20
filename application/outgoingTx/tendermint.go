@@ -192,7 +192,7 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	}
 
 	if len(signatureResponse.Signatures) == 0 {
-		return nil, fmt.Errorf("tendermint signature not found from casp for operation %s", operationID)
+		return nil, fmt.Errorf("tendermint %w: ID %s", ErrNoSignature, operationID)
 	}
 
 	return hex.DecodeString(signatureResponse.Signatures[0])

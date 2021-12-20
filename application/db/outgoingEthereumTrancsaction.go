@@ -39,11 +39,11 @@ func (ethTx *OutgoingEthereumTransaction) Value() ([]byte, error) {
 
 func (ethTx *OutgoingEthereumTransaction) Validate() error {
 	if ethTx.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
-		return fmt.Errorf("tx hash is empty")
+		return ErrEmptyTransaction
 	}
 
 	if len(ethTx.Messages) == 0 {
-		return fmt.Errorf("number of messages for ethHash %s is 0", ethTx.TxHash)
+		return fmt.Errorf("%w: hash %s", ErrNoTransactionMessages, ethTx.TxHash)
 	}
 
 	return nil

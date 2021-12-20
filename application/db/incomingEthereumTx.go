@@ -7,7 +7,6 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -35,15 +34,15 @@ func (t *IncomingEthereumTx) Value() ([]byte, error) {
 
 func (t *IncomingEthereumTx) Validate() error {
 	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
-		return fmt.Errorf("tx hash is empty")
+		return ErrEmptyTransaction
 	}
 
 	if len(t.MsgBytes) == 0 {
-		return fmt.Errorf("empty MsgBytes")
+		return ErrEmptyTransactionMessage
 	}
 
 	if t.MsgType == "" {
-		return fmt.Errorf("invalid msg type")
+		return ErrInvalidTransactionType
 	}
 
 	return nil

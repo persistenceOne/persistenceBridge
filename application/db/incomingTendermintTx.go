@@ -8,7 +8,6 @@ package db
 import (
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmBytes "github.com/tendermint/tendermint/libs/bytes"
@@ -45,11 +44,11 @@ func (t *IncomingTendermintTx) Value() ([]byte, error) {
 
 func (t *IncomingTendermintTx) Validate() error {
 	if len(t.TxHash.Bytes()) == 0 {
-		return fmt.Errorf("empty tx hash")
+		return ErrEmptyTransaction
 	}
 
 	if t.Denom == "" {
-		return fmt.Errorf("empty denom")
+		return ErrEmptyDenom
 	}
 
 	if err := sdk.ValidateDenom(t.Denom); err != nil {
@@ -57,20 +56,20 @@ func (t *IncomingTendermintTx) Validate() error {
 	}
 
 	if t.FromAddress == "" {
-		return fmt.Errorf("from address empty")
+		return ErrEmptyFromAddress
 	}
 
 	_, err := sdk.AccAddressFromBech32(t.FromAddress)
 	if err != nil {
-		return fmt.Errorf("invalid from address")
+		return ErrInvalidFromAddress
 	}
 
 	if t.Amount.IsNil() {
-		return fmt.Errorf("amount is nil")
+		return ErrNilAmount
 	}
 
 	if t.Amount.LT(sdk.ZeroInt()) {
-		return fmt.Errorf("amount less than 0")
+		return ErrNegativeAmount
 	}
 
 	return nil

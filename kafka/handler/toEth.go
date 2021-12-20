@@ -7,7 +7,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -58,7 +57,7 @@ ConsumerLoop:
 	}
 
 	if kafkaMsg == nil {
-		return errors.New("kafka returned nil message")
+		return ErrKafkaNilMessage
 	}
 
 	err := SendBatchToEth(kafkaMsgs, m)
@@ -99,7 +98,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 
 	hash, err := outgoingTx.EthereumWrapToken(handler.EthClient, msgs)
 	if err != nil {
-		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
+		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "bridgeErr:", err)
 
 		config := utils.SaramaConfig()
 		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
@@ -114,7 +113,7 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 		for i := range kafkaMsgs {
 			err = utils.ProducerDeliverMessage(kafkaMsgs[i].Value, utils.ToEth, producer)
 			if err != nil {
-				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "error:", err)
+				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "bridgeErr:", err)
 				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.
 			}
 		}

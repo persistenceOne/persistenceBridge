@@ -34,17 +34,17 @@ func Close(kafkaState *utils.KafkaState, end, ended chan bool) func() {
 		logging.Info("closing all kafka clients")
 
 		if err := kafkaState.Producer.Close(); err != nil {
-			logging.Error("Closing producer error:", err)
+			logging.Error("Closing producer bridgeErr:", err)
 		}
 
 		for _, consumerGroup := range kafkaState.ConsumerGroup {
 			if err := consumerGroup.Close(); err != nil {
-				logging.Error("Closing partition error:", err)
+				logging.Error("Closing partition bridgeErr:", err)
 			}
 		}
 
 		if err := kafkaState.Admin.Close(); err != nil {
-			logging.Error("Closing admin error:", err)
+			logging.Error("Closing admin bridgeErr:", err)
 		}
 	}
 }

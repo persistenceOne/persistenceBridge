@@ -6,7 +6,7 @@
 package handler
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,7 +25,7 @@ func (m MsgHandler) HandleEthUnbond(session sarama.ConsumerGroupSession, claim s
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: EthUnbond, error:", err)
+			logging.Error("failed to close producer in topic: EthUnbond, bridgeErr:", err)
 		}
 	}()
 
@@ -46,7 +46,7 @@ ConsumerLoop:
 			}
 
 			if kafkaMsg == nil {
-				return errors.New("kafka returned nil message")
+				return ErrKafkaNilMessage
 			}
 
 			var msg sdk.Msg
@@ -74,7 +74,7 @@ ConsumerLoop:
 
 		totalDelegations := TotalDelegations(delegatorDelegations)
 		if sum.GT(totalDelegations) {
-			return errors.New("unbondings requested are greater than delegated tokens")
+			return fmt.Errorf("%w: unbondings requested %s , delegated %s", ErrTooFewDelegatedTokens, sum, totalDelegations)
 		}
 
 		ratio := sum.ToDec().Quo(totalDelegations.ToDec())

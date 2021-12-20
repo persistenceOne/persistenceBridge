@@ -6,6 +6,8 @@
 package db
 
 import (
+	"errors"
+
 	"github.com/dgraph-io/badger/v3"
 
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -39,7 +41,7 @@ func keyExists(key []byte) bool {
 		return err
 	})
 	if err != nil {
-		if err == badger.ErrKeyNotFound {
+		if errors.Is(err, badger.ErrKeyNotFound) {
 			return false
 		}
 

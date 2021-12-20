@@ -6,8 +6,6 @@
 package handler
 
 import (
-	"errors"
-
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -25,7 +23,7 @@ func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim
 	defer func() {
 		err := producer.Close()
 		if err != nil {
-			logging.Error("failed to close producer in topic: MsgDelegate, error:", err)
+			logging.Error("failed to close producer in topic: MsgDelegate, bridgeErr:", err)
 		}
 	}()
 
@@ -47,7 +45,7 @@ ConsumerLoop:
 			}
 
 			if kafkaMsg == nil {
-				return errors.New("kafka returned nil message")
+				return ErrKafkaNilMessage
 			}
 
 			var msg sdk.Msg

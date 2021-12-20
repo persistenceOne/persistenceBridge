@@ -6,7 +6,6 @@
 package configuration
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -37,7 +36,7 @@ func (config *config) validate() error {
 	}
 
 	if config.RPCEndpoint == "" {
-		return fmt.Errorf("rpc endpoint empty")
+		return ErrRPCEndpointEmpty
 	}
 
 	return nil
@@ -46,7 +45,7 @@ func (config *config) validate() error {
 // Validate :panics if config is not valid
 func (config *ethereumConfig) validate() error {
 	if config.GasLimit <= 0 {
-		return fmt.Errorf("invalid eth gas limit")
+		return ErrInvalidGasLimit
 	}
 
 	return nil
@@ -55,7 +54,7 @@ func (config *ethereumConfig) validate() error {
 // Validate :panics if config is not valid
 func (config *tendermintConfig) validate() error {
 	if config.pStakeAddress == "" {
-		return fmt.Errorf("pStakeAddress empty")
+		return ErrPStakeAddressEmpty
 	}
 
 	_, err := sdk.AccAddressFromBech32(config.pStakeAddress)
@@ -64,27 +63,27 @@ func (config *tendermintConfig) validate() error {
 	}
 
 	if config.AccountPrefix == "" {
-		return fmt.Errorf("account prefix cannot be empty")
+		return ErrEmptyAccountPrefix
 	}
 
 	if config.PStakeDenom == "" {
-		return fmt.Errorf("denom cannot be empty")
+		return ErrEmptyDenom
 	}
 
 	if config.MinimumWrapAmount < 0 {
-		return fmt.Errorf("minimum wrap amount cannot be less than 0")
+		return ErrNegativeWrapAmount
 	}
 
 	if config.ChainID == "" {
-		return fmt.Errorf("chain id cannot be empty")
+		return ErrEmptyChainID
 	}
 
 	if _, err := url.ParseRequestURI(config.Node); err != nil {
-		return fmt.Errorf("invalid tendermint node: %v", err)
+		return fmt.Errorf("%w: %v", ErrInvalidTendermintNode, err)
 	}
 
 	if !(config.BroadcastMode == flags.BroadcastAsync || config.BroadcastMode == flags.BroadcastSync || config.BroadcastMode == flags.BroadcastBlock) {
-		return fmt.Errorf("invalid broadcast mode")
+		return ErrInvalidBroadcastMode
 	}
 
 	return nil
@@ -93,19 +92,19 @@ func (config *tendermintConfig) validate() error {
 // Validate :panics if config is not valid
 func (config *kafkaConfig) validate() error {
 	if config.TopicDetail.ReplicationFactor < 1 {
-		return errors.New("replicationFactor has to be atleast 1")
+		return ErrTooLowReplicationFactor
 	}
 
 	if config.TopicDetail.NumPartitions < 1 {
-		return errors.New("num participants has to be atleast 1")
+		return ErrTooFewParticipants
 	}
 
 	if config.ToTendermint.MinBatchSize > config.ToTendermint.MaxBatchSize {
-		return errors.New("tendermint min batch size cannot be greater than max batch size")
+		return fmt.Errorf("tendermint %w", ErrTooBigMinBatchSize)
 	}
 
 	if config.ToEth.MinBatchSize > config.ToEth.MaxBatchSize {
-		return errors.New("ethereum min batch size cannot be greater than max batch size")
+		return fmt.Errorf("ethereum %w", ErrTooBigMinBatchSize)
 	}
 
 	return nil
@@ -113,27 +112,27 @@ func (config *kafkaConfig) validate() error {
 
 func (config *caspConfig) validate() error {
 	if config.VaultID == "" {
-		return fmt.Errorf("casp vault id empty")
+		return ErrCaspVaultIDEmpty
 	}
 
 	if config.APIToken == "" {
-		return fmt.Errorf("casp api token empty")
+		return ErrCaspAPITokenEmpty
 	}
 
 	if config.URL == "" {
-		return fmt.Errorf("casp url empty")
+		return ErrCaspURLEmpty
 	}
 
 	if config.TendermintPublicKey == "" {
-		return fmt.Errorf("casp tendermint public empty")
+		return fmt.Errorf("tendermint %w", ErrCaspPublicEmpty)
 	}
 
 	if config.EthereumPublicKey == "" {
-		return fmt.Errorf("casp tendermint public empty")
+		return fmt.Errorf("ethereum %w", ErrCaspPublicEmpty)
 	}
 
 	if config.MaxGetSignatureAttempts <= 0 {
-		return fmt.Errorf("casp MaxGetSignatureAttempts cannot be less than or equal to 0")
+		return ErrTooLowCaspMaxGetSignatureAttempts
 	}
 
 	return nil
@@ -141,7 +140,7 @@ func (config *caspConfig) validate() error {
 
 func (config *telegramBot) validate() error {
 	if (config.ChatID != 0 && config.Token == "") || (config.ChatID == 0 && config.Token != "") {
-		return fmt.Errorf("telegram bot configuration invalid")
+		return ErrTelegramBotInvalidConfig
 	}
 
 	return nil

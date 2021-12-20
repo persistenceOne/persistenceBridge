@@ -35,7 +35,7 @@ type WrapTokenMsg struct {
 
 func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Hash, error) {
 	if len(msgs) == 0 {
-		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
+		return common.Hash{}, ErrNoWrapTokenMessages
 	}
 
 	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
@@ -153,7 +153,7 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature 
 	}
 
 	if len(signatureResponse.Signatures) == 0 {
-		err = fmt.Errorf("ethereum signature not found from casp for operation %s", operationID)
+		err = fmt.Errorf("ethereum %w: ID %s", ErrNoSignature, operationID)
 
 		return
 	}

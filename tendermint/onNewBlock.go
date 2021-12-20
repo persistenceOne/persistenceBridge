@@ -29,17 +29,17 @@ func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.C
 
 		err := json.Unmarshal(value, &tmTx)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal OutgoingTendermintTransaction %s [TM onNewBlock]: %s", string(key), err.Error())
+			return fmt.Errorf("%w %s [TM onNewBlock]: %s", ErrUnmarshalOutgoingTransaction, string(key), err.Error())
 		}
 
 		txHashBytes, err := hex.DecodeString(tmTx.TxHash)
 		if err != nil {
-			return fmt.Errorf("invalid tx hash %s [TM onNewBlock]: %s", tmTx.TxHash, err.Error())
+			return fmt.Errorf("%w %s [TM onNewBlock]: %s", ErrInvalidTxHash, tmTx.TxHash, err.Error())
 		}
 
 		txResult, err := chain.Client.Tx(ctx, txHashBytes, true)
 		if err != nil {
-			if err.Error() == fmt.Sprintf("RPC error -32603 - Internal error: tx (%s) not found", tmTx.TxHash) {
+			if err.Error() == fmt.Sprintf("RPC bridgeErr -32603 - Internal bridgeErr: tx (%s) not found", tmTx.TxHash) {
 				logging.Info("Tendermint tx still pending:", tmTx.TxHash)
 
 				return nil
@@ -60,19 +60,20 @@ func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.C
 
 			transaction, ok := txInterface.(signing.Tx)
 			if !ok {
-				return fmt.Errorf("unable to parse transaction into signing.Tx [TM onNewBlock]")
+				return fmt.Errorf("%w [TM onNewBlock]", ErrParseTransaction)
 			}
 
 			for _, msg := range transaction.GetMsgs() {
 				if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
 					msgBytes, err := protoCodec.MarshalInterface(msg)
 					if err != nil {
-						return fmt.Errorf("failed to generate msgBytes [TM onNewBlock]: %s", err.Error())
+						return fmt.Errorf("%w [TM onNewBlock]: %s", ErrTransactionMessageGeneration, err.Error())
 					}
 
 					err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, kafkaProducer)
 					if err != nil {
-						return fmt.Errorf("failed to add messages of %s to kafka queue [TM onNewBlock] RetryTendermint: %s", msg.String(), err.Error())
+						return fmt.Errorf("%w [TM onNewBlock] RetryTendermint: message %q, error %s",
+							ErrAddToKafkaQueue, msg.String(), err.Error())
 					}
 				}
 			}
