@@ -7,7 +7,8 @@ package tendermint
 
 import (
 	"context"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	slashingTypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
 
@@ -65,4 +66,34 @@ func QueryDelegatorDelegations(delegatorAddress string, chain *relayer.Chain) (s
 	}
 
 	return stakingRes.DelegationResponses, err
+}
+
+func QueryValidator(validatorAddress sdk.ValAddress, chain *relayer.Chain) (stakingTypes.QueryValidatorResponse, error) {
+	stakingClient := stakingTypes.NewQueryClient(chain.CLIContext(0))
+	stakingResponse, err := stakingClient.Validator(context.Background(), &stakingTypes.QueryValidatorRequest{ValidatorAddr: validatorAddress.String()})
+	if err != nil {
+		logging.Error("Validator's staking response not found, Error:", err)
+		return stakingTypes.QueryValidatorResponse{}, err
+	}
+	return *stakingResponse, err
+}
+
+func QuerySlashingSigningInfo(consAddress sdk.ConsAddress, chain *relayer.Chain) (slashingTypes.QuerySigningInfoResponse, error) {
+	slashingClient := slashingTypes.NewQueryClient(chain.CLIContext(0))
+	slashingResponse, err := slashingClient.SigningInfo(context.Background(), &slashingTypes.QuerySigningInfoRequest{ConsAddress: consAddress.String()})
+	if err != nil {
+		logging.Error("Validator's signing info not found, Error:", err)
+		return slashingTypes.QuerySigningInfoResponse{}, err
+	}
+	return *slashingResponse, err
+}
+
+func QuerySlashingParams(chain *relayer.Chain) (slashingTypes.QueryParamsResponse, error) {
+	slashingClient := slashingTypes.NewQueryClient(chain.CLIContext(0))
+	slashingResponse, err := slashingClient.Params(context.Background(), &slashingTypes.QueryParamsRequest{})
+	if err != nil {
+		logging.Error("Params not found, Error:", err)
+		return slashingTypes.QueryParamsResponse{}, err
+	}
+	return *slashingResponse, err
 }
