@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -31,6 +32,15 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			logging.Error(err)
 		}
 	}(kafkaProducer)
+	slashingParamsResponse, err := QuerySlashingParams(chain)
+	if err != nil {
+		logging.Error("Params not found", "ERR:", err)
+	}
+	minSignedPerWindow, err := strconv.ParseFloat(slashingParamsResponse.Params.MinSignedPerWindow.String(), 64)
+	if err != nil {
+		logging.Error("Cannot convert MinSignedPerWindow to float, ERR:", err)
+	}
+	checkValidatorStatusPeriod := int64(float64(slashingParamsResponse.Params.SignedBlocksWindow) * (1 - minSignedPerWindow) / 10)
 
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
@@ -73,6 +83,10 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			if err != nil {
 				time.Sleep(sleepDuration)
 				continue
+			}
+
+			if processHeight%checkValidatorStatusPeriod == 0 {
+				CheckValidators(chain, processHeight)
 			}
 
 			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
