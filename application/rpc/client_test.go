@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 )
 
@@ -32,7 +32,7 @@ func TestAddValidator(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDBDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -66,7 +66,7 @@ func TestRemoveValidator(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDBDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()
@@ -107,7 +107,7 @@ func TestShowValidators(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDBDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()

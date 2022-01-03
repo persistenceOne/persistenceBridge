@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	db2 "github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/handler"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -150,7 +150,7 @@ func consumeUnbondings(ctx context.Context, state *utils.KafkaState,
 	ethUnbondConsumerGroup := state.ConsumerGroup[utils.GroupEthUnbond]
 
 	for {
-		nextEpochTime, err := db2.GetUnboundEpochTime()
+		nextEpochTime, err := db.GetUnboundEpochTime()
 		if err != nil {
 			logging.Fatal(err)
 		}
@@ -164,7 +164,7 @@ func consumeUnbondings(ctx context.Context, state *utils.KafkaState,
 				logging.Error("Consumer group.Consume for EthUnbond:", err)
 			}
 
-			err = db2.SetUnboundEpochTime(nextEpochTime.Epoch + configuration.GetAppConfig().Kafka.EthUnbondCycleTime.Milliseconds()/1000)
+			err = db.SetUnboundEpochTime(nextEpochTime.Epoch + configuration.GetAppConfig().Kafka.EthUnbondCycleTime.Milliseconds()/1000)
 			if err != nil {
 				logging.Fatal(err)
 			}

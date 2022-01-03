@@ -14,17 +14,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 var LiquidStaking = Contract{
 	name:    "LIQUID_STAKING",
-	address: common.HexToAddress(constants2.LiquidStakingAddress),
+	address: common.HexToAddress(constants.LiquidStakingAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
-		constants2.LiquidStakingStake:   onStake,
-		constants2.LiquidStakingUnStake: onUnStake,
+		constants.LiquidStakingStake:   onStake,
+		constants.LiquidStakingUnStake: onUnStake,
 	},
 }
 

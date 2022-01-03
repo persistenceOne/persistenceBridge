@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestGetAppConfig(t *testing.T) {

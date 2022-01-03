@@ -13,19 +13,19 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestInitCommand(t *testing.T) {
 	cmd := InitCommand()
 
-	err := cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
+	err := cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
 	require.Nil(t, err)
 
 	err = cmd.Execute()
 	require.Nil(t, err)
 
 	config := configuration.InitConfig()
-	_, err = toml.DecodeFile(filepath.Join(constants2.TestHomeDir, "config.toml"), &config)
+	_, err = toml.DecodeFile(filepath.Join(constants.TestHomeDir, "config.toml"), &config)
 	require.Nil(t, err)
 }

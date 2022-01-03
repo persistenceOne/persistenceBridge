@@ -14,10 +14,10 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
-	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
+	"github.com/persistenceOne/persistenceBridge/tendermint"
 )
 
 func ShowCommand() *cobra.Command {
@@ -25,7 +25,7 @@ func ShowCommand() *cobra.Command {
 		Use:   "show",
 		Short: "show wrap address, eth bridge admin and validators",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			homePath, err := cmd.Flags().GetString(constants.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -37,7 +37,7 @@ func ShowCommand() *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 
-			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
+			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -57,7 +57,7 @@ func ShowCommand() *cobra.Command {
 			log.Println("Tendermint Address:", tmAddress.String())
 			log.Println("Ethereum Address:", ethAddress.String())
 
-			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+			rpcEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -97,8 +97,8 @@ func ShowCommand() *cobra.Command {
 		},
 	}
 
-	showCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	showCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	showCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
+	showCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
 
 	return showCommand
 }

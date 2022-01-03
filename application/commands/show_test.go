@@ -11,12 +11,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 )
 
 func TestShowCommand(t *testing.T) {
-	database, err := db.OpenDB(constants2.TestDBDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	err = db.DeleteAllValidators()
@@ -34,12 +34,12 @@ func TestShowCommand(t *testing.T) {
 	database.Close()
 
 	cmd := ShowCommand()
-	err = cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
+	err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
 	require.Nil(t, err)
 	err = cmd.Execute()
 	require.Nil(t, err)
 
-	database, err = db.OpenDB(constants2.TestDBDir)
+	database, err = db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)

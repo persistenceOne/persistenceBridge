@@ -21,7 +21,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 
 	"github.com/stretchr/testify/require"
 )

@@ -24,27 +24,38 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-const finality = 5
+const (
+	finality  = 5
+	bitlength = 64
+
+	percent100       = 1
+	blockPeriodRound = 10
+)
 
 func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
 
+	var err error
+
 	defer func(kafkaProducer sarama.SyncProducer) {
-		err := kafkaProducer.Close()
+		err = kafkaProducer.Close()
 		if err != nil {
-			logging.Error(err)
+			logging.Error("an error while closing Kafka", err)
 		}
 	}(kafkaProducer)
+
 	slashingParamsResponse, err := QuerySlashingParams(chain)
 	if err != nil {
 		logging.Error("Params not found", "ERR:", err)
 	}
-	minSignedPerWindow, err := strconv.ParseFloat(slashingParamsResponse.Params.MinSignedPerWindow.String(), 64)
+
+	minSignedPerWindow, err := strconv.ParseFloat(slashingParamsResponse.Params.MinSignedPerWindow.String(), bitlength)
 	if err != nil {
 		logging.Error("Cannot convert MinSignedPerWindow to float, ERR:", err)
 	}
-	checkValidatorStatusPeriod := int64(float64(slashingParamsResponse.Params.SignedBlocksWindow) * (1 - minSignedPerWindow) / 10)
+
+	checkValidatorStatusPeriod := int64(float64(slashingParamsResponse.Params.SignedBlocksWindow) * (percent100 - minSignedPerWindow) / blockPeriodRound)
 
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality

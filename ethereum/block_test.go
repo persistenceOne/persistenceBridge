@@ -29,7 +29,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestCollectEthTx(t *testing.T) {

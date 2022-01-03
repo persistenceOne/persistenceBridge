@@ -15,7 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 var appConfig *config
@@ -44,7 +44,7 @@ func SetPStakeAddress(tmAddress sdk.AccAddress) {
 
 func SetConfig(cmd *cobra.Command) *config {
 	if appConfig == nil || !appConfig.seal {
-		denom, err := cmd.Flags().GetString(constants2.FlagDenom)
+		denom, err := cmd.Flags().GetString(constants.FlagDenom)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -53,7 +53,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.Tendermint.PStakeDenom = denom
 		}
 
-		accountPrefix, err := cmd.Flags().GetString(constants2.FlagAccountPrefix)
+		accountPrefix, err := cmd.Flags().GetString(constants.FlagAccountPrefix)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -62,7 +62,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.Tendermint.AccountPrefix = accountPrefix
 		}
 
-		ethereumEndPoint, err := cmd.Flags().GetString(constants2.FlagEthereumEndPoint)
+		ethereumEndPoint, err := cmd.Flags().GetString(constants.FlagEthereumEndPoint)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -71,7 +71,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.Ethereum.EthereumEndPoint = ethereumEndPoint
 		}
 
-		ethGasLimit, err := cmd.Flags().GetUint64(constants2.FlagEthGasLimit)
+		ethGasLimit, err := cmd.Flags().GetUint64(constants.FlagEthGasLimit)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -80,7 +80,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.Ethereum.GasLimit = ethGasLimit
 		}
 
-		ports, err := cmd.Flags().GetString(constants2.FlagKafkaPorts)
+		ports, err := cmd.Flags().GetString(constants.FlagKafkaPorts)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -89,7 +89,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.Kafka.Brokers = strings.Split(ports, ",")
 		}
 
-		broadcastMode, err := cmd.Flags().GetString(constants2.FlagBroadcastMode)
+		broadcastMode, err := cmd.Flags().GetString(constants.FlagBroadcastMode)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -102,7 +102,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			}
 		}
 
-		caspURL, err := cmd.Flags().GetString(constants2.FlagCASPURL)
+		caspURL, err := cmd.Flags().GetString(constants.FlagCASPURL)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -111,7 +111,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.CASP.URL = caspURL
 		}
 
-		caspVaultID, err := cmd.Flags().GetString(constants2.FlagCASPVaultID)
+		caspVaultID, err := cmd.Flags().GetString(constants.FlagCASPVaultID)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -120,7 +120,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.CASP.VaultID = caspVaultID
 		}
 
-		csapAPIToken, err := cmd.Flags().GetString(constants2.FlagCASPApiToken)
+		csapAPIToken, err := cmd.Flags().GetString(constants.FlagCASPApiToken)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -129,7 +129,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.CASP.APIToken = csapAPIToken
 		}
 
-		caspTMPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPTMPublicKey)
+		caspTMPublicKey, err := cmd.Flags().GetString(constants.FlagCASPTMPublicKey)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -138,7 +138,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.CASP.TendermintPublicKey = caspTMPublicKey
 		}
 
-		caspEthPublicKey, err := cmd.Flags().GetString(constants2.FlagCASPEthPublicKey)
+		caspEthPublicKey, err := cmd.Flags().GetString(constants.FlagCASPEthPublicKey)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -147,7 +147,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.CASP.EthereumPublicKey = caspEthPublicKey
 		}
 
-		caspSignatureWaitTime, err := cmd.Flags().GetInt(constants2.FlagCASPSignatureWaitTime)
+		caspSignatureWaitTime, err := cmd.Flags().GetInt(constants.FlagCASPSignatureWaitTime)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -158,14 +158,14 @@ func SetConfig(cmd *cobra.Command) *config {
 			log.Fatalln("invalid casp signature wait time")
 		}
 
-		caspConcurrentKey, err := cmd.Flags().GetBool(constants2.FlagCASPConcurrentKey)
+		caspConcurrentKey, err := cmd.Flags().GetBool(constants.FlagCASPConcurrentKey)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		appConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
 
-		caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants2.FlagCASPMaxGetSignatureAttempts)
+		caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants.FlagCASPMaxGetSignatureAttempts)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -176,7 +176,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			log.Fatalln("invalid casp MaxGetSignatureAttempts")
 		}
 
-		bridgeRPCEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+		bridgeRPCEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -185,7 +185,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.RPCEndpoint = bridgeRPCEndpoint
 		}
 
-		minWrapAmt, err := cmd.Flags().GetInt64(constants2.FlagMinimumWrapAmount)
+		minWrapAmt, err := cmd.Flags().GetInt64(constants.FlagMinimumWrapAmount)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -194,7 +194,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.Tendermint.MinimumWrapAmount = minWrapAmt
 		}
 
-		telegramBotToken, err := cmd.Flags().GetString(constants2.FlagTelegramBotToken)
+		telegramBotToken, err := cmd.Flags().GetString(constants.FlagTelegramBotToken)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -203,7 +203,7 @@ func SetConfig(cmd *cobra.Command) *config {
 			appConfig.TelegramBot.Token = telegramBotToken
 		}
 
-		telegramBotChatID, err := cmd.Flags().GetInt64(constants2.FlagTelegramChatID)
+		telegramBotChatID, err := cmd.Flags().GetInt64(constants.FlagTelegramChatID)
 		if err != nil {
 			log.Fatalln(err)
 		}

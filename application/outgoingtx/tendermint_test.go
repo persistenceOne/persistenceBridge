@@ -23,7 +23,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestLogMessagesAndBroadcast(t *testing.T) {

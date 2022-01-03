@@ -14,7 +14,7 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestOnStake(t *testing.T) {

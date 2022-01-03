@@ -15,7 +15,7 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestInitializeAndStartChain(t *testing.T) {

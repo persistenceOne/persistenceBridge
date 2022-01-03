@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestContracts(t *testing.T) {
@@ -31,11 +31,11 @@ func TestContracts(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	require.Equal(t, "LIQUID_STAKING", contractName)
-	require.Equal(t, common.HexToAddress(constants2.LiquidStakingAddress), contractAddress)
+	require.Equal(t, common.HexToAddress(constants.LiquidStakingAddress), contractAddress)
 	require.Equal(t, abi.ABI{}, cABI)
 
-	contract.SetABI(constants2.LiquidStakingABI)
-	contractABI, err := abi.JSON(strings.NewReader(constants2.LiquidStakingABI))
+	contract.SetABI(constants.LiquidStakingABI)
+	contractABI, err := abi.JSON(strings.NewReader(constants.LiquidStakingABI))
 	require.Nil(t, err)
 	require.Equal(t, contractABI, contract.GetABI())
 

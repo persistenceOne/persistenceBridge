@@ -11,13 +11,14 @@ import (
 
 	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/spf13/cobra"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
-	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
+	"github.com/persistenceOne/persistenceBridge/tendermint"
 )
 
 func AddCommand() *cobra.Command {
@@ -28,7 +29,7 @@ func AddCommand() *cobra.Command {
 		Short: "Add validator address to signing group",
 		Args:  cobra.ExactArgs(argsCount),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			homePath, err := cmd.Flags().GetString(constants.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -40,56 +41,62 @@ func AddCommand() *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 
-			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
+			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress()
 			if err != nil {
 				log.Fatalln(err)
 			}
 
 			configuration.ValidateAndSeal()
 
-			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
+			var validatorAddress sdk.ValAddress
+			validatorAddress, err = sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
 			validatorName := args[1]
 
-			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+			var rpcEndpoint string
+			rpcEndpoint, err = cmd.Flags().GetString(constants.FlagRPCEndpoint)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
 			var validators []db.Validator
+			var database *badger.DB
 
-			database, err := db.OpenDB(homePath + "/db")
+			database, err = db.OpenDB(homePath + "/db")
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
 
-				var err2 error
-				validators, err2 = rpc.AddValidator(db.Validator{
+				validators, err = rpc.AddValidator(db.Validator{
 					Address: validatorAddress,
 					Name:    validatorName,
 				}, rpcEndpoint)
-				if err2 != nil {
-					return err2
+				if err != nil {
+					return err
 				}
 			} else {
-				defer database.Close()
+				defer func() {
+					err = database.Close()
+					log.Printf("DB got an error while closing: %v", err)
+				}()
 
-				err2 := db.SetValidator(db.Validator{
+				err = db.SetValidator(db.Validator{
 					Address: validatorAddress,
 					Name:    validatorName,
 				})
-				if err2 != nil {
-					return err2
+				if err != nil {
+					return err
 				}
 
-				validators, err2 = db.GetValidators()
-				if err2 != nil {
-					return err2
+				validators, err = db.GetValidators()
+				if err != nil {
+					return err
 				}
 			}
+
 			if len(validators) == 0 {
 				log.Println("No validators in db, panic.")
 			} else {
@@ -104,8 +111,8 @@ func AddCommand() *cobra.Command {
 		},
 	}
 
-	addCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	addCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	addCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
+	addCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
 
 	return addCommand
 }

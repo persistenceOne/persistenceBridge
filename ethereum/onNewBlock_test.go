@@ -16,11 +16,11 @@ import (
 
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestOnNewBlock(t *testing.T) {
@@ -41,7 +41,7 @@ func TestOnNewBlock(t *testing.T) {
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 	require.Nil(t, err)
 
-	database, err := db.OpenDB(constants2.TestDBDir)
+	database, err := db.OpenDB(constants.TestDBDir)
 	require.Nil(t, err)
 
 	defer database.Close()

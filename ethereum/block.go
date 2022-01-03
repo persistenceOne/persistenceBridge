@@ -20,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	contracts2 "github.com/persistenceOne/persistenceBridge/ethereum/contracts"
+	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -28,13 +28,13 @@ import (
 func handleBlock(ctx context.Context, client *ethclient.Client, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range block.Transactions() {
 		if transaction.To() != nil {
-			var contract contracts2.ContractI
+			var contract contracts.ContractI
 
 			switch transaction.To().String() {
-			case contracts2.LiquidStaking.GetAddress().String():
-				contract = &contracts2.LiquidStaking
-			case contracts2.TokenWrapper.GetAddress().String():
-				contract = &contracts2.TokenWrapper
+			case contracts.LiquidStaking.GetAddress().String():
+				contract = &contracts.LiquidStaking
+			case contracts.TokenWrapper.GetAddress().String():
+				contract = &contracts.TokenWrapper
 			default:
 			}
 
@@ -54,7 +54,7 @@ func handleBlock(ctx context.Context, client *ethclient.Client, block *types.Blo
 	return nil
 }
 
-func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts2.ContractI) error {
+func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts.ContractI) error {
 	receipt, err := client.TransactionReceipt(ctx, transaction.Hash())
 	if err != nil {
 		logging.Error("Unable to get receipt of tx:", transaction.Hash().String(), "Error:", err)
