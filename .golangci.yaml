@@ -96,6 +96,14 @@ linters-settings:
 
   govet:
     check-shadowing: true # report about shadowed variables
+    settings: # settings per analyzer
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - github.com/persistenceOne/persistenceBridge/utilities/logging.Fatal
+          - github.com/persistenceOne/persistenceBridge/utilities/logging.Error
+          - github.com/persistenceOne/persistenceBridge/utilities/logging.Warn
+          - github.com/persistenceOne/persistenceBridge/utilities/logging.Info
+          - github.com/persistenceOne/persistenceBridge/utilities/logging.Debug
 
   lll:
     line-length: 160
