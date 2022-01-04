@@ -7,25 +7,31 @@ on:
   push:
     branches:
       - master
+
 jobs:
+  # guarantees up to date generated files in the branch
   generate:
-    test:
-      name: check-generate
-      runs-on: ubuntu-latest
-      steps:
-        - name: Install Go
-          uses: actions/setup-go@v2
-        - name: Checkout code
-          uses: actions/checkout@v2
-        - name: Get dependancies
-          run: make deps
-        - name: Generate
-          run: make generate
-        - name: Get generate diff
-          uses: technote-space/get-diff-action@v5
-        - name: Check generate diff
-          run: exit(1)
-          if: !env.GIT_DIFF
+    name: check-generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          stable: 'false'
+          go-version: '^1.17'
+      - name: go env
+        run: |
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: Generate1
+        run: echo {$PATH}
+      - name: Get dependancies
+        run: make deps
+      - name: Generate
+        run: make generate
+      - name: Check generate diff
+        run: git diff --exit-code ./ ':!go.sum'
 
   golangci:
     name: golangci-lint

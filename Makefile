@@ -92,4 +92,4 @@ generate:
 	go generate ./application/configuration/...
 
 deps:
-	go install github.com/globusdigital/deep-copy
+	go install github.com/globusdigital/deep-copy@latest
