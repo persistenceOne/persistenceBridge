@@ -18,17 +18,24 @@ import (
 
 // GetCASPSigningOperationID description should be small
 func GetCASPSigningOperationID(dataToSign, publicKeys []string, description string) (string, error) {
-	signDataResponse, busy, err := caspQueries.SignData(dataToSign, publicKeys, description)
+	var (
+		signDataResponse caspResponses.PostSignDataResponse
+		busy             bool
+		err              error
+	)
 
-	if busy {
+	for {
+		signDataResponse, busy, err = caspQueries.SignData(dataToSign, publicKeys, description)
+		if err != nil {
+			return "", err
+		}
+
+		if !busy {
+			return signDataResponse.OperationID, nil
+		}
+
 		time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
 	}
-
-	if err != nil {
-		return "", err
-	}
-
-	return signDataResponse.OperationID, nil
 }
 
 func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, error) {

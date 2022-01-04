@@ -11,14 +11,15 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
+// Map to keep track of missed blocks during previous CheckValidators() call
+var missedBlockCounterForValidator = make(map[string]int64)
+
 func CheckValidators(chain *relayer.Chain, processHeight int64) {
 	// Get validators list from db
 	validators, err := db.GetValidators()
 	if err != nil {
 		logging.Error("Could not fetch validators from DB", processHeight, "ERR:", err)
 	}
-
-	missedBlockCounterForValidator := make(map[string]int64, len(validators))
 
 	for _, validator := range validators {
 		// Query details about validator

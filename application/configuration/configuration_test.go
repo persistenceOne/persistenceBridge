@@ -6,6 +6,7 @@
 package configuration
 
 import (
+	"encoding/json"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,6 +32,27 @@ func TestSetConfig(t *testing.T) {
 
 	appConfig := SetConfig(test.GetCmdWithConfig())
 	require.Equal(t, GetAppConfig(), *appConfig)
+}
+
+func TestSetConfigAndChange(t *testing.T) {
+	InitConfig()
+
+	appConfig := SetConfig(test.GetCmdWithConfig())
+	require.Equal(t, GetAppConfig(), *appConfig)
+
+	oldConfigBytes, err := json.Marshal(appConfig)
+	require.Nil(t, err)
+
+	appConfig.Kafka.TopicDetail.ReplicaAssignment = map[int32][]int32{
+		99: {100},
+	}
+
+	oldConfig := new(config)
+
+	err = json.Unmarshal(oldConfigBytes, oldConfig)
+	require.Nil(t, err)
+
+	require.Equal(t, appConfig, oldConfig)
 }
 
 func TestSetPStakeAddress(t *testing.T) {
