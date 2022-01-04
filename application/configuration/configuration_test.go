@@ -43,7 +43,7 @@ func TestSetConfigAndChange(t *testing.T) {
 	oldConfigBytes, err := json.Marshal(appConfig)
 	require.Nil(t, err)
 
-	appConfig.Kafka.TopicDetail.ReplicaAssignment = map[int32][]int32{
+	GetAppConfig().Kafka.TopicDetail.ReplicaAssignment = map[int32][]int32{
 		99: {100},
 	}
 
