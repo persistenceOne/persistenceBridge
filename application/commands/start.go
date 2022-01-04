@@ -132,7 +132,7 @@ func StartCommand() *cobra.Command {
 				WithHomeDir(homePath)
 
 			protoCodec := codec.NewProtoCodec(clientContext.InterfaceRegistry)
-			kafkaState := utils.NewKafkaState(configuration.GetAppConfig().Kafka.Brokers, homePath, configuration.GetAppConfig().Kafka.TopicDetail)
+			kafkaState := utils.NewKafkaState(configuration.GetAppConfig().Kafka.GetBrokersList(), homePath, configuration.GetAppConfig().Kafka.GetSaramaTopicDetail())
 			end := make(chan bool)
 			ended := make(chan bool)
 			go kafka.KafkaRoutine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
@@ -140,10 +140,10 @@ func StartCommand() *cobra.Command {
 			go rpc.StartServer(configuration.GetAppConfig().RPCEndpoint)
 
 			logging.Info("Starting to listen ethereum....")
-			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, configuration.GetAppConfig().Kafka.Brokers, protoCodec)
+			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, configuration.GetAppConfig().Kafka.GetBrokersList(), protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
-			go tendermint2.StartListening(clientContext, chain, configuration.GetAppConfig().Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint2.StartListening(clientContext, chain, configuration.GetAppConfig().Kafka.GetBrokersList(), protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)

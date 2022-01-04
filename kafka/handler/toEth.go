@@ -100,7 +100,7 @@ func SendBatchToEth(index uint64, handler MsgHandler) error {
 	if err != nil {
 		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
 		config := utils.SaramaConfig()
-		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), config)
 		defer func() {
 			err := producer.Close()
 			if err != nil {
@@ -145,7 +145,7 @@ func checkKafkaEthereumConsumeDBAndAddToRetry() {
 	}
 	if len(kafkaEthereumConsumes) > 0 {
 		config := utils.SaramaConfig()
-		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), config)
 		defer func() {
 			err := producer.Close()
 			if err != nil {

@@ -147,7 +147,7 @@ func SendBatchToTendermint(index uint64, handler MsgHandler) error {
 
 func addToRetryTendermintQueue(msgs []sdk.Msg, index uint64, handler MsgHandler) {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {

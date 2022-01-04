@@ -18,7 +18,7 @@ import (
 
 func (m MsgHandler) HandleMsgDelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
-	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), config)
 	defer func() {
 		err := producer.Close()
 		if err != nil {

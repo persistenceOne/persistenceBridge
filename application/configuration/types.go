@@ -118,18 +118,34 @@ func newCASPConfig() caspConfig {
 }
 
 type kafkaConfig struct {
-	Brokers                 []string // Brokers: List of brokers to run kafka cluster
-	TopicDetail             sarama.TopicDetail
+	Brokers                 string // Brokers: List of brokers to run kafka cluster
+	TopicDetail             TopicDetail
 	ToEth                   TopicConsumer
 	ToTendermint            TopicConsumer
 	EthUnbondCycleTime      time.Duration // Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
 	MaxTendermintTxAttempts int           // Max attempts in kafka consumer toTendermint to do tx if there is already a tx
 }
 
+func (k kafkaConfig) GetBrokersList() []string {
+	return strings.Split(k.Brokers, ",")
+}
+
+func (k kafkaConfig) GetSaramaTopicDetail() sarama.TopicDetail {
+	return sarama.TopicDetail{
+		NumPartitions:     k.TopicDetail.NumPartitions,
+		ReplicationFactor: k.TopicDetail.ReplicationFactor,
+	}
+}
+
 type TopicConsumer struct {
 	MinBatchSize int
 	MaxBatchSize int
 	Ticker       time.Duration
+}
+
+type TopicDetail struct {
+	NumPartitions     int32
+	ReplicationFactor int16
 }
 
 type telegramBot struct {
@@ -146,8 +162,11 @@ func newTelegramBot() telegramBot {
 
 func newKafkaConfig() kafkaConfig {
 	return kafkaConfig{
-		Brokers:     constants.DefaultBrokers,
-		TopicDetail: constants.TopicDetail,
+		Brokers: constants.DefaultBrokers,
+		TopicDetail: TopicDetail{
+			NumPartitions:     int32(constants.TopicDetailNumPartitions),
+			ReplicationFactor: int16(constants.TopicDetailReplicationFactor),
+		},
 		ToEth: TopicConsumer{
 			MinBatchSize: constants.MinEthBatchSize,
 			MaxBatchSize: constants.MaxEthBatchSize,

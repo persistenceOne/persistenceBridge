@@ -31,7 +31,7 @@ func TestOnNewBlock(t *testing.T) {
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Equal(t, nil, err)
 	ctx := context.Background()
-	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
+	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), utils.SaramaConfig())
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 
 	database, err := db.OpenDB(constants2.TestDbDir)

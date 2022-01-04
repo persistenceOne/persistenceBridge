@@ -88,7 +88,7 @@ func TestHandleBlock(t *testing.T) {
 
 	protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 
-	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
+	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), utils.SaramaConfig())
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
@@ -123,7 +123,7 @@ func TestProduceToKafka(t *testing.T) {
 	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
-	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
+	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), utils.SaramaConfig())
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
