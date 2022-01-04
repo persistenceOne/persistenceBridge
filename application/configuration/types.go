@@ -182,7 +182,7 @@ func setWrapAddress(tmAddress sdk.AccAddress) {
 
 func setBridgeAdminAddress(address common.Address) {
 	if !appConfig.seal {
-		if address.String() != constants.DefaultEthZeroAddress {
+		if address.String() != constants.EthereumZeroAddress {
 			appConfig.Ethereum.bridgeAdminAddress = address
 		} else {
 			panic(fmt.Errorf("invalid eth address"))

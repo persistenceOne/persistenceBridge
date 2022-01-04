@@ -12,4 +12,7 @@ const (
 	TokenWrapperWithdrawUTokens = "withdrawUTokens"
 
 	EthereumBlockConfirmations = 12
+
+	EthereumEmptyTxHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	EthereumZeroAddress = "0x0000000000000000000000000000000000000000"
 )

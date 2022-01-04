@@ -33,7 +33,7 @@ func (w WrapTokenMsg) Validate() error {
 	if w.FromAddress.String() == "" {
 		return fmt.Errorf("from address empty")
 	}
-	if w.Address.String() == constants.DefaultEthZeroAddress || len(w.Address.Bytes()) == 0 {
+	if w.Address.String() == constants.EthereumZeroAddress {
 		return fmt.Errorf("invalid eth address")
 	}
 	if len(w.TendermintTxHash.Bytes()) != 32 {
@@ -80,7 +80,7 @@ func (ethTx *OutgoingEthereumTransaction) Value() ([]byte, error) {
 }
 
 func (ethTx *OutgoingEthereumTransaction) Validate() error {
-	if ethTx.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+	if ethTx.TxHash.String() == constants.EthereumEmptyTxHash {
 		return fmt.Errorf("tx hash is empty")
 	}
 	if len(ethTx.Messages) == 0 {

@@ -7,6 +7,12 @@ package commands
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -16,7 +22,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	db2 "github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
 	"github.com/persistenceOne/persistenceBridge/ethereum"
@@ -25,11 +31,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func StartCommand() *cobra.Command {
@@ -81,24 +82,24 @@ func StartCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			db, err := db2.InitializeDB(homePath+"/db", tmStart, ethStart)
+			database, err := db.InitializeDB(homePath+"/db", tmStart, ethStart)
 			if err != nil {
 				log.Fatalln(err)
 			}
-			defer func(db *badger.DB) {
-				err := db.Close()
+			defer func(database *badger.DB) {
+				err := database.Close()
 				if err != nil {
 					log.Println("Error while closing DB: ", err.Error())
 				}
-			}(db)
+			}(database)
 
-			unboundEpochTime, err := db2.GetUnboundEpochTime()
+			unboundEpochTime, err := db.GetUnboundEpochTime()
 			if err != nil {
 				log.Fatalln(err)
 			}
 			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
-			validators, err := db2.GetValidators()
+			validators, err := db.GetValidators()
 			if err != nil {
 				log.Fatalln(err)
 			}

@@ -18,7 +18,7 @@ func TestGetWrapAddressAndAmounts(t *testing.T) {
 	_, _, err = getWrapAddressAndStakingRatio(memo)
 	require.Equal(t, fmt.Errorf("invalid memo for bridge"), err)
 
-	memo = constants.DefaultEthZeroAddress
+	memo = constants.EthereumZeroAddress
 	_, _, err = getWrapAddressAndStakingRatio(memo)
 	require.Equal(t, fmt.Errorf("invalid memo for bridge"), err)
 

@@ -113,7 +113,7 @@ func SendBatchToTendermint(index uint64, handler MsgHandler) error {
 			if err != nil {
 				logging.Fatal(err)
 			}
-			err = db.UpdateKafkaTendermintConsumeTxHash(uint64(index), hexBytes)
+			err = db.UpdateKafkaTendermintConsumeTxHash(index, hexBytes)
 			if err != nil {
 				logging.Fatal(err)
 			}

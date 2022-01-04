@@ -4,7 +4,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 type KafkaEthereumConsume struct {
@@ -93,7 +95,7 @@ func GetEmptyTxHashesETH() ([]KafkaEthereumConsume, error) {
 			return err
 		}
 
-		if k.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+		if k.TxHash.String() == constants.EthereumEmptyTxHash {
 			list = append(list, k)
 		}
 		return nil

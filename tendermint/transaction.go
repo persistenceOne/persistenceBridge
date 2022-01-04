@@ -19,6 +19,7 @@ import (
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	goEthCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -118,7 +119,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String(), "Ratio:", ratio.String())
 			fromAddress, err := sdk.AccAddressFromBech32(tx.FromAddress)
 			if err != nil {
-				panic(err)
+				logging.Fatal(err)
 			}
 			stakingAmount := sdk.NewDecFromInt(tx.Amount).Mul(ratio).TruncateInt()
 			wrapAmount := tx.Amount.Sub(stakingAmount)
@@ -126,15 +127,15 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 			ethTxMsg := db.NewWrapTokenMsg(fromAddress, tx.TxHash, stakingAmount.BigInt(), ethAddress, wrapAmount.BigInt())
 			msgBytes, err := json.Marshal(ethTxMsg)
 			if err != nil {
-				panic(err)
+				logging.Fatal(err)
 			}
-			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "wrap amount:", wrapAmount.String(), "direct staking amount:", stakingAmount.String())
+			logging.Info("DIRECT STAKING: Adding wrap & stake token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "wrap amount:", wrapAmount.String(), "staking amount:", stakingAmount.String())
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, *kafkaProducer)
 			if err != nil {
 				logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener]: %s", err.Error()))
 			}
 
-			if stakingAmount.GTE(sdk.ZeroInt()) {
+			if stakingAmount.GT(sdk.ZeroInt()) {
 				stakingMsg := &stakingTypes.MsgDelegate{
 					DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 					ValidatorAddress: "",
@@ -144,7 +145,7 @@ func wrapOrRevert(kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCod
 				if err != nil {
 					logging.Fatal("Tendermint Listener: Staking Message marshalling failed:", err.Error())
 				}
-				logging.Info("Adding direct staking msg to kafka producer MsgDelegate, from:", tx.FromAddress, "to:", ethAddress.String(), "direct staking amount:", stakingAmount.String())
+				logging.Info("DIRECT STAKING: Adding direct staking msg to kafka producer MsgDelegate, from:", tx.FromAddress, "to:", ethAddress.String(), "direct staking amount:", stakingAmount.String())
 				err = utils.ProducerDeliverMessage(stakingMsgBytes, utils.MsgDelegate, *kafkaProducer)
 				if err != nil {
 					logging.Fatal("failed to add staking msg to kafka queue MsgDelegate [TM Listener]: %s", err.Error())
@@ -172,7 +173,7 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer *sarama.SyncPr
 	if err != nil {
 		logging.Fatal(err)
 	}
-	logging.Info("REVERT: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
+	logging.Info("REVERT COINS: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, *kafkaProducer)
 	if err != nil {
 		logging.Fatal(fmt.Errorf("failed to add msg to kafka queue ToEth [TM Listener REVERT]: %s", err.Error()))
@@ -188,7 +189,7 @@ func getWrapAddressAndStakingRatio(memo string) (goEthCommon.Address, sdk.Dec, e
 	var ethAddress goEthCommon.Address
 	if goEthCommon.IsHexAddress(split[0]) {
 		ethAddress = goEthCommon.HexToAddress(split[0])
-		isEthAddress = ethAddress.String() != goEthCommon.Address{}.String()
+		isEthAddress = ethAddress.String() != constants.EthereumZeroAddress
 	}
 	if !isEthAddress {
 		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
