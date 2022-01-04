@@ -7,25 +7,26 @@ package testing
 
 import (
 	"bytes"
-	"github.com/BurntSushi/toml"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/utilities/testing/cmd"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/testing/cmd"
 )
 
 func SetTestConfig() {
 	config := configuration.SetConfig(cmd.GetCmdWithConfig())
-	configPath := filepath.Join(constants2.TestHomeDir, "config.toml")
+	configPath := filepath.Join(constants.TestHomeDir, "config.toml")
 	var buf bytes.Buffer
 	encoder := toml.NewEncoder(&buf)
 	if err := encoder.Encode(config); err != nil {
 		panic(err)
 	}
 
-	if err := os.MkdirAll(constants2.TestHomeDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(constants.TestHomeDir, os.ModePerm); err != nil {
 		panic(err)
 	}
 	if err := ioutil.WriteFile(configPath, buf.Bytes(), 0644); err != nil {
