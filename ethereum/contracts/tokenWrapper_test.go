@@ -18,7 +18,6 @@ import (
 )
 
 func TestOnWithdrawUTokens(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()

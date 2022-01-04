@@ -18,7 +18,6 @@ import (
 )
 
 func TestOnStake(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
@@ -39,7 +38,6 @@ func TestOnStake(t *testing.T) {
 }
 
 func TestOnUnStake(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()

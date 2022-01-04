@@ -53,7 +53,7 @@ func StartCommand() *cobra.Command {
 
 			logging.ShowDebugLog(showDebugLog)
 
-			pStakeConfig := configuration.InitConfig()
+			pStakeConfig := configuration.GetAppConfig()
 			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
 			if err != nil {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())

@@ -27,7 +27,6 @@ import (
 )
 
 func TestLogMessagesAndBroadcast(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tenderMintAddress, err := casp.GetTendermintAddress()
@@ -54,7 +53,6 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 }
 
 func TestBroadcastTMTx(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
@@ -90,7 +88,6 @@ func TestBroadcastTMTx(t *testing.T) {
 }
 
 func TestGetTMBytesToSign(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
@@ -122,7 +119,6 @@ func TestGetTMBytesToSign(t *testing.T) {
 }
 
 func TestGetTMSignature(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
@@ -140,7 +136,6 @@ func TestGetTMSignature(t *testing.T) {
 }
 
 func TestSetTMPublicKey(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	err := setTMPublicKey()
@@ -150,7 +145,6 @@ func TestSetTMPublicKey(t *testing.T) {
 }
 
 func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()

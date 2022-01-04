@@ -15,7 +15,6 @@ import (
 )
 
 func TestSignData(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}

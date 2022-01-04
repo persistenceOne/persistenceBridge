@@ -24,7 +24,7 @@ import (
 )
 
 func TestOnNewBlock(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	pStakeConfig := configuration.GetAppConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()

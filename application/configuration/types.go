@@ -14,14 +14,17 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
+//go:generate deep-copy --type config -o ./types_copy_gen.go ./types.go
+
 type config struct {
-	Kafka       *kafkaConfig
-	Tendermint  *tendermintConfig
-	Ethereum    *ethereumConfig
-	CASP        *caspConfig
-	TelegramBot *telegramBot
+	Kafka       kafkaConfig
+	Tendermint  tendermintConfig
+	Ethereum    ethereumConfig
+	CASP        caspConfig
+	TelegramBot telegramBot
 	seal        bool
 	RPCEndpoint string
+	isFilled    bool
 }
 
 func newConfig() config {
@@ -41,8 +44,8 @@ type ethereumConfig struct {
 	GasLimit         uint64
 }
 
-func newEthereumConfig() *ethereumConfig {
-	return &ethereumConfig{
+func newEthereumConfig() ethereumConfig {
+	return ethereumConfig{
 		EthereumEndPoint: constants.DefaultEthereumEndPoint,
 		GasLimit:         constants.DefaultEthGasLimit,
 	}
@@ -59,8 +62,8 @@ type tendermintConfig struct {
 	CoinType          uint32
 }
 
-func newTendermintConfig() *tendermintConfig {
-	return &tendermintConfig{
+func newTendermintConfig() tendermintConfig {
+	return tendermintConfig{
 		PStakeDenom:       constants.DefaultDenom,
 		BroadcastMode:     constants.DefaultBroadcastMode,
 		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
@@ -83,8 +86,8 @@ type caspConfig struct {
 	TLSInsecureSkipVerify   bool
 }
 
-func newCASPConfig() *caspConfig {
-	return &caspConfig{
+func newCASPConfig() caspConfig {
+	return caspConfig{
 		URL:                     "",
 		VaultID:                 "",
 		TendermintPublicKey:     "",
@@ -118,15 +121,15 @@ type telegramBot struct {
 	ChatID int64
 }
 
-func newTelegramBot() *telegramBot {
-	return &telegramBot{
+func newTelegramBot() telegramBot {
+	return telegramBot{
 		Token:  "",
 		ChatID: 0,
 	}
 }
 
-func newKafkaConfig() *kafkaConfig {
-	return &kafkaConfig{
+func newKafkaConfig() kafkaConfig {
+	return kafkaConfig{
 		Brokers:     constants.DefaultBrokers,
 		TopicDetail: constants.TopicDetail,
 		ToEth: TopicConsumer{
@@ -143,10 +146,10 @@ func newKafkaConfig() *kafkaConfig {
 	}
 }
 
-func (config *tendermintConfig) GetPStakeAddress() string {
-	if config.pStakeAddress == "" {
+func (c tendermintConfig) GetPStakeAddress() string {
+	if c.pStakeAddress == "" {
 		log.Fatalln("pStakeAddress not set")
 	}
 
-	return config.pStakeAddress
+	return c.pStakeAddress
 }

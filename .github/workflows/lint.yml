@@ -8,6 +8,25 @@ on:
     branches:
       - master
 jobs:
+  generate:
+    test:
+      name: check-generate
+      runs-on: ubuntu-latest
+      steps:
+        - name: Install Go
+          uses: actions/setup-go@v2
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Get dependancies
+          run: make deps
+        - name: Generate
+          run: make generate
+        - name: Get generate diff
+          uses: technote-space/get-diff-action@v5
+        - name: Check generate diff
+          run: exit(1)
+          if: !env.GIT_DIFF
+
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest

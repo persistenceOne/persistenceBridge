@@ -19,7 +19,6 @@ import (
 )
 
 func TestInitializeAndStartChain(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	initAndStartChain, err := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)

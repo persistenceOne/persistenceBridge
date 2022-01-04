@@ -27,7 +27,6 @@ import (
 )
 
 func TestEthereumWrapToken(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	ethAddress, _ := casp.GetEthAddress()
@@ -52,7 +51,6 @@ func TestEthereumWrapToken(t *testing.T) {
 }
 
 func TestSendTxToEth(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
@@ -82,7 +80,6 @@ func TestSendTxToEth(t *testing.T) {
 }
 
 func TestGetEthSignature(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
@@ -129,7 +126,6 @@ func TestGetEthSignature(t *testing.T) {
 }
 
 func TestSetEthBridgeAdmin(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	err := setEthBridgeAdmin()

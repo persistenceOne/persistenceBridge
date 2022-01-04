@@ -22,7 +22,6 @@ import (
 )
 
 func TestGetTMPubKey(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
@@ -38,7 +37,6 @@ func TestGetTMPubKey(t *testing.T) {
 }
 
 func TestGetEthPubKey(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
@@ -54,7 +52,6 @@ func TestGetEthPubKey(t *testing.T) {
 }
 
 func TestGetXY(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()

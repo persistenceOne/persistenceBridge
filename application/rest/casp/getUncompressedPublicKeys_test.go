@@ -15,7 +15,6 @@ import (
 )
 
 func TestGetUncompressedPublicKeys(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	funcResponse, err := GetUncompressedTMPublicKeys()

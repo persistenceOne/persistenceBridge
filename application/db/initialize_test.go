@@ -16,7 +16,6 @@ import (
 )
 
 func TestInitializeDB(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	var (

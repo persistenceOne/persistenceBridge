@@ -14,7 +14,6 @@ import (
 )
 
 func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	const (

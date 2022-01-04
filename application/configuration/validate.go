@@ -14,28 +14,28 @@ import (
 )
 
 // Validate: panics if config is not valid
-func (config *config) validate() error {
-	if err := config.Ethereum.validate(); err != nil {
+func (c config) validate() error {
+	if err := c.Ethereum.validate(); err != nil {
 		return err
 	}
 
-	if err := config.Tendermint.validate(); err != nil {
+	if err := c.Tendermint.validate(); err != nil {
 		return err
 	}
 
-	if err := config.Kafka.validate(); err != nil {
+	if err := c.Kafka.validate(); err != nil {
 		return err
 	}
 
-	if err := config.CASP.validate(); err != nil {
+	if err := c.CASP.validate(); err != nil {
 		return err
 	}
 
-	if err := config.TelegramBot.validate(); err != nil {
+	if err := c.TelegramBot.validate(); err != nil {
 		return err
 	}
 
-	if config.RPCEndpoint == "" {
+	if c.RPCEndpoint == "" {
 		return ErrRPCEndpointEmpty
 	}
 
@@ -43,8 +43,8 @@ func (config *config) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config *ethereumConfig) validate() error {
-	if config.GasLimit <= 0 {
+func (cfg *ethereumConfig) validate() error {
+	if cfg.GasLimit <= 0 {
 		return ErrInvalidGasLimit
 	}
 
@@ -52,37 +52,37 @@ func (config *ethereumConfig) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config *tendermintConfig) validate() error {
-	if config.pStakeAddress == "" {
+func (c *tendermintConfig) validate() error {
+	if c.pStakeAddress == "" {
 		return ErrPStakeAddressEmpty
 	}
 
-	_, err := sdk.AccAddressFromBech32(config.pStakeAddress)
+	_, err := sdk.AccAddressFromBech32(c.pStakeAddress)
 	if err != nil {
 		return err
 	}
 
-	if config.AccountPrefix == "" {
+	if c.AccountPrefix == "" {
 		return ErrEmptyAccountPrefix
 	}
 
-	if config.PStakeDenom == "" {
+	if c.PStakeDenom == "" {
 		return ErrEmptyDenom
 	}
 
-	if config.MinimumWrapAmount < 0 {
+	if c.MinimumWrapAmount < 0 {
 		return ErrNegativeWrapAmount
 	}
 
-	if config.ChainID == "" {
+	if c.ChainID == "" {
 		return ErrEmptyChainID
 	}
 
-	if _, err := url.ParseRequestURI(config.Node); err != nil {
+	if _, err := url.ParseRequestURI(c.Node); err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalidTendermintNode, err)
 	}
 
-	if !(config.BroadcastMode == flags.BroadcastAsync || config.BroadcastMode == flags.BroadcastSync || config.BroadcastMode == flags.BroadcastBlock) {
+	if !(c.BroadcastMode == flags.BroadcastAsync || c.BroadcastMode == flags.BroadcastSync || c.BroadcastMode == flags.BroadcastBlock) {
 		return ErrInvalidBroadcastMode
 	}
 
@@ -90,56 +90,56 @@ func (config *tendermintConfig) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (config *kafkaConfig) validate() error {
-	if config.TopicDetail.ReplicationFactor < 1 {
+func (c *kafkaConfig) validate() error {
+	if c.TopicDetail.ReplicationFactor < 1 {
 		return ErrTooLowReplicationFactor
 	}
 
-	if config.TopicDetail.NumPartitions < 1 {
+	if c.TopicDetail.NumPartitions < 1 {
 		return ErrTooFewParticipants
 	}
 
-	if config.ToTendermint.MinBatchSize > config.ToTendermint.MaxBatchSize {
+	if c.ToTendermint.MinBatchSize > c.ToTendermint.MaxBatchSize {
 		return fmt.Errorf("tendermint %w", ErrTooBigMinBatchSize)
 	}
 
-	if config.ToEth.MinBatchSize > config.ToEth.MaxBatchSize {
+	if c.ToEth.MinBatchSize > c.ToEth.MaxBatchSize {
 		return fmt.Errorf("ethereum %w", ErrTooBigMinBatchSize)
 	}
 
 	return nil
 }
 
-func (config *caspConfig) validate() error {
-	if config.VaultID == "" {
+func (c *caspConfig) validate() error {
+	if c.VaultID == "" {
 		return ErrCaspVaultIDEmpty
 	}
 
-	if config.APIToken == "" {
+	if c.APIToken == "" {
 		return ErrCaspAPITokenEmpty
 	}
 
-	if config.URL == "" {
+	if c.URL == "" {
 		return ErrCaspURLEmpty
 	}
 
-	if config.TendermintPublicKey == "" {
+	if c.TendermintPublicKey == "" {
 		return fmt.Errorf("tendermint %w", ErrCaspPublicEmpty)
 	}
 
-	if config.EthereumPublicKey == "" {
+	if c.EthereumPublicKey == "" {
 		return fmt.Errorf("ethereum %w", ErrCaspPublicEmpty)
 	}
 
-	if config.MaxGetSignatureAttempts <= 0 {
+	if c.MaxGetSignatureAttempts <= 0 {
 		return ErrTooLowCaspMaxGetSignatureAttempts
 	}
 
 	return nil
 }
 
-func (config *telegramBot) validate() error {
-	if (config.ChatID != 0 && config.Token == "") || (config.ChatID == 0 && config.Token != "") {
+func (c *telegramBot) validate() error {
+	if (c.ChatID != 0 && c.Token == "") || (c.ChatID == 0 && c.Token != "") {
 		return ErrTelegramBotInvalidConfig
 	}
 

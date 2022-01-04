@@ -87,3 +87,9 @@ lintci-update: lintci-remove lintci-install
 
 goimports:
 	goimports -local="github.com/persistenceOne/persistenceBridge" -w .
+
+generate:
+	go generate ./application/configuration/...
+
+deps:
+	go install github.com/globusdigital/deep-copy

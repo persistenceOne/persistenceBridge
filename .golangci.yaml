@@ -82,6 +82,8 @@ linters-settings:
       - opinionated
       - performance
       - style
+    disabled-checks:
+      - hugeParam
 
   gocyclo:
     min-complexity: 25 # cyclical complexity

@@ -27,7 +27,6 @@ func TestContracts(t *testing.T) {
 	cABI := contract.GetABI()
 	cMethods := contract.GetSDKMsgAndSender()
 
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	require.Equal(t, "LIQUID_STAKING", contractName)

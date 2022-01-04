@@ -33,7 +33,6 @@ import (
 )
 
 func TestCollectEthTx(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
@@ -92,7 +91,7 @@ func TestCollectEthTx(t *testing.T) {
 }
 
 func TestHandleBlock(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	pStakeConfig := configuration.GetAppConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()
@@ -143,7 +142,7 @@ func TestHandleBlock(t *testing.T) {
 }
 
 func TestProduceToKafka(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
+	pStakeConfig := configuration.GetAppConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tmAddress, err := casp.GetTendermintAddress()

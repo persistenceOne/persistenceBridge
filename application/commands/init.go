@@ -23,7 +23,6 @@ func InitCommand() *cobra.Command {
 		Use:   "init",
 		Short: "creates config.toml file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configuration.InitConfig()
 			config := configuration.SetConfig(cmd)
 
 			var buf bytes.Buffer

@@ -16,7 +16,6 @@ import (
 )
 
 func TestGetEthAddress(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	ethAddress, err := GetEthAddress()
@@ -29,7 +28,6 @@ func TestGetEthAddress(t *testing.T) {
 }
 
 func TestGetTendermintAddress(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	tenderMintAddress, errTMA := GetTendermintAddress()

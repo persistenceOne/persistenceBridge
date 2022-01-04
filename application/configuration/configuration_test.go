@@ -6,7 +6,6 @@
 package configuration
 
 import (
-	"encoding/json"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,48 +15,30 @@ import (
 )
 
 func TestGetAppConfig(t *testing.T) {
-	InitConfig()
-	require.Equal(t, *appConfig, GetAppConfig(), "The two configurations should be the same")
-}
-
-func TestInitConfig(t *testing.T) {
-	newAppConfig := InitConfig()
-
-	appConfig := newConfig()
-	require.Equal(t, appConfig, *newAppConfig)
+	require.Equal(t, appConfig, GetAppConfig(), "The two configurations should be the same")
 }
 
 func TestSetConfig(t *testing.T) {
-	InitConfig()
-
 	appConfig := SetConfig(test.GetCmdWithConfig())
-	require.Equal(t, GetAppConfig(), *appConfig)
+	require.Equal(t, GetAppConfig(), appConfig)
 }
 
 func TestSetConfigAndChange(t *testing.T) {
-	InitConfig()
-
 	appConfig := SetConfig(test.GetCmdWithConfig())
-	require.Equal(t, GetAppConfig(), *appConfig)
+	require.Equal(t, GetAppConfig(), appConfig)
 
-	oldConfigBytes, err := json.Marshal(appConfig)
-	require.Nil(t, err)
+	appConfigOld := appConfig.DeepCopy()
 
-	GetAppConfig().Kafka.TopicDetail.ReplicaAssignment = map[int32][]int32{
+	newConfig := GetAppConfig()
+	newConfig.Kafka.TopicDetail.ReplicaAssignment = map[int32][]int32{
 		99: {100},
 	}
 
-	oldConfig := new(config)
-
-	err = json.Unmarshal(oldConfigBytes, oldConfig)
-	require.Nil(t, err)
-
-	require.Equal(t, appConfig, oldConfig)
+	require.Equal(t, appConfig, appConfigOld)
+	require.NotEqual(t, appConfig, newConfig)
 }
 
 func TestSetPStakeAddress(t *testing.T) {
-	InitConfig()
-
 	config := SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
@@ -66,8 +47,6 @@ func TestSetPStakeAddress(t *testing.T) {
 }
 
 func TestValidateAndSeal(t *testing.T) {
-	InitConfig()
-
 	config := SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
@@ -77,8 +56,6 @@ func TestValidateAndSeal(t *testing.T) {
 }
 
 func TestGetPStakeAddress(t *testing.T) {
-	InitConfig()
-
 	config := SetConfig(test.GetCmdWithConfig())
 
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")

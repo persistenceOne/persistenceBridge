@@ -15,7 +15,6 @@ import (
 )
 
 func TestGetSignOperation(t *testing.T) {
-	configuration.InitConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
 	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"
