@@ -7,17 +7,18 @@ package ethereum
 
 import (
 	"context"
+	"math/big"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestOnNewBlock(t *testing.T) {
@@ -34,7 +35,7 @@ func TestOnNewBlock(t *testing.T) {
 	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.GetBrokersList(), utils.SaramaConfig())
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
 

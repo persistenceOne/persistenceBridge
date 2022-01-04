@@ -6,12 +6,13 @@
 package commands
 
 import (
+	"log"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 func AddCommand() *cobra.Command {
@@ -20,7 +21,7 @@ func AddCommand() *cobra.Command {
 		Short: "Add validator address to signing group",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			homePath, err := cmd.Flags().GetString(constants.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -34,7 +35,7 @@ func AddCommand() *cobra.Command {
 
 			validatorName := args[1]
 
-			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+			rpcEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -80,7 +81,7 @@ func AddCommand() *cobra.Command {
 		},
 	}
 
-	addCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	addCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	addCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
+	addCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
 	return addCommand
 }

@@ -15,14 +15,14 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	db2 "github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
-	ethereum2 "github.com/persistenceOne/persistenceBridge/ethereum"
+	"github.com/persistenceOne/persistenceBridge/ethereum"
 	"github.com/persistenceOne/persistenceBridge/kafka"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
+	"github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/spf13/cobra"
 	"log"
@@ -38,12 +38,12 @@ func StartCommand() *cobra.Command {
 		Short: "starts persistenceBridge",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			homePath, err := cmd.Flags().GetString(constants.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			showDebugLog, err := cmd.Flags().GetBool(constants2.FlagShowDebugLog)
+			showDebugLog, err := cmd.Flags().GetBool(constants.FlagShowDebugLog)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -56,27 +56,27 @@ func StartCommand() *cobra.Command {
 
 			setAndSealConfig(homePath)
 
-			tmSleepTime, err := cmd.Flags().GetInt(constants2.FlagTendermintSleepTime)
+			tmSleepTime, err := cmd.Flags().GetInt(constants.FlagTendermintSleepTime)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			tmStart, err := cmd.Flags().GetInt64(constants2.FlagTendermintStartHeight)
+			tmStart, err := cmd.Flags().GetInt64(constants.FlagTendermintStartHeight)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			ethSleepTime, err := cmd.Flags().GetInt(constants2.FlagEthereumSleepTime)
+			ethSleepTime, err := cmd.Flags().GetInt(constants.FlagEthereumSleepTime)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			ethStart, err := cmd.Flags().GetInt64(constants2.FlagEthereumStartHeight)
+			ethStart, err := cmd.Flags().GetInt64(constants.FlagEthereumStartHeight)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			timeout, err := cmd.Flags().GetString(constants2.FlagTimeOut)
+			timeout, err := cmd.Flags().GetString(constants.FlagTimeOut)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -110,7 +110,7 @@ func StartCommand() *cobra.Command {
 				}
 			}
 
-			chain, err := tendermint2.InitializeAndStartChain(timeout, homePath)
+			chain, err := tendermint.InitializeAndStartChain(timeout, homePath)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -140,10 +140,10 @@ func StartCommand() *cobra.Command {
 			go rpc.StartServer(configuration.GetAppConfig().RPCEndpoint)
 
 			logging.Info("Starting to listen ethereum....")
-			go ethereum2.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, configuration.GetAppConfig().Kafka.GetBrokersList(), protoCodec)
+			go ethereum.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, configuration.GetAppConfig().Kafka.GetBrokersList(), protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
-			go tendermint2.StartListening(clientContext, chain, configuration.GetAppConfig().Kafka.GetBrokersList(), protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint.StartListening(clientContext, chain, configuration.GetAppConfig().Kafka.GetBrokersList(), protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
@@ -166,13 +166,13 @@ func StartCommand() *cobra.Command {
 			return nil
 		},
 	}
-	pBridgeCommand.Flags().String(constants2.FlagTimeOut, constants2.DefaultTimeout, "timeout time for connecting to rpc")
-	pBridgeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
-	pBridgeCommand.Flags().Bool(constants2.FlagShowDebugLog, false, "show debug logs")
-	pBridgeCommand.Flags().Int(constants2.FlagTendermintSleepTime, constants2.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
-	pBridgeCommand.Flags().Int(constants2.FlagEthereumSleepTime, constants2.DefaultEthereumSleepTime, "sleep time between block checking for ethereum in ms")
-	pBridgeCommand.Flags().Int64(constants2.FlagTendermintStartHeight, constants2.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants2.DefaultTendermintStartHeight))
-	pBridgeCommand.Flags().Int64(constants2.FlagEthereumStartHeight, constants2.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants2.DefaultEthereumStartHeight))
+	pBridgeCommand.Flags().String(constants.FlagTimeOut, constants.DefaultTimeout, "timeout time for connecting to rpc")
+	pBridgeCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	pBridgeCommand.Flags().Bool(constants.FlagShowDebugLog, false, "show debug logs")
+	pBridgeCommand.Flags().Int(constants.FlagTendermintSleepTime, constants.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
+	pBridgeCommand.Flags().Int(constants.FlagEthereumSleepTime, constants.DefaultEthereumSleepTime, "sleep time between block checking for ethereum in ms")
+	pBridgeCommand.Flags().Int64(constants.FlagTendermintStartHeight, constants.DefaultTendermintStartHeight, fmt.Sprintf("Start checking height on tendermint chain from this height (default %d - starts from where last left)", constants.DefaultTendermintStartHeight))
+	pBridgeCommand.Flags().Int64(constants.FlagEthereumStartHeight, constants.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants.DefaultEthereumStartHeight))
 
 	return pBridgeCommand
 }

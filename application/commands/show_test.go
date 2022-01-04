@@ -6,17 +6,18 @@
 package commands
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestShowCommand(t *testing.T) {
 	test.SetTestConfig()
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
@@ -30,12 +31,12 @@ func TestShowCommand(t *testing.T) {
 	database.Close()
 
 	cmd := ShowCommand()
-	err = cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
+	err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
 	require.Equal(t, nil, err)
 	err = cmd.Execute()
 	require.Equal(t, nil, err)
 
-	database, err = db.OpenDB(constants2.TestDbDir)
+	database, err = db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
