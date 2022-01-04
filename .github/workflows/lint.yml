@@ -24,8 +24,6 @@ jobs:
       - name: go env
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      - name: Generate1
-        run: echo {$PATH}
       - name: Get dependancies
         run: make deps
       - name: Generate
