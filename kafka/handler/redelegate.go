@@ -52,7 +52,7 @@ func (m *MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim s
 		return nil
 	}
 
-	validatorSet, err := db.GetValidators()
+	validatorSet, err := db.GetValidators(m.DB)
 	if err != nil {
 		return err
 	}

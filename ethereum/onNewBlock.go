@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/Shopify/sarama"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/ethclient"
 
@@ -20,8 +21,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient.Client, kafkaProducer sarama.SyncProducer) error {
-	return db.IterateOutgoingEthTx(func(key []byte, value []byte) error {
+func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient.Client, kafkaProducer sarama.SyncProducer, database *badger.DB) error {
+	return db.IterateOutgoingEthTx(database, func(key []byte, value []byte) error {
 		var ethTx db.OutgoingEthereumTransaction
 
 		err := json.Unmarshal(value, &ethTx)
@@ -69,7 +70,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 			}
 
 			if deleteTx {
-				return db.DeleteOutgoingEthereumTx(ethTx.TxHash)
+				return db.DeleteOutgoingEthereumTx(database, ethTx.TxHash)
 			}
 
 			return nil

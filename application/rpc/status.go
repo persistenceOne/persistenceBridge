@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
 )
@@ -25,10 +26,16 @@ type errorResponse struct {
 	Message string
 }
 
-func status(w http.ResponseWriter, _ *http.Request) {
+func newStatusHandler(database *badger.DB) http.HandlerFunc {
+	return func(writer http.ResponseWriter, _ *http.Request) {
+		status(database, writer)
+	}
+}
+
+func status(database *badger.DB, w http.ResponseWriter) {
 	var errResponse errorResponse
 
-	cosmosStatus, err := db.GetCosmosStatus()
+	cosmosStatus, err := db.GetCosmosStatus(database)
 	if err != nil {
 		errResponse.Message = err.Error()
 
@@ -51,7 +58,7 @@ func status(w http.ResponseWriter, _ *http.Request) {
 
 	var ethStatus db.Status
 
-	ethStatus, err = db.GetEthereumStatus()
+	ethStatus, err = db.GetEthereumStatus(database)
 	if err != nil {
 		errResponse.Message = err.Error()
 
@@ -76,7 +83,7 @@ func status(w http.ResponseWriter, _ *http.Request) {
 
 	var unboundEpoch db.UnboundEpochTime
 
-	unboundEpoch, err = db.GetUnboundEpochTime()
+	unboundEpoch, err = db.GetUnboundEpochTime(database)
 	if err != nil {
 		errResponse.Message = err.Error()
 
@@ -101,7 +108,7 @@ func status(w http.ResponseWriter, _ *http.Request) {
 
 	var totalWrapped sdk.Int
 
-	totalWrapped, err = db.GetTotalTokensWrapped()
+	totalWrapped, err = db.GetTotalTokensWrapped(database)
 	if err != nil {
 		errResponse.Message = err.Error()
 

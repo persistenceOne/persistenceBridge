@@ -12,6 +12,7 @@ import (
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/dgraph-io/badger/v3"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -56,8 +57,8 @@ func checkCount(currentCount, maxCount int) bool {
 	return currentCount < maxCount
 }
 
-func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.SyncProducer, chain *relayer.Chain) (int, error) {
-	validators, err := db.GetValidators()
+func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.SyncProducer, chain *relayer.Chain, database *badger.DB) (int, error) {
+	validators, err := db.GetValidators(database)
 	if err != nil {
 		return loop, err
 	}

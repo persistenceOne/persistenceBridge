@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -12,13 +14,16 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestAddToPendingIncomingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	tmInTx := &IncomingTendermintTx{
@@ -30,64 +35,77 @@ func TestAddToPendingIncomingTendermintTx(t *testing.T) {
 		Memo:        "",
 	}
 
-	err = AddIncomingTendermintTx(tmInTx)
+	err = AddIncomingTendermintTx(database, tmInTx)
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestSetIncomingTendermintTxProduced(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
+	var (
+		database *badger.DB
+		closeFn  func()
+		err      error
+	)
 
-	tmInTx := &IncomingTendermintTx{
-		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
-		MsgIndex:    0,
-		Denom:       "stake",
-		FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
-		Amount:      sdk.NewInt(1),
-		Memo:        "",
+	{
+		database, closeFn, err = test.OpenDB(t, OpenDB)
+		defer closeFn()
+
+		require.Nil(t, err)
+
+		tmInTx := &IncomingTendermintTx{
+			TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+			MsgIndex:    0,
+			Denom:       "stake",
+			FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
+			Amount:      sdk.NewInt(1),
+			Memo:        "",
+		}
+
+		err = AddIncomingTendermintTx(database, tmInTx)
+		require.Nil(t, err)
+
+		tx, err := GetIncomingTendermintTx(database, tmInTx.TxHash, 0, "stake")
+		require.Nil(t, err)
+		require.Equal(t, tmInTx, &tx)
 	}
 
-	err = AddIncomingTendermintTx(tmInTx)
-	require.Nil(t, err)
-
-	tx, err := GetIncomingTendermintTx(tmInTx.TxHash, 0, "stake")
-	require.Nil(t, err)
-	require.Equal(t, tmInTx, tx)
-
-	err = db.Close()
-	require.NotNil(t, err)
-	require.Equal(t, "DB Closed", err.Error())
+	require.Nil(t, database.Close())
 }
 
 func TestGetIncomingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
+	var (
+		database *badger.DB
+		closeFn  func()
+		err      error
+	)
 
-	tmInTx := &IncomingTendermintTx{
-		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
-		MsgIndex:    0,
-		Denom:       "stake",
-		FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
-		Amount:      sdk.NewInt(1),
-		Memo:        "",
-	}
+	func() {
+		database, closeFn, err = test.OpenDB(t, OpenDB)
+		defer closeFn()
 
-	err = AddIncomingTendermintTx(tmInTx)
-	require.Nil(t, err)
+		require.Nil(t, err)
 
-	tx, err := GetIncomingTendermintTx(tmInTx.TxHash, 0, "stake")
-	require.Nil(t, err)
-	require.Equal(t, tmInTx, tx)
+		tmInTx := &IncomingTendermintTx{
+			TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+			MsgIndex:    0,
+			Denom:       "stake",
+			FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
+			Amount:      sdk.NewInt(1),
+			Memo:        "",
+		}
 
-	err = db.Close()
-	require.Nil(t, err)
+		err = AddIncomingTendermintTx(database, tmInTx)
+		require.Nil(t, err)
 
-	tmInTx = &IncomingTendermintTx{}
+		tx, err := GetIncomingTendermintTx(database, tmInTx.TxHash, 0, "stake")
+		require.Nil(t, err)
+		require.Equal(t, tmInTx, &tx)
+	}()
 
-	_, err = GetIncomingTendermintTx(tmInTx.TxHash, 0, "stake")
-	require.Equal(t, "DB Closed", err.Error())
+	tmInTx := &IncomingTendermintTx{}
+
+	_, err = GetIncomingTendermintTx(database, tmInTx.TxHash, 0, "stake")
+	require.ErrorIs(t, err, badger.ErrDBClosed)
 }
 
 func TestIncomingTendermintTxPrefix(t *testing.T) {

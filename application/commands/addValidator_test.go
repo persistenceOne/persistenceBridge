@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -9,20 +11,28 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestAddCommand(t *testing.T) {
-	database, err := db.OpenDB(constants.TestDBDir)
+	var (
+		database *badger.DB
+		closeFn  func()
+		err      error
+	)
+
+	database, closeFn, err = test.OpenDB(t, db.OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
-	err = db.DeleteAllValidators()
+	err = db.DeleteAllValidators(database)
 	require.Nil(t, err)
-
-	database.Close()
 
 	const (
 		validatorName    = "Binance"
@@ -38,17 +48,18 @@ func TestAddCommand(t *testing.T) {
 	err = cmd.Execute()
 	require.Nil(t, err)
 
-	database, err = db.OpenDB(constants.TestDBDir)
+	database, closeFn, err = test.OpenDB(t, db.OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	address, _ := sdk.ValAddressFromBech32(validatorAddress)
-	validator, err := db.GetValidator(address)
+	validator, err := db.GetValidator(database, address)
 	require.Nil(t, err)
 
 	require.Equal(t, validatorName, validator.Name, "Validator name does not match of that added")
 	require.Equal(t, address, validator.Address, "Validator address does not match of that added")
 
-	err = db.DeleteAllValidators()
+	err = db.DeleteAllValidators(database)
 	require.Nil(t, err)
-	database.Close()
 }

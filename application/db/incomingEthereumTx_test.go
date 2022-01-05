@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -10,14 +12,17 @@ import (
 	"testing"
 
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestAddIncomingEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	ethInTx := &IncomingEthereumTx{
@@ -27,43 +32,48 @@ func TestAddIncomingEthereumTx(t *testing.T) {
 		MsgType:  "",
 	}
 
-	err = AddIncomingEthereumTx(ethInTx)
+	err = AddIncomingEthereumTx(database, ethInTx)
 	require.Equal(t, "empty MsgBytes", err.Error())
 
 	ethInTx.MsgType = bankTypes.MsgSend{}.Type()
 	ethInTx.MsgBytes = []byte("Msg")
 
-	err = AddIncomingEthereumTx(ethInTx)
+	err = AddIncomingEthereumTx(database, ethInTx)
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestGetIncomingEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
+	var (
+		database *badger.DB
+		closeFn  func()
+		err      error
+	)
 
-	ethInTx := &IncomingEthereumTx{
-		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
-		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
-		MsgBytes: []byte("Msg"),
-		MsgType:  bankTypes.MsgSend{}.Type(),
-	}
+	func() {
+		database, closeFn, err = test.OpenDB(t, OpenDB)
+		defer closeFn()
 
-	err = AddIncomingEthereumTx(ethInTx)
-	require.Nil(t, err)
+		require.Nil(t, err)
 
-	tx, err := GetIncomingEthereumTx(ethInTx.TxHash)
-	require.Nil(t, err)
-	require.Equal(t, ethInTx, &tx)
+		ethInTx := &IncomingEthereumTx{
+			TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
+			Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
+			MsgBytes: []byte("Msg"),
+			MsgType:  bankTypes.MsgSend{}.Type(),
+		}
 
-	err = db.Close()
-	require.Nil(t, err)
+		err = AddIncomingEthereumTx(database, ethInTx)
+		require.Nil(t, err)
 
-	ethInTx = &IncomingEthereumTx{}
+		tx, err := GetIncomingEthereumTx(database, ethInTx.TxHash)
+		require.Nil(t, err)
+		require.Equal(t, ethInTx, &tx)
+	}()
 
-	_, err = GetIncomingEthereumTx(ethInTx.TxHash)
-	require.Equal(t, "DB Closed", err.Error())
+	ethInTx := &IncomingEthereumTx{}
+
+	_, err = GetIncomingEthereumTx(database, ethInTx.TxHash)
+	require.ErrorIs(t, err, badger.ErrDBClosed)
 }
 
 func TestIncomingEthereumTxPrefix(t *testing.T) {
@@ -79,6 +89,7 @@ func TestIncomingEthereumTxKey(t *testing.T) {
 		MsgBytes: []byte("Msg"),
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
+
 	require.Equal(t, incomingEthereumTxPrefix.GenerateStoreKey(ethInTx.TxHash.Bytes()), ethInTx.Key())
 }
 
@@ -89,8 +100,10 @@ func TestIncomingEthereumTxValue(t *testing.T) {
 		MsgBytes: []byte("Msg"),
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
+
 	b, err := json.Marshal(ethInTx)
 	require.Nil(t, err)
+
 	actualBytes, err := ethInTx.Value()
 	require.Nil(t, err)
 	require.Equal(t, b, actualBytes)
@@ -98,11 +111,14 @@ func TestIncomingEthereumTxValue(t *testing.T) {
 
 func TestIncomingEthereumTxValidate(t *testing.T) {
 	ethInTx := IncomingEthereumTx{}
-	require.Equal(t, "tx hash is empty", ethInTx.Validate().Error())
+	require.ErrorIs(t, ethInTx.Validate(), ErrEmptyTransaction)
+
 	ethInTx.TxHash = common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2")
 	require.Equal(t, "empty MsgBytes", ethInTx.Validate().Error())
+
 	ethInTx.MsgBytes = []byte("Msg")
 	require.Equal(t, "invalid msg type", ethInTx.Validate().Error())
+
 	ethInTx.MsgType = bankTypes.MsgSend{}.Type()
 	require.Nil(t, ethInTx.Validate())
 }

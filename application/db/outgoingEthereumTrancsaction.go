@@ -9,12 +9,18 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 )
 
-var EthEmptyAddress = common.Address{}.String()
+var (
+	EthEmptyAddress = common.Address{}.String()
+
+	EthEmptyHash       = common.Hash{}
+	EthEmptyHashString = common.Hash{}.String()
+)
 
 type OutgoingEthereumTransaction struct {
 	TxHash   common.Hash
@@ -40,7 +46,7 @@ func (ethTx *OutgoingEthereumTransaction) Value() ([]byte, error) {
 }
 
 func (ethTx *OutgoingEthereumTransaction) Validate() error {
-	if ethTx.TxHash.String() == EthEmptyAddress {
+	if ethTx.TxHash == EthEmptyHash {
 		return ErrEmptyTransaction
 	}
 
@@ -51,14 +57,14 @@ func (ethTx *OutgoingEthereumTransaction) Validate() error {
 	return nil
 }
 
-func DeleteOutgoingEthereumTx(txHash common.Hash) error {
-	return deleteKV(outgoingEthereumTxPrefix.GenerateStoreKey(txHash.Bytes()))
+func DeleteOutgoingEthereumTx(db *badger.DB, txHash common.Hash) error {
+	return deleteKV(db, outgoingEthereumTxPrefix.GenerateStoreKey(txHash.Bytes()))
 }
 
-func SetOutgoingEthereumTx(ethTransaction OutgoingEthereumTransaction) error {
-	return set(&ethTransaction)
+func SetOutgoingEthereumTx(db *badger.DB, ethTransaction OutgoingEthereumTransaction) error {
+	return set(db, &ethTransaction)
 }
 
-func IterateOutgoingEthTx(operation func(key []byte, value []byte) error) error {
-	return iterateKeyValues(outgoingEthereumTxPrefix.GenerateStoreKey([]byte{}), operation)
+func IterateOutgoingEthTx(db *badger.DB, operation func(key []byte, value []byte) error) error {
+	return iterateKeyValues(db, outgoingEthereumTxPrefix.GenerateStoreKey([]byte{}), operation)
 }

@@ -7,6 +7,8 @@ package db
 
 import (
 	"encoding/json"
+
+	"github.com/dgraph-io/badger/v3"
 )
 
 const unboundEpochTime = "UNBOUND_EPOCH_TIME"
@@ -33,12 +35,12 @@ func (u *UnboundEpochTime) Validate() error {
 	return nil
 }
 
-func GetUnboundEpochTime() (UnboundEpochTime, error) {
+func GetUnboundEpochTime(database *badger.DB) (UnboundEpochTime, error) {
 	var u UnboundEpochTime
 
 	key := unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime))
 
-	b, err := get(key)
+	b, err := get(database, key)
 	if err != nil {
 		return u, err
 	}
@@ -48,10 +50,10 @@ func GetUnboundEpochTime() (UnboundEpochTime, error) {
 	return u, err
 }
 
-func SetUnboundEpochTime(epochTime int64) error {
+func SetUnboundEpochTime(database *badger.DB, epochTime int64) error {
 	u := UnboundEpochTime{
 		Epoch: epochTime,
 	}
 
-	return set(&u)
+	return set(database, &u)
 }

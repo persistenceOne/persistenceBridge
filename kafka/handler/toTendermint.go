@@ -92,7 +92,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		return err
 	}
 
-	countPendingTx, err := db.CountTotalOutgoingTendermintTx()
+	countPendingTx, err := db.CountTotalOutgoingTendermintTx(handler.DB)
 	if err != nil {
 		logging.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 				return nil
 			}
 
-			err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
+			err = db.SetOutgoingTendermintTx(handler.DB, db.NewOutgoingTMTransaction(response.TxHash))
 			if err != nil {
 				logging.Fatal(err)
 			}
@@ -158,7 +158,7 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 
 		time.Sleep(sleepPeriod)
 
-		countPendingTx, err = db.CountTotalOutgoingTendermintTx()
+		countPendingTx, err = db.CountTotalOutgoingTendermintTx(handler.DB)
 		if err != nil {
 			logging.Fatal(err)
 		}

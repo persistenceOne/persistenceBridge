@@ -8,6 +8,7 @@ package db
 import (
 	"encoding/json"
 
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -33,7 +34,7 @@ func (t *IncomingEthereumTx) Value() ([]byte, error) {
 }
 
 func (t *IncomingEthereumTx) Validate() error {
-	if t.TxHash.String() == EthEmptyAddress {
+	if t.TxHash == EthEmptyHash {
 		return ErrEmptyTransaction
 	}
 
@@ -48,11 +49,11 @@ func (t *IncomingEthereumTx) Validate() error {
 	return nil
 }
 
-func GetIncomingEthereumTx(txHash common.Hash) (IncomingEthereumTx, error) {
+func GetIncomingEthereumTx(db *badger.DB, txHash common.Hash) (IncomingEthereumTx, error) {
 	var ethInTx IncomingEthereumTx
 	ethInTx.TxHash = txHash
 
-	b, err := get(ethInTx.Key())
+	b, err := get(db, ethInTx.Key())
 	if err != nil {
 		return ethInTx, err
 	}
@@ -62,14 +63,14 @@ func GetIncomingEthereumTx(txHash common.Hash) (IncomingEthereumTx, error) {
 	return ethInTx, err
 }
 
-func AddIncomingEthereumTx(t *IncomingEthereumTx) error {
-	return set(t)
+func AddIncomingEthereumTx(db *badger.DB, t *IncomingEthereumTx) error {
+	return set(db, t)
 }
 
-func CheckIncomingEthereumTxExists(txHash common.Hash) bool {
+func CheckIncomingEthereumTxExists(db *badger.DB, txHash common.Hash) bool {
 	ethInTx := IncomingEthereumTx{
 		TxHash: txHash,
 	}
 
-	return keyExists(ethInTx.Key())
+	return keyExists(db, ethInTx.Key())
 }

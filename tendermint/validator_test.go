@@ -1,3 +1,5 @@
+//go:build integration
+
 package tendermint
 
 import (
@@ -37,16 +39,16 @@ func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
 	address, err = types.ValAddressFromBech32("cosmosvaloper1efz2js35e4kncmzjmnnu9tul45k8r9etwmkpcp")
 	require.Nil(t, err)
 
-	err = db.SetValidator(db.Validator{
+	err = db.SetValidator(database, db.Validator{
 		Address: address,
 		Name:    "test1",
 	})
 	require.Equal(t, nil, err)
 
 	var cosmosStatus db.Status
-	cosmosStatus, err = db.GetCosmosStatus()
+	cosmosStatus, err = db.GetCosmosStatus(database)
 	require.Equal(t, nil, err)
 
 	processHeight := cosmosStatus.LastCheckHeight + 1
-	CheckValidators(chain, processHeight)
+	CheckValidators(chain, database, processHeight)
 }

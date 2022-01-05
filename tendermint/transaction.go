@@ -16,6 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dgraph-io/badger/v3"
 	goEthCommon "github.com/ethereum/go-ethereum/common"
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
@@ -26,11 +27,11 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func handleTxSearchResult(clientCtx *client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleTxSearchResult(clientCtx *client.Context, resultTxs []*tmCoreTypes.ResultTx, kafkaProducer sarama.SyncProducer, database *badger.DB, protoCodec *codec.ProtoCodec) error {
 	for i, transaction := range resultTxs {
 		logging.Info("Tendermint TX:", transaction.Hash.String(), fmt.Sprintf("(%d)", i+1))
 
-		err := collectAllWrapAndRevertTxs(clientCtx, transaction)
+		err := collectAllWrapAndRevertTxs(clientCtx, database, transaction)
 		if err != nil {
 			logging.Error("Failed to process tendermint transaction:", transaction.Hash.String())
 
@@ -38,12 +39,12 @@ func handleTxSearchResult(clientCtx *client.Context, resultTxs []*tmCoreTypes.Re
 		}
 	}
 
-	wrapOrRevert(kafkaProducer, protoCodec)
+	wrapOrRevert(kafkaProducer, protoCodec, database)
 
 	return nil
 }
 
-func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCoreTypes.ResultTx) error {
+func collectAllWrapAndRevertTxs(clientCtx *client.Context, database *badger.DB, txQueryResult *tmCoreTypes.ResultTx) error {
 	if txQueryResult.TxResult.GetCode() == 0 {
 		// Should be used if txQueryResult.Tx is string: `decodedTx, err := base64.StdEncoding.DecodeString(txQueryResult.Tx)`
 		txInterface, err := clientCtx.TxConfig.TxDecoder()(txQueryResult.Tx)
@@ -65,8 +66,8 @@ func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCore
 					if memo != "DO_NOT_REVERT" {
 						for _, coin := range txMsg.Amount {
 							// Do not check for TendermintTxToKafka exists.
-							if !db.CheckIncomingTendermintTxExists(txQueryResult.Hash, uint(i), coin.Denom) {
-								err = db.AddIncomingTendermintTx(&db.IncomingTendermintTx{
+							if !db.CheckIncomingTendermintTxExists(database, txQueryResult.Hash, uint(i), coin.Denom) {
+								err = db.AddIncomingTendermintTx(database, &db.IncomingTendermintTx{
 									TxHash:      txQueryResult.Hash,
 									MsgIndex:    uint(i),
 									Denom:       coin.Denom,
@@ -78,7 +79,7 @@ func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCore
 									return err
 								}
 
-								err = db.AddTendermintTxToKafka(db.TendermintTxToKafka{
+								err = db.AddTendermintTxToKafka(database, db.TendermintTxToKafka{
 									TxHash:   txQueryResult.Hash,
 									MsgIndex: uint(i),
 									Denom:    coin.Denom,
@@ -100,14 +101,14 @@ func collectAllWrapAndRevertTxs(clientCtx *client.Context, txQueryResult *tmCore
 	return nil
 }
 
-func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
-	tmTxToKafkaList, err := db.GetAllTendermintTxToKafka()
+func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec, database *badger.DB) {
+	tmTxToKafkaList, err := db.GetAllTendermintTxToKafka(database)
 	if err != nil {
 		logging.Fatal(err)
 	}
 
 	for _, tmTxToKafka := range tmTxToKafkaList {
-		tx, err := db.GetIncomingTendermintTx(tmTxToKafka.TxHash, tmTxToKafka.MsgIndex, tmTxToKafka.Denom)
+		tx, err := db.GetIncomingTendermintTx(database, tmTxToKafka.TxHash, tmTxToKafka.MsgIndex, tmTxToKafka.Denom)
 		if err != nil {
 			logging.Fatal(fmt.Errorf("%w [TM Listener]: %s", ErrGetIncomingTendermintTx, err.Error()))
 		}
@@ -150,7 +151,7 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 			revertCoins(tx.FromAddress, sdk.NewCoins(revertToken), kafkaProducer, protoCodec)
 		}
 
-		err = db.DeleteTendermintTxToKafka(tx.TxHash, tx.MsgIndex, tx.Denom)
+		err = db.DeleteTendermintTxToKafka(database, tx.TxHash, tx.MsgIndex, tx.Denom)
 		if err != nil {
 			logging.Fatal(err)
 		}

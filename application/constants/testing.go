@@ -9,5 +9,4 @@ import "os"
 
 var (
 	TestHomeDir = os.ExpandEnv("$HOME/testPersistenceBridge")
-	TestDBDir   = os.ExpandEnv("$HOME/testPersistenceBridge/db")
 )

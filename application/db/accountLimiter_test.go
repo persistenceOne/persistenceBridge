@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -11,39 +13,49 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestGetAccountLimiter(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
+	var (
+		database *badger.DB
+		closeFn  func()
+		err      error
+	)
 
 	address1, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 	address2, _ := sdk.AccAddressFromBech32("cosmos17p5lujc4d68w5s4usydy60lnh9wx0rrd9ws7mp")
 
-	acc := AccountLimiter{
-		AccountAddress: address1,
-		Amount:         sdk.OneInt(),
-	}
+	func() {
+		database, closeFn, err = test.OpenDB(t, OpenDB)
+		defer closeFn()
 
-	err = SetAccountLimiter(acc)
-	require.Nil(t, err)
+		require.Nil(t, err)
 
-	newAccountLimiter1, err := GetAccountLimiter(address1)
-	require.Equal(t, acc, newAccountLimiter1)
-	require.Nil(t, err)
+		acc := AccountLimiter{
+			AccountAddress: address1,
+			Amount:         sdk.OneInt(),
+		}
 
-	newAccountLimiter2, err := GetAccountLimiter(address2)
-	require.Nil(t, err)
-	require.Equal(t, newAccountLimiter2.AccountAddress, address2)
-	require.Equal(t, true, newAccountLimiter2.Amount.Equal(sdk.ZeroInt()))
+		err = SetAccountLimiter(database, acc)
+		require.Nil(t, err)
 
-	db.Close()
+		newAccountLimiter1, err := GetAccountLimiter(database, address1)
+		require.Equal(t, acc, newAccountLimiter1)
+		require.Nil(t, err)
 
-	newAccountLimiter2, err = GetAccountLimiter(address2)
-	require.Equal(t, "DB Closed", err.Error())
+		newAccountLimiter2, err := GetAccountLimiter(database, address2)
+		require.Nil(t, err)
+		require.Equal(t, newAccountLimiter2.AccountAddress, address2)
+		require.Equal(t, true, newAccountLimiter2.Amount.Equal(sdk.ZeroInt()))
+	}()
+
+	_, err = GetAccountLimiter(database, address2)
+
+	require.ErrorIs(t, err, badger.ErrDBClosed)
 }
 
 func TestAccountLimiterKey(t *testing.T) {
@@ -103,7 +115,9 @@ func TestAccountLimiterPrefix(t *testing.T) {
 }
 
 func TestSetAccountLimiter(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	address, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
@@ -113,14 +127,14 @@ func TestSetAccountLimiter(t *testing.T) {
 		Amount:         sdk.OneInt(),
 	}
 
-	err = SetAccountLimiter(acc)
+	err = SetAccountLimiter(database, acc)
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestGetTotalTokensWrapped(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	address1, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
@@ -131,16 +145,14 @@ func TestGetTotalTokensWrapped(t *testing.T) {
 		Amount:         sdk.OneInt(),
 	}
 
-	err = SetAccountLimiter(acc)
+	err = SetAccountLimiter(database, acc)
 	require.Nil(t, err)
 
 	acc.AccountAddress = address2
-	err = SetAccountLimiter(acc)
+	err = SetAccountLimiter(database, acc)
 	require.Nil(t, err)
 
-	total, err := GetTotalTokensWrapped()
+	total, err := GetTotalTokensWrapped(database)
 	require.Nil(t, err)
 	require.Equal(t, sdk.NewInt(2), total)
-
-	db.Close()
 }

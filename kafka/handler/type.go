@@ -9,6 +9,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -16,11 +17,23 @@ import (
 )
 
 type MsgHandler struct {
+	DB              *badger.DB
 	ProtoCodec      *codec.ProtoCodec
 	Chain           *relayer.Chain
 	EthClient       *ethclient.Client
 	Count           int
 	WithdrawRewards bool
+}
+
+func NewMsgHandler(db *badger.DB, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethClient *ethclient.Client, count int, withdrawRewards bool) *MsgHandler {
+	return &MsgHandler{
+		db,
+		protoCodec,
+		chain,
+		ethClient,
+		count,
+		withdrawRewards,
+	}
 }
 
 var _ sarama.ConsumerGroupHandler = MsgHandler{}

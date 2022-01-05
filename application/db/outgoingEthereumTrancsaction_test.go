@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -15,12 +17,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestDeleteOutgoingEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	ethTransaction := OutgoingEthereumTransaction{
@@ -31,13 +35,11 @@ func TestDeleteOutgoingEthereumTx(t *testing.T) {
 		}},
 	}
 
-	err = SetOutgoingEthereumTx(ethTransaction)
+	err = SetOutgoingEthereumTx(database, ethTransaction)
 	require.Nil(t, err)
 
-	err = DeleteOutgoingEthereumTx(common.Hash{})
+	err = DeleteOutgoingEthereumTx(database, common.Hash{})
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestOutgoingEthereumTransactionKey(t *testing.T) {
@@ -73,7 +75,6 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 		Messages: []outgoingtx.WrapTokenMsg{},
 	}
 	err = ethTransaction.Validate()
-	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
 	require.Equal(t, fmt.Sprintf("number of messages for ethHash is 0: hash %s", ethTransaction.TxHash), err.Error())
 
 	emptyTransaction := OutgoingEthereumTransaction{}
@@ -101,7 +102,9 @@ func TestOutgoingEthereumTransactionPrefix(t *testing.T) {
 }
 
 func TestIterateEthTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
@@ -112,10 +115,8 @@ func TestIterateEthTx(t *testing.T) {
 		return nil
 	}
 
-	err = IterateOutgoingEthTx(function)
+	err = IterateOutgoingEthTx(database, function)
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestNewETHTransaction(t *testing.T) {
@@ -140,7 +141,9 @@ func TestNewETHTransaction(t *testing.T) {
 }
 
 func TestSetEthereumTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	ethTransaction := OutgoingEthereumTransaction{
@@ -150,8 +153,6 @@ func TestSetEthereumTx(t *testing.T) {
 			Amount:  big.NewInt(1),
 		}},
 	}
-	err = SetOutgoingEthereumTx(ethTransaction)
+	err = SetOutgoingEthereumTx(database, ethTransaction)
 	require.Nil(t, err)
-
-	db.Close()
 }

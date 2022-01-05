@@ -54,7 +54,7 @@ ConsumerLoop:
 			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
 				var loop int
 
-				loop, err = WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain)
+				loop, err = WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain, m.DB)
 				if err != nil {
 					return err
 				}

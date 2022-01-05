@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -10,49 +12,48 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 	"github.com/stretchr/testify/require"
-
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 func TestSetStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const name = "tx1"
 
 	lastCheckHeight := int64(4772132)
 
-	err = setStatus(name, lastCheckHeight)
+	err = setStatus(database, name, lastCheckHeight)
 	require.Nil(t, err)
-
-	database.Close()
 }
 
 func TestGetStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	name := "tx1"
 	lastCheckHeight := int64(4772132)
 
-	err = setStatus(name, lastCheckHeight)
+	err = setStatus(database, name, lastCheckHeight)
 	require.Nil(t, err)
 
 	var expectedStatus Status
 	expectedStatus.Name = name
 
-	b, err := get(expectedStatus.Key())
+	b, err := get(database, expectedStatus.Key())
 	require.Nil(t, err)
 
 	err = json.Unmarshal(b, &expectedStatus)
 	require.Nil(t, err)
 
-	status, err := getStatus(name)
+	status, err := getStatus(database, name)
 	require.Nil(t, err)
 	require.Equal(t, expectedStatus, status)
-
-	database.Close()
 }
 
 func TestStatusKey(t *testing.T) {
@@ -82,31 +83,31 @@ func TestStatusPrefix(t *testing.T) {
 }
 
 func TestSetCosmosStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
-	err = SetCosmosStatus(1)
+	err = SetCosmosStatus(database, 1)
 	require.Nil(t, err)
 
-	s, err := GetCosmosStatus()
+	s, err := GetCosmosStatus(database)
 	require.Nil(t, err)
 	require.Equal(t, cosmos, s.Name)
 	require.Equal(t, int64(1), s.LastCheckHeight)
-
-	database.Close()
 }
 
 func TestSetEthereumStatus(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
-	err = SetEthereumStatus(1)
+	err = SetEthereumStatus(database, 1)
 	require.Nil(t, err)
 
-	s, err := GetEthereumStatus()
+	s, err := GetEthereumStatus(database)
 	require.Nil(t, err)
 	require.Equal(t, ethereum, s.Name)
 	require.Equal(t, int64(1), s.LastCheckHeight)
-
-	database.Close()
 }

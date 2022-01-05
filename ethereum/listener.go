@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/dgraph-io/badger/v3"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -23,7 +24,7 @@ import (
 
 const finality = 12
 
-func StartListening(client *ethclient.Client, sleepDuration time.Duration, brokers []string, protoCodec *codec.ProtoCodec) {
+func StartListening(client *ethclient.Client, database *badger.DB, sleepDuration time.Duration, brokers []string, protoCodec *codec.ProtoCodec) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
 
@@ -58,7 +59,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 			continue
 		}
 
-		ethStatus, err := db.GetEthereumStatus()
+		ethStatus, err := db.GetEthereumStatus(database)
 		if err != nil {
 			logging.Error("Stopping Ethereum Listener, unable to get status, Error:", err)
 
@@ -81,7 +82,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 				continue
 			}
 
-			err = handleBlock(ctx, client, block, kafkaProducer, protoCodec)
+			err = handleBlock(ctx, client, database, block, kafkaProducer, protoCodec)
 			if err != nil {
 				logging.Error("Unable to fetch handle ethereum block:", processHeight, "Error:", err)
 
@@ -90,7 +91,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 				continue
 			}
 
-			err = db.SetEthereumStatus(processHeight.Int64())
+			err = db.SetEthereumStatus(database, processHeight.Int64())
 			if err != nil {
 				logging.Error("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
 
@@ -99,7 +100,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 				return
 			}
 
-			err = onNewBlock(ctx, latestEthHeight, client, kafkaProducer)
+			err = onNewBlock(ctx, latestEthHeight, client, kafkaProducer, database)
 			if err != nil {
 				logging.Error("Stopping Ethereum Listener, onNewBlock error:", err)
 

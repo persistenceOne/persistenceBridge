@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -36,21 +38,22 @@ func TestSetConfigAndChange(t *testing.T) {
 	require.NotEqual(t, appConfig, newConfig)
 }
 
+// fixme tests depends on each other
 func TestSetPStakeAddress(t *testing.T) {
-	config := SetConfig(test.GetCmdWithConfig())
+	SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
 	SetPStakeAddress(pStakeAddress)
-	require.Equal(t, config.Tendermint.pStakeAddress, pStakeAddress.String(), "PStakeAddress not set")
+	require.Equal(t, GetAppConfig().Tendermint.pStakeAddress, pStakeAddress.String(), "PStakeAddress not set")
 }
 
 func TestValidateAndSeal(t *testing.T) {
-	config := SetConfig(test.GetCmdWithConfig())
+	SetConfig(test.GetCmdWithConfig())
 	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
 	SetPStakeAddress(pStakeAddress)
 	ValidateAndSeal()
-	require.Equal(t, config.seal, true, "appConfig did not get validated")
+	require.Equal(t, GetAppConfig().seal, true, "appConfig did not get validated")
 }
 
 func TestGetPStakeAddress(t *testing.T) {

@@ -25,7 +25,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 		}
 	}()
 
-	validators, err := db.GetValidators()
+	validators, err := db.GetValidators(m.DB)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 				}
 
 				if !m.WithdrawRewards {
-					loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain)
+					loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain, m.DB)
 					if err != nil {
 						return err
 					}

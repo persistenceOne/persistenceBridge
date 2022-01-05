@@ -17,14 +17,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/dgraph-io/badger/v3"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.Chain, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
-	return db.IterateOutgoingTmTx(func(key []byte, value []byte) error {
+func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.Chain, kafkaProducer sarama.SyncProducer, database *badger.DB, protoCodec *codec.ProtoCodec) error {
+	return db.IterateOutgoingTmTx(database, func(key []byte, value []byte) error {
 		var tmTx db.OutgoingTendermintTransaction
 
 		err := json.Unmarshal(value, &tmTx)
@@ -81,6 +82,6 @@ func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.C
 			logging.Info("Broadcast tendermint tx successful. Hash:", tmTx.TxHash, "Block:", txResult.Height)
 		}
 
-		return db.DeleteOutgoingTendermintTx(tmTx.TxHash)
+		return db.DeleteOutgoingTendermintTx(database, tmTx.TxHash)
 	})
 }

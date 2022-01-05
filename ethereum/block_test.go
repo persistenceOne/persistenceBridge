@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -40,10 +42,10 @@ func TestCollectEthTx(t *testing.T) {
 
 	configuration.SetPStakeAddress(tmAddress)
 
-	database, err := db.OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, db.OpenDB)
 	require.Nil(t, err)
 
-	defer database.Close()
+	defer closeFn()
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, err)
@@ -83,10 +85,10 @@ func TestCollectEthTx(t *testing.T) {
 		Messages: txd,
 	}
 
-	err = db.SetOutgoingEthereumTx(ethTransaction)
+	err = db.SetOutgoingEthereumTx(database, ethTransaction)
 	require.Nil(t, err)
 
-	err = collectEthTx(ctx, ethereumClient, protoCodec, tx, &contract)
+	err = collectEthTx(ctx, ethereumClient, database, protoCodec, tx, &contract)
 	require.Nil(t, err)
 }
 
@@ -120,12 +122,12 @@ func TestHandleBlock(t *testing.T) {
 		}
 	}(kafkaProducer)
 
-	database, err := db.OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, db.OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
-	defer database.Close()
-
-	ethStatus, err := db.GetEthereumStatus()
+	ethStatus, err := db.GetEthereumStatus(database)
 	require.Nil(t, err)
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
@@ -137,7 +139,7 @@ func TestHandleBlock(t *testing.T) {
 	block, err := ethereumClient.BlockByNumber(ctx, processHeight)
 	require.Nil(t, err)
 
-	err = handleBlock(ctx, ethereumClient, block, kafkaProducer, protoCodec)
+	err = handleBlock(ctx, ethereumClient, database, block, kafkaProducer, protoCodec)
 	require.Nil(t, err)
 }
 
@@ -150,10 +152,10 @@ func TestProduceToKafka(t *testing.T) {
 
 	configuration.SetPStakeAddress(tmAddress)
 
-	database, err := db.OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
+	database, closeFn, err := test.OpenDB(t, db.OpenDB)
+	defer closeFn()
 
-	defer database.Close()
+	require.Nil(t, err)
 
 	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
 	defer func(kafkaProducer sarama.SyncProducer) {
@@ -180,8 +182,8 @@ func TestProduceToKafka(t *testing.T) {
 		Messages: txd,
 	}
 
-	err = db.SetOutgoingEthereumTx(ethTransaction)
+	err = db.SetOutgoingEthereumTx(database, ethTransaction)
 	require.Nil(t, err)
 
-	produceToKafka(kafkaProducer)
+	produceToKafka(kafkaProducer, database)
 }

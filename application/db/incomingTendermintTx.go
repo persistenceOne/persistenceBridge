@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 	tmBytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
@@ -77,14 +78,14 @@ func (t *IncomingTendermintTx) Validate() error {
 	return nil
 }
 
-func GetIncomingTendermintTx(txHash tmBytes.HexBytes, msgIndex uint, denom string) (IncomingTendermintTx, error) {
+func GetIncomingTendermintTx(db *badger.DB, txHash tmBytes.HexBytes, msgIndex uint, denom string) (IncomingTendermintTx, error) {
 	var tmInTx IncomingTendermintTx
 
 	tmInTx.TxHash = txHash
 	tmInTx.MsgIndex = msgIndex
 	tmInTx.Denom = denom
 
-	b, err := get(tmInTx.Key())
+	b, err := get(db, tmInTx.Key())
 	if err != nil {
 		return tmInTx, err
 	}
@@ -94,16 +95,16 @@ func GetIncomingTendermintTx(txHash tmBytes.HexBytes, msgIndex uint, denom strin
 	return tmInTx, err
 }
 
-func AddIncomingTendermintTx(t *IncomingTendermintTx) error {
-	return set(t)
+func AddIncomingTendermintTx(db *badger.DB, t *IncomingTendermintTx) error {
+	return set(db, t)
 }
 
-func CheckIncomingTendermintTxExists(txHash tmBytes.HexBytes, msgIndex uint, denom string) bool {
+func CheckIncomingTendermintTxExists(db *badger.DB, txHash tmBytes.HexBytes, msgIndex uint, denom string) bool {
 	tmInTx := IncomingTendermintTx{
 		TxHash:   txHash,
 		MsgIndex: msgIndex,
 		Denom:    denom,
 	}
 
-	return keyExists(tmInTx.Key())
+	return keyExists(db, tmInTx.Key())
 }

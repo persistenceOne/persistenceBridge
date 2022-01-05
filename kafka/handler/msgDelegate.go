@@ -66,7 +66,7 @@ ConsumerLoop:
 	}
 
 	if sum.GT(sdk.NewInt(0)) {
-		validators, err := db.GetValidators()
+		validators, err := db.GetValidators(m.DB)
 		if err != nil {
 			return err
 		}

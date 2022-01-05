@@ -6,6 +6,7 @@ import (
 	slashingTypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/dgraph-io/badger/v3"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -14,9 +15,9 @@ import (
 // Map to keep track of missed blocks during previous CheckValidators() call
 var missedBlockCounterForValidator = make(map[string]int64)
 
-func CheckValidators(chain *relayer.Chain, processHeight int64) {
+func CheckValidators(chain *relayer.Chain, database *badger.DB, processHeight int64) {
 	// Get validators list from db
-	validators, err := db.GetValidators()
+	validators, err := db.GetValidators(database)
 	if err != nil {
 		logging.Error("Could not fetch validators from DB", processHeight, "ERR:", err)
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func get(key []byte) ([]byte, error) {
+func get(db *badger.DB, key []byte) ([]byte, error) {
 	var dbi []byte
 
 	err := db.View(func(txn *badger.Txn) error {
@@ -34,7 +34,7 @@ func get(key []byte) ([]byte, error) {
 	return dbi, err
 }
 
-func keyExists(key []byte) bool {
+func keyExists(db *badger.DB, key []byte) bool {
 	err := db.View(func(txn *badger.Txn) error {
 		_, err := txn.Get(key)
 
@@ -51,7 +51,7 @@ func keyExists(key []byte) bool {
 	return true
 }
 
-func set(dbi KeyValue) error {
+func set(db *badger.DB, dbi KeyValue) error {
 	err := dbi.Validate()
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func set(dbi KeyValue) error {
 	return nil
 }
 
-func iterateKeyValues(prefix []byte, operation func(key []byte, value []byte) error) error {
+func iterateKeyValues(db *badger.DB, prefix []byte, operation func(key []byte, value []byte) error) error {
 	return db.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
 		defer it.Close()
@@ -95,7 +95,7 @@ func iterateKeyValues(prefix []byte, operation func(key []byte, value []byte) er
 }
 
 // iterateKeys doesn't fetch item values until called upon by item.Value()
-func iterateKeys(prefix []byte, operation func(key []byte, item *badger.Item) error) error {
+func iterateKeys(db *badger.DB, prefix []byte, operation func(key []byte, item *badger.Item) error) error {
 	return db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchValues = false
@@ -117,7 +117,7 @@ func iterateKeys(prefix []byte, operation func(key []byte, item *badger.Item) er
 	})
 }
 
-func deleteKV(key []byte) error {
+func deleteKV(db *badger.DB, key []byte) error {
 	return db.Update(func(txn *badger.Txn) error {
 		return txn.Delete(key)
 	})

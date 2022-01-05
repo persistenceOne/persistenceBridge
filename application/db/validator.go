@@ -35,12 +35,12 @@ func (v *Validator) Validate() error {
 	return nil
 }
 
-func GetValidator(address sdk.ValAddress) (Validator, error) {
+func GetValidator(db *badger.DB, address sdk.ValAddress) (Validator, error) {
 	var validator Validator
 
 	validator.Address = address
 
-	b, err := get(validator.Key())
+	b, err := get(db, validator.Key())
 	if err != nil {
 		return Validator{}, err
 	}
@@ -50,21 +50,21 @@ func GetValidator(address sdk.ValAddress) (Validator, error) {
 	return validator, err
 }
 
-func SetValidator(validator Validator) error {
-	return set(&validator)
+func SetValidator(db *badger.DB, validator Validator) error {
+	return set(db, &validator)
 }
 
-func DeleteValidator(address sdk.ValAddress) error {
+func DeleteValidator(db *badger.DB, address sdk.ValAddress) error {
 	var validator Validator
 	validator.Address = address
 
-	return deleteKV(validator.Key())
+	return deleteKV(db, validator.Key())
 }
 
-func GetValidators() ([]Validator, error) {
+func GetValidators(db *badger.DB) ([]Validator, error) {
 	var validators []Validator
 
-	err := iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
+	err := iterateKeyValues(db, validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
 
 		innerErr := json.Unmarshal(value, &v)
@@ -80,9 +80,9 @@ func GetValidators() ([]Validator, error) {
 	return validators, err
 }
 
-func DeleteAllValidators() error {
-	err := iterateKeys(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, item *badger.Item) error {
-		return deleteKV(key)
+func DeleteAllValidators(db *badger.DB) error {
+	err := iterateKeys(db, validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, item *badger.Item) error {
+		return deleteKV(db, key)
 	})
 
 	return err

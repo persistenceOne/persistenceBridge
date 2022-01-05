@@ -65,7 +65,7 @@ func AddCommand() *cobra.Command {
 			var validators []db.Validator
 			var database *badger.DB
 
-			database, err = db.OpenDB(homePath + "/db")
+			database, err = db.OpenDB(filepath.Join(homePath, "db"))
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
@@ -83,7 +83,7 @@ func AddCommand() *cobra.Command {
 					log.Printf("DB got an error while closing: %v", err)
 				}()
 
-				err = db.SetValidator(db.Validator{
+				err = db.SetValidator(database, db.Validator{
 					Address: validatorAddress,
 					Name:    validatorName,
 				})
@@ -91,7 +91,7 @@ func AddCommand() *cobra.Command {
 					return err
 				}
 
-				validators, err = db.GetValidators()
+				validators, err = db.GetValidators(database)
 				if err != nil {
 					return err
 				}

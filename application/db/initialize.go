@@ -15,48 +15,37 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )
 
-var db *badger.DB
-
 func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.DB, error) {
-	dbTemp, err := badger.Open(badger.DefaultOptions(dbPath))
+	database, err := badger.Open(badger.DefaultOptions(dbPath))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	db = dbTemp
-
 	if tendermintStart > 0 {
-		err = SetCosmosStatus(tendermintStart - 1)
+		err = SetCosmosStatus(database, tendermintStart-1)
 		if err != nil {
-			return db, err
+			return nil, err
 		}
 	}
 
 	if ethereumStart > 0 {
-		err = SetEthereumStatus(ethereumStart - 1)
+		err = SetEthereumStatus(database, ethereumStart-1)
 		if err != nil {
-			return db, err
+			return nil, err
 		}
 	}
 
-	_, err = GetUnboundEpochTime()
+	_, err = GetUnboundEpochTime(database)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		err = SetUnboundEpochTime(time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
+		err = SetUnboundEpochTime(database, time.Now().Add(configuration.GetAppConfig().Kafka.EthUnbondCycleTime).Unix())
 		if err != nil {
-			return db, err
+			return nil, err
 		}
 	}
 
-	return db, nil
+	return database, nil
 }
 
 func OpenDB(dbPath string) (*badger.DB, error) {
-	dbTemp, err := badger.Open(badger.DefaultOptions(dbPath))
-	if err != nil {
-		return nil, err
-	}
-
-	db = dbTemp
-
-	return db, nil
+	return badger.Open(badger.DefaultOptions(dbPath))
 }

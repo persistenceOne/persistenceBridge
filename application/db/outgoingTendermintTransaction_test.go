@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -12,11 +14,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestDeleteOutgoingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -25,66 +29,55 @@ func TestDeleteOutgoingTendermintTx(t *testing.T) {
 		TxHash: txHash,
 	}
 
-	_ = SetOutgoingTendermintTx(tendermintTransaction)
-
-	err = DeleteOutgoingTendermintTx(txHash)
+	err = SetOutgoingTendermintTx(database, tendermintTransaction)
 	require.Nil(t, err)
 
-	db.Close()
+	err = DeleteOutgoingTendermintTx(database, txHash)
+	require.Nil(t, err)
 }
 
 func TestCountTotalOutgoingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 
-	expectedTotal, err := CountTotalOutgoingTendermintTx()
+	expectedTotal, err := CountTotalOutgoingTendermintTx(database)
 	require.Nil(t, err)
+
 	expectedTotal++
 
 	tendermintTransaction := OutgoingTendermintTransaction{
 		TxHash: txHash,
 	}
 
-	err = SetOutgoingTendermintTx(tendermintTransaction)
+	err = SetOutgoingTendermintTx(database, tendermintTransaction)
 	require.Nil(t, err)
 
-	total, err := CountTotalOutgoingTendermintTx()
-
+	total, err := CountTotalOutgoingTendermintTx(database)
 	require.Nil(t, err)
 	require.Equal(t, expectedTotal, total)
-
-	db.Close()
 }
 
 func TestIterateOutgoingTmTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	function := func(key []byte, value []byte) error {
-		var (
-			tmTx OutgoingTendermintTransaction
-		)
+		var tmTx OutgoingTendermintTransaction
 
-		innerErr := json.Unmarshal(value, &tmTx)
-		if innerErr != nil {
-			return innerErr
-		}
-
-		return nil
+		return json.Unmarshal(value, &tmTx)
 	}
 
-	err = IterateOutgoingTmTx(function)
+	err = IterateOutgoingTmTx(database, function)
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestNewOutgoingTMTransaction(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
-
 	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
 
 	tendermintTransaction := OutgoingTendermintTransaction{
@@ -95,12 +88,12 @@ func TestNewOutgoingTMTransaction(t *testing.T) {
 
 	require.Equal(t, reflect.TypeOf(tendermintTransaction), reflect.TypeOf(newTendermintTransaction))
 	require.Equal(t, tendermintTransaction, newTendermintTransaction)
-
-	db.Close()
 }
 
 func TestSetOutgoingTendermintTx(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const txHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
@@ -109,10 +102,8 @@ func TestSetOutgoingTendermintTx(t *testing.T) {
 		TxHash: txHash,
 	}
 
-	err = SetOutgoingTendermintTx(tendermintTransaction)
+	err = SetOutgoingTendermintTx(database, tendermintTransaction)
 	require.Nil(t, err)
-
-	db.Close()
 }
 
 func TestTendermintOutgoingTransactionKey(t *testing.T) {

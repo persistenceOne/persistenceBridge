@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -11,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 var rpcRunning bool
@@ -26,16 +28,16 @@ func TestAddValidator(t *testing.T) {
 		rpcEndpoint   = "127.0.0.1:4040"
 	)
 
+	database, closeFn, err := test.OpenDB(t, db.OpenDB)
+	defer closeFn()
+
+	require.Nil(t, err)
+
 	if !rpcRunning {
-		go StartServer(rpcEndpoint)
+		go StartServer(rpcEndpoint, database)
 
 		rpcRunning = true
 	}
-
-	database, err := db.OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
-
-	defer database.Close()
 
 	validators, err := AddValidator(db.Validator{
 		Address: validatorAddress,
@@ -43,11 +45,11 @@ func TestAddValidator(t *testing.T) {
 	}, rpcEndpoint)
 	require.Nil(t, err)
 
-	validatorsGet, err := db.GetValidators()
+	validatorsGet, err := db.GetValidators(database)
 	require.Equal(t, validators, validatorsGet)
 	require.Nil(t, err)
 
-	err = db.DeleteAllValidators()
+	err = db.DeleteAllValidators(database)
 	require.Nil(t, err)
 }
 
@@ -60,18 +62,18 @@ func TestRemoveValidator(t *testing.T) {
 		rpcEndpoint   = "127.0.0.1:4040"
 	)
 
+	database, closeFn, err := test.OpenDB(t, db.OpenDB)
+	defer closeFn()
+
+	require.Nil(t, err)
+
 	if !rpcRunning {
-		go StartServer(rpcEndpoint)
+		go StartServer(rpcEndpoint, database)
 
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
-
-	defer database.Close()
-
-	initialValidatorsSet, err := db.GetValidators()
+	initialValidatorsSet, err := db.GetValidators(database)
 	require.Nil(t, err)
 
 	validators, err := AddValidator(db.Validator{
@@ -85,15 +87,15 @@ func TestRemoveValidator(t *testing.T) {
 	require.Equal(t, nil, err)
 	require.Len(t, validators, len(initialValidatorsSet))
 
-	validatorsGet, err2 := db.GetValidators()
+	validatorsGet, err2 := db.GetValidators(database)
 
 	require.Equal(t, nil, err2)
 	require.Equal(t, validators, validatorsGet)
 
-	err = db.DeleteAllValidators()
+	err = db.DeleteAllValidators(database)
 	require.Nil(t, err)
 
-	validators, err = db.GetValidators()
+	validators, err = db.GetValidators(database)
 	require.Nil(t, err)
 	require.Len(t, validators, 0)
 }
@@ -101,21 +103,21 @@ func TestRemoveValidator(t *testing.T) {
 func TestShowValidators(t *testing.T) {
 	rpcEndpoint := "127.0.0.1:4040"
 
+	database, closeFn, err := test.OpenDB(t, db.OpenDB)
+	defer closeFn()
+
+	require.Nil(t, err)
+
 	if !rpcRunning {
-		go StartServer(rpcEndpoint)
+		go StartServer(rpcEndpoint, database)
 
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants.TestDBDir)
-	require.Nil(t, err)
-
-	defer database.Close()
-
 	validators, err := ShowValidators("", rpcEndpoint)
 	require.Nil(t, err)
 
-	validatorsGet, err2 := db.GetValidators()
+	validatorsGet, err2 := db.GetValidators(database)
 	require.Equal(t, nil, err2)
 	require.Equal(t, validators, validatorsGet)
 }

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dgraph-io/badger/v3"
 	tmBytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
@@ -53,14 +54,14 @@ func (t *TendermintTxToKafka) Validate() error {
 	return nil
 }
 
-func AddTendermintTxToKafka(t TendermintTxToKafka) error {
-	return set(&t)
+func AddTendermintTxToKafka(database *badger.DB, t TendermintTxToKafka) error {
+	return set(database, &t)
 }
 
-func GetAllTendermintTxToKafka() ([]TendermintTxToKafka, error) {
+func GetAllTendermintTxToKafka(database *badger.DB) ([]TendermintTxToKafka, error) {
 	var tmTxToKafkaList []TendermintTxToKafka
 
-	err := iterateKeyValues(tendermintTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
+	err := iterateKeyValues(database, tendermintTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
 		var t TendermintTxToKafka
 
 		innerErr := json.Unmarshal(val, &t)
@@ -76,12 +77,12 @@ func GetAllTendermintTxToKafka() ([]TendermintTxToKafka, error) {
 	return tmTxToKafkaList, err
 }
 
-func DeleteTendermintTxToKafka(txHash tmBytes.HexBytes, msgIndex uint, denom string) error {
+func DeleteTendermintTxToKafka(database *badger.DB, txHash tmBytes.HexBytes, msgIndex uint, denom string) error {
 	tmInTx := TendermintTxToKafka{
 		TxHash:   txHash,
 		MsgIndex: msgIndex,
 		Denom:    denom,
 	}
 
-	return deleteKV(tmInTx.Key())
+	return deleteKV(database, tmInTx.Key())
 }

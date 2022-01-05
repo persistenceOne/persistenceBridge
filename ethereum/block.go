@@ -14,6 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -25,7 +26,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func handleBlock(ctx context.Context, client *ethclient.Client, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
+func handleBlock(ctx context.Context, client *ethclient.Client, database *badger.DB, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range block.Transactions() {
 		if transaction.To() != nil {
 			var contract contracts.ContractI
@@ -39,7 +40,7 @@ func handleBlock(ctx context.Context, client *ethclient.Client, block *types.Blo
 			}
 
 			if contract != nil {
-				err := collectEthTx(ctx, client, protoCodec, transaction, contract)
+				err := collectEthTx(ctx, client, database, protoCodec, transaction, contract)
 				if err != nil {
 					logging.Error("Failed to process ethereum tx:", transaction.Hash().String())
 
@@ -49,12 +50,12 @@ func handleBlock(ctx context.Context, client *ethclient.Client, block *types.Blo
 		}
 	}
 
-	produceToKafka(kafkaProducer)
+	produceToKafka(kafkaProducer, database)
 
 	return nil
 }
 
-func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts.ContractI) error {
+func collectEthTx(ctx context.Context, client *ethclient.Client, database *badger.DB, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts.ContractI) error {
 	receipt, err := client.TransactionReceipt(ctx, transaction.Hash())
 	if err != nil {
 		logging.Error("Unable to get receipt of tx:", transaction.Hash().String(), "Error:", err)
@@ -88,7 +89,7 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 			}
 
 			// Do not check for EthereumTxToKafka exists.
-			if !db.CheckIncomingEthereumTxExists(transaction.Hash()) {
+			if !db.CheckIncomingEthereumTxExists(database, transaction.Hash()) {
 				var msgBytes []byte
 
 				msgBytes, err = protoCodec.MarshalInterface(msg)
@@ -96,7 +97,7 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 					return err
 				}
 
-				err = db.AddIncomingEthereumTx(&db.IncomingEthereumTx{
+				err = db.AddIncomingEthereumTx(database, &db.IncomingEthereumTx{
 					TxHash:   transaction.Hash(),
 					MsgBytes: msgBytes,
 					Sender:   sender,
@@ -106,7 +107,7 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 					return err
 				}
 
-				err = db.AddEthereumTxToKafka(&db.EthereumTxToKafka{
+				err = db.AddEthereumTxToKafka(database, &db.EthereumTxToKafka{
 					TxHash: transaction.Hash(),
 				})
 
@@ -120,14 +121,14 @@ func collectEthTx(ctx context.Context, client *ethclient.Client, protoCodec *cod
 	return nil
 }
 
-func produceToKafka(kafkaProducer sarama.SyncProducer) {
-	ethTxToKafkaList, err := db.GetAllEthereumTxToKafka()
+func produceToKafka(kafkaProducer sarama.SyncProducer, database *badger.DB) {
+	ethTxToKafkaList, err := db.GetAllEthereumTxToKafka(database)
 	if err != nil {
 		logging.Fatal(err)
 	}
 
 	for _, tx := range ethTxToKafkaList {
-		ethTxToTM, err := db.GetIncomingEthereumTx(tx.TxHash)
+		ethTxToTM, err := db.GetIncomingEthereumTx(database, tx.TxHash)
 		if err != nil {
 			logging.Fatal(err)
 		}
@@ -152,7 +153,7 @@ func produceToKafka(kafkaProducer sarama.SyncProducer) {
 			logging.Fatal("Failed to add msg to kafka queue [ETH Listener], producer:", producer, "txHash:", ethTxToTM.TxHash.String(), "sender:", ethTxToTM.Sender.String(), "error:", err)
 		}
 
-		err = db.DeleteEthereumTxToKafka(ethTxToTM.TxHash)
+		err = db.DeleteEthereumTxToKafka(database, ethTxToTM.TxHash)
 		if err != nil {
 			logging.Fatal(err)
 		}

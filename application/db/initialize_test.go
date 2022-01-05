@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -11,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
@@ -23,44 +24,54 @@ func TestInitializeDB(t *testing.T) {
 		tmStart  int64 = 1
 	)
 
-	database, err := InitializeDB(constants.TestHomeDir, tmStart, ethStart)
+	dir, dirCloser, err := test.TempDir()
 	require.Nil(t, err)
 
-	ethStatus, err := GetEthereumStatus()
+	defer dirCloser()
+
+	func() {
+		database, err := InitializeDB(dir, tmStart, ethStart)
+		defer database.Close()
+
+		require.Nil(t, err)
+
+		ethStatus, err := GetEthereumStatus(database)
+		require.Nil(t, err)
+
+		cosmosLastCheckHeight, err := GetCosmosStatus(database)
+		require.Nil(t, err)
+
+		ethHeight := ethStatus.LastCheckHeight + 1
+		require.Equal(t, ethStart, ethHeight)
+
+		cosmosHeight := cosmosLastCheckHeight.LastCheckHeight + 1
+		require.Equal(t, tmStart, cosmosHeight)
+	}()
+
+	func() {
+		database, err := OpenDB(dir)
+		defer database.Close()
+
+		require.Nil(t, err)
+
+		err = deleteKV(database, unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime)))
+		require.Nil(t, err)
+	}()
+
+	database, err := InitializeDB(dir, tmStart, ethStart)
+	defer database.Close()
+
 	require.Nil(t, err)
-
-	cosmosLastCheckHeight, err := GetCosmosStatus()
-	require.Nil(t, err)
-
-	ethHeight := ethStatus.LastCheckHeight + 1
-	require.Equal(t, ethStart, ethHeight)
-
-	cosmosHeight := cosmosLastCheckHeight.LastCheckHeight + 1
-	require.Equal(t, tmStart, cosmosHeight)
-
-	database.Close()
-
-	database, err = OpenDB(constants.TestHomeDir)
-	require.Nil(t, err)
-
-	err = deleteKV(unboundEpochTimePrefix.GenerateStoreKey([]byte(unboundEpochTime)))
-	require.Nil(t, err)
-
-	database.Close()
-
-	database, err = InitializeDB(constants.TestHomeDir, tmStart, ethStart)
-	require.Nil(t, err)
-
-	database.Close()
 }
 
 func TestOpenDB(t *testing.T) {
-	db, err := OpenDB(constants.TestDBDir)
+	_, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
-	newDB, err := OpenDB(constants.TestDBDir)
-	require.Nil(t, newDB)
-	require.Equal(t, "Cannot acquire directory lock on \""+constants.TestDBDir+"\".  Another process is using this Badger database. error: resource temporarily unavailable", err.Error())
+	_, closeFn1, err1 := test.OpenDB(t, OpenDB)
+	defer closeFn1()
 
-	db.Close()
+	require.Nil(t, err1)
 }

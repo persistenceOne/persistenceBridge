@@ -64,7 +64,7 @@ func ShowCommand() *cobra.Command {
 
 			var validators []db.Validator
 
-			database, err := db.OpenDB(homePath + "/db")
+			database, err := db.OpenDB(filepath.Join(homePath, "db"))
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc to %v", rpcEndpoint)
@@ -77,7 +77,7 @@ func ShowCommand() *cobra.Command {
 			} else {
 				defer database.Close()
 
-				validators, err = db.GetValidators()
+				validators, err = db.GetValidators(database)
 				if err != nil {
 					return err
 				}

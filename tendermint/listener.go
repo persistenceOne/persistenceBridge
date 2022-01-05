@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/dgraph-io/badger/v3"
 	coreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -32,7 +33,7 @@ const (
 	blockPeriodRound = 10
 )
 
-func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
+func StartListening(initClientCtx *client.Context, database *badger.DB, chain *relayer.Chain, brokers []string, protoCodec *codec.ProtoCodec, sleepDuration time.Duration) {
 	ctx := context.Background()
 	kafkaProducer := utils.NewProducer(brokers, utils.SaramaConfig())
 
@@ -59,7 +60,7 @@ func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers
 
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
-		err := onNewBlock(ctx, initClientCtx, chain, kafkaProducer, protoCodec)
+		err := onNewBlock(ctx, initClientCtx, chain, kafkaProducer, database, protoCodec)
 		if err != nil {
 			logging.Error("Stopping Tendermint Listener, onNewBlock err:", err)
 
@@ -93,7 +94,7 @@ func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers
 			continue
 		}
 
-		cosmosStatus, err := db.GetCosmosStatus()
+		cosmosStatus, err := db.GetCosmosStatus(database)
 		if err != nil {
 			logging.Error("Stopping Tendermint Listener, unable to get status, Error:", err)
 
@@ -115,10 +116,10 @@ func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers
 			}
 
 			if processHeight%checkValidatorStatusPeriod == 0 {
-				CheckValidators(chain, processHeight)
+				CheckValidators(chain, database, processHeight)
 			}
 
-			err = handleTxSearchResult(initClientCtx, resultTxs, kafkaProducer, protoCodec)
+			err = handleTxSearchResult(initClientCtx, resultTxs, kafkaProducer, database, protoCodec)
 			if err != nil {
 				logging.Error("Unable to handle tendermint txs at height:", processHeight, "ERR:", err)
 
@@ -127,7 +128,7 @@ func StartListening(initClientCtx *client.Context, chain *relayer.Chain, brokers
 				continue
 			}
 
-			err = db.SetCosmosStatus(processHeight)
+			err = db.SetCosmosStatus(database, processHeight)
 			if err != nil {
 				logging.Error("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
 
@@ -146,6 +147,9 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 
 	page := 1
 	txsMaxPerPage := 100
+
+	fmt.Println("!!!!!!!!!", chain == nil)
+	fmt.Println("!!!!!!!!!1", chain.Client == nil)
 
 	txSearchResult, err := chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &page, &txsMaxPerPage, "asc")
 	if err != nil {

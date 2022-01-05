@@ -87,9 +87,23 @@ lintci-update: lintci-remove lintci-install
 
 goimports:
 	goimports -local="github.com/persistenceOne/persistenceBridge" -w .
+.PHONY: goimports
 
 generate:
 	go generate ./application/configuration/...
+.PHONY: generate
 
 deps:
 	go install github.com/globusdigital/deep-copy@latest
+.PHONY: deps
+
+tests: units integration
+.PHONY: tests
+
+units:
+	go test ./... -v -timeout=30s -tags=units
+.PHONY: units
+
+integration:
+	go test ./... -v -timeout=20m -tags=integration -p=1
+.PHONY: integration

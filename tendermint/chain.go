@@ -21,24 +21,48 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
-	chain := &relayer.Chain{}
-	chain.Key = "unusedKey"
-	chain.ChainID = configuration.GetAppConfig().Tendermint.ChainID
-	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
-	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
-	chain.GasAdjustment = 1.5
-	chain.GasPrices = "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom
-	chain.TrustingPeriod = "21h"
+func getChain() *relayer.Chain {
+	return &relayer.Chain{
+		Key:            "unusedKey",
+		ChainID:        configuration.GetAppConfig().Tendermint.ChainID,
+		RPCAddr:        configuration.GetAppConfig().Tendermint.Node,
+		AccountPrefix:  configuration.GetAppConfig().Tendermint.AccountPrefix,
+		GasAdjustment:  1.5,
+		GasPrices:      "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom,
+		TrustingPeriod: "21h",
+	}
+}
+
+func ChainInit(timeout, homePath string) (*relayer.Chain, error) {
+	chain := getChain()
 
 	to, err := time.ParseDuration(timeout)
 	if err != nil {
-		return chain, err
+		return nil, err
 	}
 
 	err = chain.Init(homePath, to, nil, true)
 	if err != nil {
-		return chain, err
+		return nil, err
+	}
+
+	return chain, nil
+}
+
+func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
+	chain, err := ChainInit(timeout, homePath)
+	if err != nil {
+		return nil, err
+	}
+
+	to, err := time.ParseDuration(timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	err = chain.Init(homePath, to, nil, true)
+	if err != nil {
+		return nil, err
 	}
 
 	if chain.KeyExists(chain.Key) {
@@ -46,21 +70,23 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 
 		err = chain.Keybase.Delete(chain.Key)
 		if err != nil {
-			return chain, err
+			return nil, err
 		}
 	}
 
 	_, err = helpers.KeyAddOrRestore(chain, chain.Key, configuration.GetAppConfig().Tendermint.CoinType)
 	if err != nil {
-		return chain, err
+		return nil, err
 	}
 
 	if err = chain.Start(); err != nil {
 		if errors.Is(err, tendermintService.ErrAlreadyStarted) {
 			chain.Error(err)
 
-			return chain, err
+			return nil, err
 		}
+
+		return nil, err
 	}
 
 	return chain, nil

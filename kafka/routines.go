@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/relayer/relayer"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -53,23 +54,22 @@ func Close(kafkaState *utils.KafkaState, end, ended chan bool) func() {
 // no need to store any db, producers and consumers are inside kafkaState struct.
 // use kafka.ProducerDeliverMessage() -> to produce message
 // use kafka.TopicConsumer -> to consume messages.
-func Routine(kafkaState *utils.KafkaState, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
+func Routine(kafkaState *utils.KafkaState, database *badger.DB, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	ctx := context.Background()
 
-	go consumeToEthMsgs(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
-	go consumeUnbondings(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
-	go consumeToTendermintMessages(ctx, kafkaState, protoCodec, chain, ethereumClient, end, ended)
+	go consumeToEthMsgs(ctx, kafkaState, database, protoCodec, chain, ethereumClient, end, ended)
+	go consumeUnbondings(ctx, kafkaState, database, protoCodec, chain, ethereumClient, end, ended)
+	go consumeToTendermintMessages(ctx, kafkaState, database, protoCodec, chain, ethereumClient, end, ended)
 
 	logging.Info("Started consumers")
 }
 
 func consumeToEthMsgs(ctx context.Context, state *utils.KafkaState,
-	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
+	database *badger.DB, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	consumerGroup := state.ConsumerGroup[utils.GroupToEth]
 
 	for {
-		msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0}
+		msgHandler := handler.NewMsgHandler(database, protoCodec, chain, ethereumClient, 0, false)
 
 		err := consumerGroup.Consume(ctx, []string{utils.ToEth}, msgHandler)
 		if err != nil {
@@ -89,7 +89,7 @@ func consumeToEthMsgs(ctx context.Context, state *utils.KafkaState,
 }
 
 func consumeToTendermintMessages(ctx context.Context, state *utils.KafkaState,
-	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
+	database *badger.DB, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	groupMsgUnbond := state.ConsumerGroup[utils.GroupMsgUnbond]
 	groupMsgDelegate := state.ConsumerGroup[utils.GroupMsgDelegate]
 	groupMsgSend := state.ConsumerGroup[utils.GroupMsgSend]
@@ -98,8 +98,7 @@ func consumeToTendermintMessages(ctx context.Context, state *utils.KafkaState,
 	groupMsgToTendermint := state.ConsumerGroup[utils.GroupToTendermint]
 
 	for {
-		msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0, WithdrawRewards: false}
+		msgHandler := handler.NewMsgHandler(database, protoCodec, chain, ethereumClient, 0, false)
 
 		err := groupRedelegate.Consume(ctx, []string{utils.Redelegate}, msgHandler)
 		if err != nil {
@@ -146,25 +145,24 @@ func consumeToTendermintMessages(ctx context.Context, state *utils.KafkaState,
 const unboundCheckPeriod = 10 * time.Second
 
 func consumeUnbondings(ctx context.Context, state *utils.KafkaState,
-	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
+	database *badger.DB, protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	ethUnbondConsumerGroup := state.ConsumerGroup[utils.GroupEthUnbond]
 
 	for {
-		nextEpochTime, err := db.GetUnboundEpochTime()
+		nextEpochTime, err := db.GetUnboundEpochTime(database)
 		if err != nil {
 			logging.Fatal(err)
 		}
 
 		if time.Now().Unix() > nextEpochTime.Epoch {
-			msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-				Chain: chain, EthClient: ethereumClient, Count: 0}
+			msgHandler := handler.NewMsgHandler(database, protoCodec, chain, ethereumClient, 0, false)
 
 			err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
 			if err != nil {
 				logging.Error("Consumer group.Consume for EthUnbond:", err)
 			}
 
-			err = db.SetUnboundEpochTime(nextEpochTime.Epoch + configuration.GetAppConfig().Kafka.EthUnbondCycleTime.Milliseconds()/1000)
+			err = db.SetUnboundEpochTime(database, nextEpochTime.Epoch+configuration.GetAppConfig().Kafka.EthUnbondCycleTime.Milliseconds()/1000)
 			if err != nil {
 				logging.Fatal(err)
 			}

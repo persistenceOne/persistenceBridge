@@ -116,14 +116,14 @@ func StartCommand() *cobra.Command {
 				}
 			}(database)
 
-			unboundEpochTime, err := db.GetUnboundEpochTime()
+			unboundEpochTime, err := db.GetUnboundEpochTime(database)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
 			log.Printf("unbound epoch time: %d\n", unboundEpochTime.Epoch)
 
-			validators, err := db.GetValidators()
+			validators, err := db.GetValidators(database)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -163,15 +163,15 @@ func StartCommand() *cobra.Command {
 			end := make(chan bool)
 			ended := make(chan bool)
 
-			go kafka.Routine(kafkaState, protoCodec, chain, ethereumClient, end, ended)
+			go kafka.Routine(kafkaState, database, protoCodec, chain, ethereumClient, end, ended)
 
-			go rpc.StartServer(pStakeConfig.RPCEndpoint)
+			go rpc.StartServer(pStakeConfig.RPCEndpoint, database)
 
 			logging.Info("Starting to listen ethereum....")
-			go ethereum.StartListening(ethereumClient, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
+			go ethereum.StartListening(ethereumClient, database, time.Duration(ethSleepTime)*time.Millisecond, pStakeConfig.Kafka.Brokers, protoCodec)
 
 			logging.Info("Starting to listen tendermint....")
-			go tendermint.StartListening(&clientContext, chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
+			go tendermint.StartListening(&clientContext, database, chain, pStakeConfig.Kafka.Brokers, protoCodec, time.Duration(tmSleepTime)*time.Millisecond)
 
 			signalChan := make(chan os.Signal, 1)
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)

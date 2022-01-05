@@ -74,7 +74,7 @@ func RemoveCommand() *cobra.Command {
 
 			var validators []db.Validator
 
-			database, err := db.OpenDB(homePath + "/db")
+			database, err := db.OpenDB(filepath.Join(homePath, "db"))
 			if err != nil {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
@@ -86,12 +86,12 @@ func RemoveCommand() *cobra.Command {
 			} else {
 				defer database.Close()
 
-				err = db.DeleteValidator(validatorAddress)
+				err = db.DeleteValidator(database, validatorAddress)
 				if err != nil {
 					return err
 				}
 
-				validators, err = db.GetValidators()
+				validators, err = db.GetValidators(database)
 				if err != nil {
 					return err
 				}

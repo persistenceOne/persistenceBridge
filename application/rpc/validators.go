@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dgraph-io/badger/v3"
+
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -18,10 +20,16 @@ type validatorResponse struct {
 	Validators []db.Validator
 }
 
-func validators(w http.ResponseWriter, _ *http.Request) {
+func newValidatorsHandler(database *badger.DB) http.HandlerFunc {
+	return func(writer http.ResponseWriter, _ *http.Request) {
+		validators(database, writer)
+	}
+}
+
+func validators(database *badger.DB, w http.ResponseWriter) {
 	var errResponse errorResponse
 
-	validators, err := db.GetValidators()
+	validators, err := db.GetValidators(database)
 	if err != nil {
 		errResponse.Message = err.Error()
 

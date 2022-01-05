@@ -37,22 +37,22 @@ func (tmTx *OutgoingTendermintTransaction) Validate() error {
 	return nil
 }
 
-func DeleteOutgoingTendermintTx(txHash string) error {
-	return deleteKV(outgoingTendermintTxPrefix.GenerateStoreKey([]byte(txHash)))
+func DeleteOutgoingTendermintTx(database *badger.DB, txHash string) error {
+	return deleteKV(database, outgoingTendermintTxPrefix.GenerateStoreKey([]byte(txHash)))
 }
 
-func SetOutgoingTendermintTx(tmTransaction OutgoingTendermintTransaction) error {
-	return set(&tmTransaction)
+func SetOutgoingTendermintTx(database *badger.DB, tmTransaction OutgoingTendermintTransaction) error {
+	return set(database, &tmTransaction)
 }
 
-func IterateOutgoingTmTx(operation func(key []byte, value []byte) error) error {
-	return iterateKeyValues(outgoingTendermintTxPrefix.GenerateStoreKey([]byte{}), operation)
+func IterateOutgoingTmTx(database *badger.DB, operation func(key []byte, value []byte) error) error {
+	return iterateKeyValues(database, outgoingTendermintTxPrefix.GenerateStoreKey([]byte{}), operation)
 }
 
-func CountTotalOutgoingTendermintTx() (int, error) {
+func CountTotalOutgoingTendermintTx(database *badger.DB) (int, error) {
 	total := 0
 
-	err := iterateKeys(outgoingTendermintTxPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
+	err := iterateKeys(database, outgoingTendermintTxPrefix.GenerateStoreKey([]byte{}), func(_ []byte, _ *badger.Item) error {
 		total++
 
 		return nil

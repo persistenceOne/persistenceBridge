@@ -1,3 +1,5 @@
+//go:build units
+
 /*
  Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
  SPDX-License-Identifier: Apache-2.0
@@ -13,11 +15,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
 
 func TestSetValidators(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const (
@@ -28,17 +32,17 @@ func TestSetValidators(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	err = SetValidator(Validator{
+	err = SetValidator(database, Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	})
 	require.Nil(t, err)
-
-	database.Close()
 }
 
 func TestGetValidators(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const (
@@ -49,19 +53,19 @@ func TestGetValidators(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	err = SetValidator(Validator{
+	err = SetValidator(database, Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	})
 	require.Nil(t, err)
 
-	expectedValidator, err := GetValidator(validatorAddress)
+	expectedValidator, err := GetValidator(database, validatorAddress)
 	require.Nil(t, err)
 
 	var testValidator Validator
 	testValidator.Address = validatorAddress
 
-	b, err := get(testValidator.Key())
+	b, err := get(database, testValidator.Key())
 	require.Nil(t, err)
 
 	err = json.Unmarshal(b, &testValidator)
@@ -69,12 +73,12 @@ func TestGetValidators(t *testing.T) {
 
 	require.Equal(t, expectedValidator, testValidator)
 
-	validatorSlice, err := GetValidators()
+	validatorSlice, err := GetValidators(database)
 	require.Nil(t, err)
 
 	var testValidators []Validator
 
-	err = iterateKeyValues(validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
+	err = iterateKeyValues(database, validatorPrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var v Validator
 
 		innerErr := json.Unmarshal(value, &v)
@@ -90,8 +94,6 @@ func TestGetValidators(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, reflect.TypeOf(validatorSlice), reflect.TypeOf(testValidators))
 	require.Equal(t, validatorSlice, testValidators)
-
-	database.Close()
 }
 
 func TestValidatorKey(t *testing.T) {
@@ -156,7 +158,9 @@ func TestValidatorValue(t *testing.T) {
 }
 
 func TestDeleteValidator(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	const (
@@ -167,20 +171,20 @@ func TestDeleteValidator(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	err = SetValidator(Validator{
+	err = SetValidator(database, Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	})
 	require.Nil(t, err)
 
-	err = DeleteValidator(validatorAddress)
+	err = DeleteValidator(database, validatorAddress)
 	require.Nil(t, err)
-
-	database.Close()
 }
 
 func TestDeleteAllValidators(t *testing.T) {
-	database, err := OpenDB(constants.TestDBDir)
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
 	require.Nil(t, err)
 
 	validatorName := "StakingFund"
@@ -189,14 +193,12 @@ func TestDeleteAllValidators(t *testing.T) {
 	validatorAddress, err := sdk.ValAddressFromBech32(valoperAddress)
 	require.Nil(t, err)
 
-	err = SetValidator(Validator{
+	err = SetValidator(database, Validator{
 		Address: validatorAddress,
 		Name:    validatorName,
 	})
 	require.Nil(t, err)
 
-	err = DeleteAllValidators()
+	err = DeleteAllValidators(database)
 	require.Nil(t, err)
-
-	database.Close()
 }

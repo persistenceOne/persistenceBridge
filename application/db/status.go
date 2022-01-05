@@ -7,6 +7,8 @@ package db
 
 import (
 	"encoding/json"
+
+	"github.com/dgraph-io/badger/v3"
 )
 
 const (
@@ -37,11 +39,11 @@ func (status *Status) Validate() error {
 	return nil
 }
 
-func getStatus(name string) (Status, error) {
+func getStatus(db *badger.DB, name string) (Status, error) {
 	var status Status
 	status.Name = name
 
-	b, err := get(status.Key())
+	b, err := get(db, status.Key())
 	if err != nil {
 		return status, err
 	}
@@ -51,27 +53,27 @@ func getStatus(name string) (Status, error) {
 	return status, err
 }
 
-func setStatus(name string, height int64) error {
+func setStatus(db *badger.DB, name string, height int64) error {
 	status := Status{
 		Name:            name,
 		LastCheckHeight: height,
 	}
 
-	return set(&status)
+	return set(db, &status)
 }
 
-func GetCosmosStatus() (Status, error) {
-	return getStatus(cosmos)
+func GetCosmosStatus(db *badger.DB) (Status, error) {
+	return getStatus(db, cosmos)
 }
 
-func SetCosmosStatus(height int64) error {
-	return setStatus(cosmos, height)
+func SetCosmosStatus(db *badger.DB, height int64) error {
+	return setStatus(db, cosmos, height)
 }
 
-func GetEthereumStatus() (Status, error) {
-	return getStatus(ethereum)
+func GetEthereumStatus(db *badger.DB) (Status, error) {
+	return getStatus(db, ethereum)
 }
 
-func SetEthereumStatus(height int64) error {
-	return setStatus(ethereum, height)
+func SetEthereumStatus(db *badger.DB, height int64) error {
+	return setStatus(db, ethereum, height)
 }

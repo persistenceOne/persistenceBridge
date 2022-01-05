@@ -8,6 +8,7 @@ package db
 import (
 	"encoding/json"
 
+	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -37,10 +38,10 @@ func (t *EthereumTxToKafka) Validate() error {
 	return nil
 }
 
-func GetAllEthereumTxToKafka() ([]EthereumTxToKafka, error) {
+func GetAllEthereumTxToKafka(database *badger.DB) ([]EthereumTxToKafka, error) {
 	var ethTxToKafkaList []EthereumTxToKafka
 
-	err := iterateKeyValues(ethereumTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
+	err := iterateKeyValues(database, ethereumTxToKafkaPrefix.GenerateStoreKey([]byte{}), func(key []byte, val []byte) error {
 		var t EthereumTxToKafka
 
 		err := json.Unmarshal(val, &t)
@@ -56,14 +57,14 @@ func GetAllEthereumTxToKafka() ([]EthereumTxToKafka, error) {
 	return ethTxToKafkaList, err
 }
 
-func AddEthereumTxToKafka(t *EthereumTxToKafka) error {
-	return set(t)
+func AddEthereumTxToKafka(database *badger.DB, t *EthereumTxToKafka) error {
+	return set(database, t)
 }
 
-func DeleteEthereumTxToKafka(txHash common.Hash) error {
+func DeleteEthereumTxToKafka(database *badger.DB, txHash common.Hash) error {
 	ethInTx := EthereumTxToKafka{
 		TxHash: txHash,
 	}
 
-	return deleteKV(ethInTx.Key())
+	return deleteKV(database, ethInTx.Key())
 }
