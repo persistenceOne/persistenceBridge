@@ -73,5 +73,5 @@ var (
 	DefaultCASPMaxAttempts         = uint(5)
 	DefaultRPCEndpoint             = "localhost:4040"
 	DefaultTendermintMaxTxAttempts = 5
-	DefaultEthZeroAddress          = "0x0000000000000000000000000000000000000000"
+	DefaultEthZeroAddress          = EthereumZeroAddress
 )

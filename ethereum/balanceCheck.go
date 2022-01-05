@@ -9,6 +9,7 @@ import (
 )
 
 var balanceWarn = false
+var ethAlertAmount *big.Int
 
 func BalanceCheck(currentHeight uint64, client *ethclient.Client) {
 	if balanceWarn || (configuration.GetAppConfig().Ethereum.BalanceCheckPeriod != 0 && currentHeight%configuration.GetAppConfig().Ethereum.BalanceCheckPeriod == 0) {
@@ -16,7 +17,6 @@ func BalanceCheck(currentHeight uint64, client *ethclient.Client) {
 		if err != nil {
 			logging.Error("Unable to fetch eth bridge admin balance")
 		}
-		ethAlertAmount := big.NewInt(0).Mul(big.NewInt(configuration.GetAppConfig().Ethereum.AlertAmount), big.NewInt(1000000000))
 		if balance.Cmp(ethAlertAmount) <= 0 {
 			balanceWarn = true
 			logging.Warn("Ethereum bridge admin address", configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress().String(), "balance has fallen below  ")

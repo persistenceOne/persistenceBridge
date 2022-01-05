@@ -8,7 +8,9 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 type EthereumTxToKafka struct {
@@ -30,7 +32,7 @@ func (t *EthereumTxToKafka) Value() ([]byte, error) {
 }
 
 func (t *EthereumTxToKafka) Validate() error {
-	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+	if t.TxHash.String() == constants.EthereumEmptyTxHash {
 		return fmt.Errorf("tx hash is empty")
 	}
 	return nil
