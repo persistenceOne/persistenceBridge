@@ -101,7 +101,7 @@ tests: units integration
 .PHONY: tests
 
 units:
-	go test ./... -v -timeout=30s -tags=units
+	go test ./... -v -timeout=5m -tags=units
 .PHONY: units
 
 integration:
