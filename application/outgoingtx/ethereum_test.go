@@ -13,16 +13,16 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/persistenceOne/persistenceBridge/application/casp"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
+	"github.com/persistenceOne/persistenceBridge/utilities/test"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-
-	"github.com/persistenceOne/persistenceBridge/application/casp"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
-	"github.com/persistenceOne/persistenceBridge/utilities/test"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -133,5 +133,5 @@ func TestSetEthBridgeAdmin(t *testing.T) {
 
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
-	require.NotEqual(t, EthEmptyAddress, ethBridgeAdmin, "ETH Bridge Admin alreadu set")
+	require.NotEqual(t, constants.EthEmptyAddress, ethBridgeAdmin, "ETH Bridge Admin alreadu set")
 }

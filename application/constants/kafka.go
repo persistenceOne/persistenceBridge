@@ -7,6 +7,8 @@ package constants
 
 import (
 	"time"
+
+	"github.com/Shopify/sarama"
 )
 
 var (
@@ -29,4 +31,11 @@ var (
 type TopicDetails struct {
 	NumPartitions     int32
 	ReplicationFactor int16
+}
+
+func ToKafkaTopicDetail(d TopicDetails) sarama.TopicDetail {
+	return sarama.TopicDetail{
+		NumPartitions:     d.NumPartitions,
+		ReplicationFactor: d.ReplicationFactor,
+	}
 }

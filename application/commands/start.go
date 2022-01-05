@@ -158,7 +158,7 @@ func StartCommand() *cobra.Command {
 				WithHomeDir(homePath)
 
 			protoCodec := codec.NewProtoCodec(clientContext.InterfaceRegistry)
-			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, pStakeConfig.Kafka.TopicDetail)
+			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, constants.ToKafkaTopicDetail(pStakeConfig.Kafka.TopicDetails))
 
 			end := make(chan bool)
 			ended := make(chan bool)
