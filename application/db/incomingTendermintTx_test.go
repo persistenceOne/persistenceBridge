@@ -131,7 +131,7 @@ func TestIncomingTendermintTxValue(t *testing.T) {
 
 func TestIncomingTendermintTxValidate(t *testing.T) {
 	tmInTx := IncomingTendermintTx{}
-	require.Equal(t, "empty tx hash", tmInTx.Validate().Error())
+	require.ErrorIs(t, tmInTx.Validate(), ErrEmptyTransaction)
 
 	const (
 		txHash     = "DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"

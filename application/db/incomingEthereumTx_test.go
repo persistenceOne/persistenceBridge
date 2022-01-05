@@ -55,7 +55,7 @@ func TestGetIncomingEthereumTx(t *testing.T) {
 
 	tx, err := GetIncomingEthereumTx(ethInTx.TxHash)
 	require.Nil(t, err)
-	require.Equal(t, ethInTx, tx)
+	require.Equal(t, ethInTx, &tx)
 
 	err = db.Close()
 	require.Nil(t, err)

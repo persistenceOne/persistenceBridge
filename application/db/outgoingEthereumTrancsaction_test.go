@@ -74,6 +74,7 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 	}
 	err = ethTransaction.Validate()
 	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
+	require.Equal(t, fmt.Sprintf("number of messages for ethHash is 0: hash %s", ethTransaction.TxHash), err.Error())
 
 	emptyTransaction := OutgoingEthereumTransaction{}
 	require.Equal(t, "tx hash is empty", emptyTransaction.Validate().Error())
