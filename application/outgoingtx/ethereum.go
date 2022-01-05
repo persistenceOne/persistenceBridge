@@ -70,7 +70,7 @@ const (
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
 
-	if ethBridgeAdmin.String() == EthEmptyAddress {
+	if ethBridgeAdmin.String() == constants.EthEmptyAddressString {
 		err := setEthBridgeAdmin()
 		if err != nil {
 			return common.Hash{}, err
@@ -173,10 +173,8 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature 
 	return
 }
 
-var EthEmptyAddress = common.Address{}.String()
-
 func setEthBridgeAdmin() error {
-	if ethBridgeAdmin.String() != EthEmptyAddress {
+	if ethBridgeAdmin.String() != constants.EthEmptyAddressString {
 		logging.Warn("outgoingtx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 
 		return nil

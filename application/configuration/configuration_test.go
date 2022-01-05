@@ -30,9 +30,7 @@ func TestSetConfigAndChange(t *testing.T) {
 	appConfigOld := appConfig.DeepCopy()
 
 	newConfig := GetAppConfig()
-	newConfig.Kafka.TopicDetail.ReplicaAssignment = map[int32][]int32{
-		99: {100},
-	}
+	newConfig.Kafka.Brokers[0] = "100000"
 
 	require.Equal(t, appConfig, appConfigOld)
 	require.NotEqual(t, appConfig, newConfig)

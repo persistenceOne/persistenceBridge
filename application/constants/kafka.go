@@ -7,8 +7,6 @@ package constants
 
 import (
 	"time"
-
-	"github.com/Shopify/sarama"
 )
 
 var (
@@ -22,8 +20,13 @@ var (
 	DefaultEthUnbondCycleTime = 259200 * time.Second // 3days in seconds
 
 	// TopicDetail : configs only required for admin to create topics if not present.
-	TopicDetail = sarama.TopicDetail{
+	TopicDetail = TopicDetails{
 		NumPartitions:     1,
 		ReplicationFactor: 1,
 	}
 )
+
+type TopicDetails struct {
+	NumPartitions     int32
+	ReplicationFactor int16
+}

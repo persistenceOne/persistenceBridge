@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 const (
@@ -65,4 +66,7 @@ const (
 
 var (
 	DefaultPBridgeHome = os.ExpandEnv(DefaultPBridgeHomePath)
+
+	EthEmptyAddress       = common.Address{}
+	EthEmptyAddressString = EthEmptyAddress.String()
 )

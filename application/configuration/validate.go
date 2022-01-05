@@ -91,11 +91,11 @@ func (c *tendermintConfig) validate() error {
 
 // Validate :panics if config is not valid
 func (c *kafkaConfig) validate() error {
-	if c.TopicDetail.ReplicationFactor < 1 {
+	if c.TopicDetails.ReplicationFactor < 1 {
 		return ErrTooLowReplicationFactor
 	}
 
-	if c.TopicDetail.NumPartitions < 1 {
+	if c.TopicDetails.NumPartitions < 1 {
 		return ErrTooFewParticipants
 	}
 

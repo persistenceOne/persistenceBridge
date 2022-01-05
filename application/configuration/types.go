@@ -9,8 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Shopify/sarama"
-
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
@@ -102,8 +100,8 @@ func newCASPConfig() caspConfig {
 
 type kafkaConfig struct {
 	// Brokers: List of brokers to run kafka cluster
-	Brokers      []string
-	TopicDetail  sarama.TopicDetail
+	Brokers []string
+	constants.TopicDetails
 	ToEth        TopicConsumer
 	ToTendermint TopicConsumer
 	// Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
@@ -130,8 +128,8 @@ func newTelegramBot() telegramBot {
 
 func newKafkaConfig() kafkaConfig {
 	return kafkaConfig{
-		Brokers:     constants.DefaultBrokers,
-		TopicDetail: constants.TopicDetail,
+		Brokers:      constants.DefaultBrokers,
+		TopicDetails: constants.TopicDetail,
 		ToEth: TopicConsumer{
 			MinBatchSize: constants.MinEthBatchSize,
 			MaxBatchSize: constants.MaxEthBatchSize,
