@@ -1,30 +1,35 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package ethereum
 
 import (
 	"context"
 	"fmt"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	contracts2 "github.com/persistenceOne/persistenceBridge/ethereum/contracts"
+	"github.com/persistenceOne/persistenceBridge/application/db"
+	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
+	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Block, kafkaProducer *sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range block.Transactions() {
 		if transaction.To() != nil {
-			var contract contracts2.ContractI
+			var contract contracts.ContractI
 			switch transaction.To().String() {
-			case contracts2.LiquidStaking.GetAddress().String():
-				contract = &contracts2.LiquidStaking
-			case contracts2.TokenWrapper.GetAddress().String():
-				contract = &contracts2.TokenWrapper
+			case contracts.LiquidStaking.GetAddress().String():
+				contract = &contracts.LiquidStaking
+			case contracts.TokenWrapper.GetAddress().String():
+				contract = &contracts.TokenWrapper
 			default:
 			}
 			if contract != nil {
@@ -40,7 +45,7 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 	return nil
 }
 
-func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts2.ContractI) error {
+func collectEthTx(client *ethclient.Client, ctx *context.Context, protoCodec *codec.ProtoCodec, transaction *types.Transaction, contract contracts.ContractI) error {
 	receipt, err := client.TransactionReceipt(*ctx, transaction.Hash())
 	if err != nil {
 		logging.Error("Unable to get receipt of tx:", transaction.Hash().String(), "Error:", err)

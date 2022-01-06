@@ -1,17 +1,23 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package commands
 
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/spf13/cobra"
-	"log"
-	"strings"
-	"time"
 )
 
 func RemoveCommand() *cobra.Command {
@@ -20,7 +26,7 @@ func RemoveCommand() *cobra.Command {
 		Short: "Remove validator address to signing group",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			homePath, err := cmd.Flags().GetString(constants.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -32,12 +38,12 @@ func RemoveCommand() *cobra.Command {
 				return err
 			}
 
-			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+			rpcEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			kafkaPorts, err := cmd.Flags().GetString(constants2.FlagKafkaPorts)
+			kafkaPorts, err := cmd.Flags().GetString(constants.FlagKafkaPorts)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -104,8 +110,8 @@ func RemoveCommand() *cobra.Command {
 			return nil
 		},
 	}
-	removeCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	removeCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
-	removeCommand.Flags().String(constants2.FlagKafkaPorts, constants2.DefaultKafkaPorts, "broker ports kafka is running on")
+	removeCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
+	removeCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	removeCommand.Flags().String(constants.FlagKafkaPorts, constants.DefaultKafkaPorts, "broker ports kafka is running on")
 	return removeCommand
 }

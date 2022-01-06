@@ -1,20 +1,27 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package outgoingTx
 
 import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
-	"math/big"
 )
 
 var ethBridgeAdmin common.Address
@@ -41,7 +48,7 @@ func EthereumWrapAndStakeToken(client *ethclient.Client, msgs []db.WrapTokenMsg)
 
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
-	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
+	if ethBridgeAdmin.String() == constants.EthereumZeroAddress {
 		err := setEthBridgeAdmin()
 		if err != nil {
 			return common.Hash{}, err
@@ -113,7 +120,7 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, e
 }
 
 func setEthBridgeAdmin() error {
-	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
+	if ethBridgeAdmin.String() != constants.EthereumZeroAddress {
 		logging.Warn("outgoingTx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 		return nil
 	}

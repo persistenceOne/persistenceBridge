@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package contracts
 
 import (
@@ -8,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
@@ -17,7 +22,7 @@ var TokenWrapper = Contract{
 	address: common.HexToAddress(configuration.GetAppConfig().Ethereum.TokenWrapperAddress),
 	abi:     abi.ABI{},
 	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
-		constants2.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
+		constants.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
 	},
 }
 

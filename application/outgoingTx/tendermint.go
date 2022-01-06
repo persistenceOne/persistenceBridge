@@ -1,10 +1,13 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package outgoingTx
 
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -18,7 +21,6 @@ import (
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	"github.com/tendermint/tendermint/crypto"
-	tmTypes "github.com/tendermint/tendermint/types"
 )
 
 var tmPublicKey cryptotypes.PubKey
@@ -189,8 +191,4 @@ func setTMPublicKey() error {
 	}
 	tmPublicKey = casp.GetTMPubKey(uncompressedPublicKeys.Items[0])
 	return nil
-}
-
-func GenerateTendermintTxHash(txBytes []byte) string {
-	return strings.ToUpper(hex.EncodeToString(tmTypes.Tx(txBytes).Hash()))
 }

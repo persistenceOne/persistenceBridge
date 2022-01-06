@@ -1,11 +1,17 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package rpc
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var rpcRunning bool
@@ -21,7 +27,7 @@ func TestAddValidator(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
 
@@ -49,7 +55,7 @@ func TestRemoveValidator(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
 
@@ -76,7 +82,7 @@ func TestShowValidators(t *testing.T) {
 		rpcRunning = true
 	}
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
 

@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package casp
 
 import (
@@ -20,8 +25,8 @@ func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 
 	pubKey := ecdsa.PublicKey{
 		Curve: btcec.S256(),
-		X:     &x,
-		Y:     &y,
+		X:     x,
+		Y:     y,
 	}
 	pubkeyObject := (*btcec.PublicKey)(&pubKey)
 	pk := pubkeyObject.SerializeCompressed()
@@ -33,14 +38,14 @@ func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	x, y := getXY(caspPubKey)
 	publicKey := ecdsa.PublicKey{
 		Curve: crypto.S256(),
-		X:     &x,
-		Y:     &y,
+		X:     x,
+		Y:     y,
 	}
 	return publicKey
 }
 
 // getXY caspPubKey should include prefix "04"
-func getXY(caspPubKey string) (big.Int, big.Int) {
+func getXY(caspPubKey string) (x, y *big.Int) {
 	s := strings.Split(caspPubKey, "")
 	if s[0] != "0" && s[1] != "4" {
 		logging.Fatal("invalid casp public key")
@@ -53,9 +58,7 @@ func getXY(caspPubKey string) (big.Int, big.Int) {
 	if len(pubKeyBytes) != 64 {
 		logging.Fatal(fmt.Sprintf("invalid casp public key, length (%v) not equal to 64", len(pubKeyBytes)))
 	}
-	var x big.Int
 	x.SetBytes(pubKeyBytes[0:32])
-	var y big.Int
 	y.SetBytes(pubKeyBytes[32:])
-	return x, y
+	return
 }
