@@ -88,9 +88,9 @@ func GetEmptyTxHashesTM() ([]KafkaTendermintConsume, error) {
 	var list []KafkaTendermintConsume
 	err := iterateKeyValues(kafkaTendermintConsumePrefix.GenerateStoreKey([]byte{}), func(key []byte, value []byte) error {
 		var k KafkaTendermintConsume
-		err := json.Unmarshal(value, &k)
-		if err != nil {
-			return err
+		innerErr := json.Unmarshal(value, &k)
+		if innerErr != nil {
+			return innerErr
 		}
 		if len(k.TxHash.Bytes()) == 0 {
 			list = append(list, k)

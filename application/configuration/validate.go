@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package configuration
 
 import (
@@ -43,16 +48,16 @@ func (config ethereumConfig) validate() error {
 	if config.GasFeeCap <= 0 {
 		return fmt.Errorf("invalid eth gas fee cap")
 	}
-	if config.LiquidStakingAddress == constants.DefaultEthZeroAddress || !common.IsHexAddress(config.LiquidStakingAddress) {
+	if config.LiquidStakingAddress == constants.EthereumZeroAddress || !common.IsHexAddress(config.LiquidStakingAddress) {
 		return fmt.Errorf("empty liquid staking contract address")
 	}
-	if config.TokenWrapperAddress == constants.DefaultEthZeroAddress || !common.IsHexAddress(config.TokenWrapperAddress) {
+	if config.TokenWrapperAddress == constants.EthereumZeroAddress || !common.IsHexAddress(config.TokenWrapperAddress) {
 		return fmt.Errorf("empty token wrapper contract address")
 	}
-	if config.bridgeAdminAddress.String() == "" || config.bridgeAdminAddress.String() == constants.DefaultEthZeroAddress {
+	if config.bridgeAdminAddress.String() == constants.EthereumZeroAddress {
 		return fmt.Errorf("bridgeAdminAddress is empty")
 	}
-	if config.BalanceCheckPeriod != 0 && config.AlertAmount <= 0 {
+	if config.BalanceCheckPeriod <= 0 || config.AlertAmount <= 0 {
 		return fmt.Errorf("invalid ethereum balance alert configuration")
 	}
 	return nil
@@ -69,7 +74,7 @@ func (config tendermintConfig) validate() error {
 		return fmt.Errorf("invalied tendermint gas price %v", err)
 	}
 	if config.GasAdjustment <= 1.0 {
-		return fmt.Errorf("tendermint gas adjustment should be greater than 1 (possibly 1.5, current: %v)", config.GasAdjustment)
+		return fmt.Errorf("tendermint gas adjustment should be greater than 1 (recommended 1.5, current: %v)", config.GasAdjustment)
 	}
 	if config.MinimumWrapAmount < 0 {
 		return fmt.Errorf("minimum wrap amount cannot be less than 0")
