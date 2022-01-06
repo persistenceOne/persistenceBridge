@@ -1,23 +1,29 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package outgoingTx
 
 import (
 	"context"
+	"math/big"
+	"reflect"
+	"regexp"
+	"strings"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
-	"math/big"
-	"reflect"
-	"regexp"
-	"strings"
-
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestEthereumWrapToken(t *testing.T) {
@@ -25,8 +31,8 @@ func TestEthereumWrapToken(t *testing.T) {
 
 	ethAddress, _ := casp.GetEthAddress()
 	wrapTokenMsg := []db.WrapTokenMsg{{
-		Address: ethAddress,
-		Amount:  &big.Int{}},
+		Address:       ethAddress,
+		StakingAmount: &big.Int{}},
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
@@ -49,7 +55,7 @@ func TestSendTxToEth(t *testing.T) {
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
 	ethAddress, _ := casp.GetEthAddress()
-	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperMetaData.ABI))
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
 	addresses[0] = ethAddress
@@ -79,7 +85,7 @@ func TestGetEthSignature(t *testing.T) {
 	require.Equal(t, nil, err)
 	nonce, err := ethClient.PendingNonceAt(ctx, ethBridgeAdmin)
 	require.Equal(t, nil, err)
-	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
+	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperMetaData.ABI))
 	require.Equal(t, nil, err)
 	addresses := make([]common.Address, 1)
 	amounts := make([]*big.Int, 1)
@@ -112,5 +118,5 @@ func TestSetEthBridgeAdmin(t *testing.T) {
 	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
-	require.NotEqual(t, "0x0000000000000000000000000000000000000000", ethBridgeAdmin, "ETH Bridge Admin alreadu set")
+	require.NotEqual(t, constants.EthereumZeroAddress, ethBridgeAdmin, "ETH Bridge Admin alreadu set")
 }

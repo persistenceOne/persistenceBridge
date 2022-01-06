@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package constants
 
 import (
@@ -68,5 +73,5 @@ var (
 	DefaultCASPMaxAttempts         = uint(5)
 	DefaultRPCEndpoint             = "localhost:4040"
 	DefaultTendermintMaxTxAttempts = 5
-	DefaultEthZeroAddress          = "0x0000000000000000000000000000000000000000"
+	DefaultEthZeroAddress          = EthereumZeroAddress
 )

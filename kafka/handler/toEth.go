@@ -1,3 +1,8 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package handler
 
 import (
@@ -117,16 +122,17 @@ func SendBatchToEth(index uint64, handler MsgHandler) error {
 			}
 		}
 		return err
-	} else {
-		err = db.UpdateKafkaEthereumConsumeTxHash(index, hash)
-		if err != nil {
-			logging.Fatal(err)
-		}
-		err = db.SetOutgoingEthereumTx(db.NewOutgoingETHTransaction(hash, msgs))
-		if err != nil {
-			logging.Fatal(err)
-		}
 	}
+
+	err = db.UpdateKafkaEthereumConsumeTxHash(index, hash)
+	if err != nil {
+		logging.Fatal(err)
+	}
+	err = db.SetOutgoingEthereumTx(db.NewOutgoingETHTransaction(hash, msgs))
+	if err != nil {
+		logging.Fatal(err)
+	}
+
 	logging.Info("Broadcast Eth Tx hash:", hash.String())
 	checkKafkaEthereumConsumeDBAndAddToRetry()
 	return nil

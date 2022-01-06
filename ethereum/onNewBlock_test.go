@@ -1,18 +1,24 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package ethereum
 
 import (
 	"context"
+	"math/big"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestOnNewBlock(t *testing.T) {
@@ -29,7 +35,7 @@ func TestOnNewBlock(t *testing.T) {
 	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 
-	database, err := db.OpenDB(constants2.TestDbDir)
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
 
@@ -39,8 +45,8 @@ func TestOnNewBlock(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg := db.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
+		Address:       Address,
+		StakingAmount: amt,
 	}
 	txd := []db.WrapTokenMsg{wrapTokenMsg}
 
@@ -51,7 +57,7 @@ func TestOnNewBlock(t *testing.T) {
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer, nil)
 	require.Equal(t, nil, err)
 
 	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
@@ -59,8 +65,8 @@ func TestOnNewBlock(t *testing.T) {
 	amt = new(big.Int)
 	amt.SetInt64(1000)
 	wrapTokenMsg = db.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
+		Address:       Address,
+		StakingAmount: amt,
 	}
 	txd = []db.WrapTokenMsg{wrapTokenMsg}
 
@@ -71,7 +77,7 @@ func TestOnNewBlock(t *testing.T) {
 
 	err = db.SetOutgoingEthereumTx(ethTransaction)
 	require.Equal(t, nil, err)
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, &kafkaProducer, nil)
 	require.Equal(t, nil, err)
 
 }

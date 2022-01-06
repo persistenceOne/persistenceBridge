@@ -1,14 +1,18 @@
+/*
+ Copyright [2019] - [2021], PERSISTENCE TECHNOLOGIES PTE. LTD. and the persistenceBridge contributors
+ SPDX-License-Identifier: Apache-2.0
+*/
+
 package outgoingTx
 
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	cryptoTypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authSigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -21,7 +25,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-var tmPublicKey cryptotypes.PubKey
+var tmPublicKey cryptoTypes.PubKey
 
 // LogMessagesAndBroadcast filters msgs to check repeated withdraw reward message
 func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
@@ -63,7 +67,7 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 }
 
 // Timeout height should be greater than current block height or set it 0 for none.
-func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
+func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptoTypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
@@ -116,7 +120,7 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	return bytesToSign, txBuilder, txFactory, nil
 }
 
-func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, error) {
+func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptoTypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from).WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode)
@@ -215,56 +219,4 @@ func prepareFactory(clientCtx client.Context, txf tx.Factory) (tx.Factory, error
 	}
 
 	return txf, nil
-}
-
-func calculateGas(queryFunc func(string, []byte) ([]byte, int64, error), txf tx.Factory, msgs ...sdk.Msg) (txTypes.SimulateResponse, uint64, error) {
-	txBytes, err := buildSimTx(txf, msgs...)
-	if err != nil {
-		return txTypes.SimulateResponse{}, 0, err
-	}
-
-	bz, _, err := queryFunc("/cosmos.tx.v1beta1.Service/Simulate", txBytes)
-	if err != nil {
-		return txTypes.SimulateResponse{}, 0, err
-	}
-
-	var simRes txTypes.SimulateResponse
-
-	if err := simRes.Unmarshal(bz); err != nil {
-		return txTypes.SimulateResponse{}, 0, err
-	}
-
-	return simRes, uint64(txf.GasAdjustment() * float64(simRes.GasInfo.GasUsed)), nil
-}
-
-type protoTxProvider interface {
-	GetProtoTx() *txTypes.Tx
-}
-
-func buildSimTx(txf tx.Factory, msgs ...sdk.Msg) ([]byte, error) {
-	txb, err := tx.BuildUnsignedTx(txf, msgs...)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create an empty signature literal as the ante handler will populate with a
-	// sentinel pubkey.
-	sig := signing.SignatureV2{
-		PubKey: &secp256k1.PubKey{},
-		Data: &signing.SingleSignatureData{
-			SignMode: txf.SignMode(),
-		},
-		Sequence: txf.Sequence(),
-	}
-	if err := txb.SetSignatures(sig); err != nil {
-		return nil, err
-	}
-
-	protoProvider, ok := txb.(protoTxProvider)
-	if !ok {
-		return nil, fmt.Errorf("cannot simulate amino tx")
-	}
-	simReq := txTypes.SimulateRequest{Tx: protoProvider.GetProtoTx()}
-
-	return simReq.Marshal()
 }
