@@ -85,3 +85,15 @@ jobs:
         run: make deps
       - name: Build
         run: make
+
+  tendermint-sec:
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Run Tendermint Gosec
+        uses: actions/checkout@v2
+      - name: Run Gosec Security Scanner
+        uses: informalsystems/gosec@master
+        with:
+          args: ./...

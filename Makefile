@@ -95,6 +95,7 @@ generate:
 
 deps:
 	go install github.com/globusdigital/deep-copy@latest
+	go install github.com/informalsystems/gosec@90f4a5c8a1451bcc79296404ec30a513f007584b
 .PHONY: deps
 
 tests: units integration
