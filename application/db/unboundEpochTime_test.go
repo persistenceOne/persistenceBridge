@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -41,8 +40,6 @@ func TestGetUnboundEpochTime(t *testing.T) {
 
 	newUnboundEpochTime, err := GetUnboundEpochTime()
 	require.Nil(t, err)
-
-	require.Equal(t, reflect.TypeOf(epochTime), reflect.TypeOf(newUnboundEpochTime.Epoch))
 	require.Equal(t, newUnboundEpochTime.Epoch, epochTime)
 
 	database.Close()
@@ -57,7 +54,6 @@ func TestUnboundEpochTimeKey(t *testing.T) {
 	key := unboundEpochTime.Key()
 	expectedKey := unboundEpochTimePrefix.GenerateStoreKey([]byte("UNBOUND_EPOCH_TIME"))
 
-	require.Equal(t, reflect.TypeOf(key), reflect.TypeOf(expectedKey))
 	require.Equal(t, expectedKey, key)
 }
 
@@ -72,7 +68,6 @@ func TestUnboundEpochTimeValue(t *testing.T) {
 	value, err := unboundEpochTime.Value()
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(value), reflect.TypeOf(expectedValue))
 	require.Equal(t, expectedValue, value)
 }
 
@@ -84,6 +79,5 @@ func TestUnboundEpochTimePrefix(t *testing.T) {
 
 	Prefix := unboundEpochTime.prefix()
 
-	require.Equal(t, reflect.TypeOf(Prefix), reflect.TypeOf(unboundEpochTimePrefix))
 	require.Equal(t, unboundEpochTimePrefix, Prefix)
 }

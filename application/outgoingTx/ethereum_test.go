@@ -8,7 +8,6 @@ package outgoingTx
 import (
 	"context"
 	"math/big"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -44,7 +43,6 @@ func TestEthereumWrapToken(t *testing.T) {
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.NotNil(t, txHash)
 	require.Equal(t, true, re.MatchString(txHash.String()))
-	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txHash))
 	require.NotEqual(t, nil, txHash)
 	require.Equal(t, 32, len(txHash))
 }
@@ -66,7 +64,6 @@ func TestSendTxToEth(t *testing.T) {
 	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`0x[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(txToETHhash.String()))
-	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txToETHhash))
 	require.NotNil(t, txToETHhash)
 	require.LessOrEqual(t, 0, len(txToETHhash))
 	require.Equal(t, 32, len(txToETHhash))
@@ -105,8 +102,6 @@ func TestGetEthSignature(t *testing.T) {
 	signer := types.NewEIP155Signer(chainID)
 	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx, signer)
 	require.Nil(t, errorGettingSignature, "Error getting signature response")
-	require.Equal(t, reflect.TypeOf([]byte{}), reflect.TypeOf(ethSignature))
-	require.Equal(t, reflect.TypeOf(0), reflect.TypeOf(signatureResponse))
 	require.Equal(t, 64, len(ethSignature))
 	require.NotEqual(t, -1, signatureResponse)
 	require.NotNil(t, ethSignature)

@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -74,7 +73,6 @@ func TestGetValidators(t *testing.T) {
 		return nil
 	})
 
-	require.Equal(t, reflect.TypeOf(validatorSlice), reflect.TypeOf(testValidators))
 	require.Equal(t, validatorSlice, testValidators)
 
 	database.Close()
@@ -111,7 +109,6 @@ func TestValidatorPrefix(t *testing.T) {
 	}
 	Prefix := Validator.prefix()
 
-	require.Equal(t, reflect.TypeOf(Prefix), reflect.TypeOf(validatorPrefix))
 	require.Equal(t, Prefix, validatorPrefix)
 }
 
