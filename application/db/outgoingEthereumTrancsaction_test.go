@@ -6,14 +6,14 @@
 package db
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
 	"github.com/stretchr/testify/require"
 	"math/big"
-	"reflect"
 	"testing"
 )
 
@@ -23,9 +23,9 @@ func TestDeleteOutgoingEthereumTx(t *testing.T) {
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{{
-			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
-			Amount:  big.NewInt(1),
+		Messages: []WrapTokenMsg{{
+			Address:       common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+			StakingAmount: big.NewInt(1),
 		}},
 	}
 	err = SetOutgoingEthereumTx(ethTransaction)
@@ -40,7 +40,7 @@ func TestDeleteOutgoingEthereumTx(t *testing.T) {
 func TestOutgoingEthereumTransactionKey(t *testing.T) {
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{},
+		Messages: []WrapTokenMsg{},
 	}
 
 	expectedKey := outgoingEthereumTxPrefix.GenerateStoreKey(ethTransaction.TxHash.Bytes())
@@ -48,24 +48,51 @@ func TestOutgoingEthereumTransactionKey(t *testing.T) {
 	require.Equal(t, expectedKey, key)
 }
 
+func TestWrapTokenMsgValidate(t *testing.T) {
+	wrapTokenMsg := WrapTokenMsg{}
+
+	require.Equal(t, fmt.Errorf("from address empty"), wrapTokenMsg.Validate())
+
+	wrapTokenMsg.FromAddress, _ = sdkTypes.AccAddressFromBech32("cosmos1l44v83h34uv2rz3q4eel8l538v8xfv3uyuvlqs")
+	require.Equal(t, fmt.Errorf("invalid eth address"), wrapTokenMsg.Validate())
+
+	wrapTokenMsg.Address = common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
+	require.Equal(t, fmt.Errorf("invalid tm tx hash"), wrapTokenMsg.Validate())
+
+	wrapTokenMsg.TendermintTxHash, _ = hex.DecodeString("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9")
+	require.Equal(t, fmt.Errorf("both amounts nil"), wrapTokenMsg.Validate())
+
+	wrapTokenMsg.StakingAmount = sdkTypes.ZeroInt().BigInt()
+	wrapTokenMsg.WrapAmount = sdkTypes.ZeroInt().BigInt()
+	require.Equal(t, fmt.Errorf("both amounts zero"), wrapTokenMsg.Validate())
+
+	wrapTokenMsg.WrapAmount = sdkTypes.OneInt().BigInt()
+	require.Nil(t, wrapTokenMsg.Validate())
+}
+
 func TestOutgoingEthereumTransactionValidate(t *testing.T) {
-	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
-		Address: Address,
-		Amount:  big.NewInt(1),
+	wrapTokenMsg := WrapTokenMsg{
+		Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
 	}
-	tx := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	tx := []WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
 		Messages: tx,
 	}
 	err := ethTransaction.Validate()
-	require.Nil(t, err)
+	require.Equal(t, fmt.Sprintf("from address empty"), err.Error())
+
+	wrapTokenMsg.FromAddress, _ = sdkTypes.AccAddressFromBech32("cosmos1l44v83h34uv2rz3q4eel8l538v8xfv3uyuvlqs")
+	wrapTokenMsg.TendermintTxHash, _ = hex.DecodeString("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9")
+	wrapTokenMsg.StakingAmount = sdkTypes.ZeroInt().BigInt()
+	wrapTokenMsg.WrapAmount = sdkTypes.OneInt().BigInt()
+	ethTransaction.Messages = []WrapTokenMsg{wrapTokenMsg}
+	require.Equal(t, nil, ethTransaction.Validate())
 
 	ethTransaction = OutgoingEthereumTransaction{
 		TxHash:   common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{},
+		Messages: []WrapTokenMsg{},
 	}
 	err = ethTransaction.Validate()
 	require.Equal(t, fmt.Sprintf("number of messages for ethHash %s is 0", ethTransaction.TxHash), err.Error())
@@ -76,9 +103,9 @@ func TestOutgoingEthereumTransactionValidate(t *testing.T) {
 func TestOutgoingEthereumTransactionValue(t *testing.T) {
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{{
-			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
-			Amount:  big.NewInt(1),
+		Messages: []WrapTokenMsg{{
+			Address:       common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+			StakingAmount: big.NewInt(1),
 		}},
 	}
 	expectedValue, _ := json.Marshal(ethTransaction)
@@ -111,9 +138,9 @@ func TestIterateEthTx(t *testing.T) {
 
 func TestNewETHTransaction(t *testing.T) {
 	txHash := common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375")
-	messages := []outgoingTx.WrapTokenMsg{{
-		Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
-		Amount:  big.NewInt(1),
+	messages := []WrapTokenMsg{{
+		Address:       common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+		StakingAmount: big.NewInt(1),
 	}}
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash:   txHash,
@@ -124,7 +151,6 @@ func TestNewETHTransaction(t *testing.T) {
 	err := outgoingEthereumTransaction.Validate()
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(ethTransaction), reflect.TypeOf(outgoingEthereumTransaction))
 	require.Equal(t, ethTransaction, outgoingEthereumTransaction)
 }
 
@@ -134,9 +160,9 @@ func TestSetEthereumTx(t *testing.T) {
 
 	ethTransaction := OutgoingEthereumTransaction{
 		TxHash: common.HexToHash("0x134bd3b07e4a39e8e3fa4246533ac7a897ec64c52cbb3a028fe470ce0f1a1375"),
-		Messages: []outgoingTx.WrapTokenMsg{{
-			Address: common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
-			Amount:  big.NewInt(1),
+		Messages: []WrapTokenMsg{{
+			Address:       common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")),
+			StakingAmount: big.NewInt(1),
 		}},
 	}
 	err = SetOutgoingEthereumTx(ethTransaction)

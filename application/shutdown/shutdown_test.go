@@ -15,7 +15,7 @@ func TestGetBridgeStopSignal(t *testing.T) {
 }
 
 func TestSetBridgeStopSignal(t *testing.T) {
-	SetBridgeStopSignal(true)
+	StopBridge()
 	require.Equal(t, true, seal)
 	require.Equal(t, true, GetBridgeStopSignal())
 }

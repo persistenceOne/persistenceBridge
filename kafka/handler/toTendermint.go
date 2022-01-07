@@ -6,6 +6,7 @@
 package handler
 
 import (
+	"encoding/hex"
 	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -49,19 +50,31 @@ ConsumerLoop:
 	if kafkaMsg == nil {
 		return errors.New("kafka returned nil message")
 	}
-	err := SendBatchToTendermint(kafkaMsgs, m)
+
+	// 1.add to database
+	var msgBytes [][]byte
+	for _, msg := range kafkaMsgs {
+		msgBytes = append(msgBytes, msg.Value)
+	}
+	index, err := db.AddKafkaTendermintConsume(kafkaMsg.Offset, msgBytes)
 	if err != nil {
 		return err
 	}
+	// 2.set kafka offset so all next steps are independent of kafka consumer queue.
 	session.MarkMessage(kafkaMsg, "")
+
+	err = SendBatchToTendermint(index, m)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *codec.ProtoCodec) ([]sdk.Msg, error) {
+func ConvertMsgBytesToSDKMsg(msgBytes [][]byte, protoCodec *codec.ProtoCodec) ([]sdk.Msg, error) {
 	var msgs []sdk.Msg
-	for _, kafkaMsg := range kafkaMsgs {
+	for _, msgByte := range msgBytes {
 		var msg sdk.Msg
-		err := protoCodec.UnmarshalInterface(kafkaMsg.Value, &msg)
+		err := protoCodec.UnmarshalInterface(msgByte, &msg)
 		if err != nil {
 			return nil, err
 		}
@@ -71,10 +84,14 @@ func ConvertKafkaMsgsToSDKMsg(kafkaMsgs []sarama.ConsumerMessage, protoCodec *co
 }
 
 // SendBatchToTendermint :
-func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) error {
-	msgs, err := ConvertKafkaMsgsToSDKMsg(kafkaMsgs, handler.ProtoCodec)
+func SendBatchToTendermint(index uint64, handler MsgHandler) error {
+	kafkaConsume, err := db.GetKafkaTendermintConsume(index)
 	if err != nil {
-		return err
+		logging.Fatal(err)
+	}
+	msgs, err := ConvertMsgBytesToSDKMsg(kafkaConsume.MsgBytes, handler.ProtoCodec)
+	if err != nil {
+		logging.Fatal(err)
 	}
 
 	countPendingTx, err := db.CountTotalOutgoingTendermintTx()
@@ -82,51 +99,95 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		logging.Fatal(err)
 	}
 
+	attempts := 0
+	txBroadcastSuccess := false
 	for {
+		attempts++
 		if countPendingTx == 0 {
 			response, err := outgoingTx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
 			if err != nil {
 				logging.Error("Unable to broadcast tendermint messages:", err)
-				config := utils.SaramaConfig()
-				producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
-				defer func() {
-					err := producer.Close()
-					if err != nil {
-						logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", err)
-					}
-				}()
-
-				for _, msg := range msgs {
-					if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
-						msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
-						if err != nil {
-							logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
-							// TODO @Puneet continue or return? ~ this case should never come, log(ALERT), continue
-						}
-						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
-						if err != nil {
-							logging.Error("Retry txs: Failed to add msg to kafka queue, Msg:", msg.String(), "Error:", err)
-							// TODO @Puneet continue or return? ~ let it continue, log the message, will have to send manually.
-						}
-						logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
-					}
-				}
-				return nil
-			} else {
-				err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
-				if err != nil {
-					logging.Fatal(err)
-				}
+				break
 			}
+			hexBytes, err := hex.DecodeString(response.TxHash)
+			if err != nil {
+				logging.Fatal(err)
+			}
+			err = db.UpdateKafkaTendermintConsumeTxHash(index, hexBytes)
+			if err != nil {
+				logging.Fatal(err)
+			}
+
 			logging.Info("Broadcast Tendermint Tx Hash:", response.TxHash)
-			return nil
+			txBroadcastSuccess = true
+			err = db.SetOutgoingTendermintTx(db.NewOutgoingTMTransaction(response.TxHash))
+			if err != nil {
+				logging.Fatal(err)
+			}
+			break
 		} else {
 			logging.Info("cannot broadcast yet, tendermint txs pending")
-			time.Sleep(4 * time.Second)
+			time.Sleep(configuration.GetAppConfig().Tendermint.AvgBlockTime)
 			countPendingTx, err = db.CountTotalOutgoingTendermintTx()
 			if err != nil {
 				logging.Fatal(err)
 			}
 		}
+		if attempts >= configuration.GetAppConfig().Kafka.MaxTendermintTxAttempts {
+			logging.Error("Unable to broadcast tendermint messages, max attempts while waiting for previous tx to be finished")
+			break
+		}
 	}
+	if !txBroadcastSuccess {
+		addToRetryTendermintQueue(msgs, index, handler)
+	}
+	checkKafkaTendermintConsumeDBAndAddToRetry(handler)
+	return nil
+}
+
+func addToRetryTendermintQueue(msgs []sdk.Msg, index uint64, handler MsgHandler) {
+	config := utils.SaramaConfig()
+	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+	defer func() {
+		err := producer.Close()
+		if err != nil {
+			logging.Error("failed to close producer in topic: SendBatchToTendermint, error:", err)
+		}
+	}()
+	err := db.DeleteKafkaTendermintConsume(index)
+	if err != nil {
+		logging.Error("Failed to delete Tendermint msg at index: ", index, " Error: ", err)
+	}
+	for _, msg := range msgs {
+		if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
+			msgBytes, err := handler.ProtoCodec.MarshalInterface(msg)
+			if err != nil {
+				logging.Error("Retry txs: Failed to Marshal ToTendermint Retry msg:", msg.String(), "Error:", err)
+			}
+			err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, producer)
+			if err != nil {
+				logging.Error("Retry txs: Failed to add msg to kafka RetryTendermint queue, Msg:", msg.String(), "Error:", err)
+			}
+			logging.Info("Retry txs: Produced to kafka for topic RetryTendermint:", msg.String())
+		}
+	}
+}
+
+func checkKafkaTendermintConsumeDBAndAddToRetry(handler MsgHandler) {
+	//all logging, no return
+	kafkaTendermintConsumes, err := db.GetEmptyTxHashesTM()
+	if err != nil {
+		logging.Error(err)
+	}
+	if len(kafkaTendermintConsumes) > 0 {
+
+		for _, kafkaTendermintConsume := range kafkaTendermintConsumes {
+			msgs, err := ConvertMsgBytesToSDKMsg(kafkaTendermintConsume.MsgBytes, handler.ProtoCodec)
+			if err != nil {
+				logging.Error(err)
+			}
+			addToRetryTendermintQueue(msgs, kafkaTendermintConsume.Index, handler)
+		}
+	}
+
 }

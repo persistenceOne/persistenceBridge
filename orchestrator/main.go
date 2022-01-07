@@ -12,7 +12,6 @@ import (
 
 func main() {
 	cobra.EnableCommandSorting = false
-
 	rootCommand := &cobra.Command{
 		Use:   "persistenceBridge",
 		Short: "Persistence Bridge Orchestrator Daemon (server)",
@@ -23,6 +22,7 @@ func main() {
 	rootCommand.AddCommand(commands.ShowCommand())
 	rootCommand.AddCommand(commands.StartCommand())
 	rootCommand.AddCommand(commands.RemoveCommand())
+	rootCommand.AddCommand(commands.GetVersion())
 
 	err := rootCommand.Execute()
 	if err != nil {

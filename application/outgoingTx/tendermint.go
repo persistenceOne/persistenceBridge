@@ -8,7 +8,6 @@ package outgoingTx
 import (
 	"encoding/hex"
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -119,7 +118,6 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 	return bytesToSign, txBuilder, txFactory, nil
 }
 
-// broadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
 func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, error) {
 
 	from := sdk.AccAddress(fromPublicKey.Address())
@@ -159,7 +157,7 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 
 func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	dataToSign := []string{hex.EncodeToString(crypto.Sha256(bytesToSign))}
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, "tm")
+	operationID, err := casp.SendDataToSign(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, false)
 	if err != nil {
 		return nil, err
 	}

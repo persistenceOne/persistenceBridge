@@ -71,10 +71,10 @@ ConsumerLoop:
 
 		for i, validator := range validators {
 			delegateMsg := &stakingTypes.MsgDelegate{
-				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+				DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 				ValidatorAddress: validator.Address.String(),
 				Amount: sdk.Coin{
-					Denom:  configuration.GetAppConfig().Tendermint.PStakeDenom,
+					Denom:  configuration.GetAppConfig().Tendermint.Denom,
 					Amount: delegationAmount,
 				},
 			}

@@ -6,8 +6,6 @@
 package tendermint
 
 import (
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"time"
 
 	"github.com/cosmos/relayer/helpers"
@@ -23,8 +21,8 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	chain.ChainID = configuration.GetAppConfig().Tendermint.ChainID
 	chain.RPCAddr = configuration.GetAppConfig().Tendermint.Node
 	chain.AccountPrefix = configuration.GetAppConfig().Tendermint.AccountPrefix
-	chain.GasAdjustment = 1.5
-	chain.GasPrices = "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom
+	chain.GasAdjustment = configuration.GetAppConfig().Tendermint.GasAdjustment
+	chain.GasPrices = configuration.GetAppConfig().Tendermint.GasPrice + configuration.GetAppConfig().Tendermint.Denom
 	chain.TrustingPeriod = "21h"
 
 	to, err := time.ParseDuration(timeout)
@@ -57,31 +55,4 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 		}
 	}
 	return chain, nil
-}
-
-func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
-	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
-		panic("account prefix is empty")
-	}
-	bech32PrefixAccAddr := configuration.GetAppConfig().Tendermint.AccountPrefix
-	bech32PrefixAccPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixPublic
-	bech32PrefixValAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator
-	bech32PrefixValPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixOperator + sdkTypes.PrefixPublic
-	bech32PrefixConsAddr := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus
-	bech32PrefixConsPub := configuration.GetAppConfig().Tendermint.AccountPrefix + sdkTypes.PrefixValidator + sdkTypes.PrefixConsensus + sdkTypes.PrefixPublic
-
-	bech32Configuration := sdkTypes.GetConfig()
-	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
-	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
-	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
-	// Do not seal the config.
-
-	tmAddress, err := casp.GetTendermintAddress()
-	if err != nil {
-		return sdkTypes.AccAddress{}, err
-	}
-
-	configuration.SetPStakeAddress(tmAddress)
-
-	return tmAddress, nil
 }

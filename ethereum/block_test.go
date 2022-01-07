@@ -19,8 +19,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingTx"
-	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
@@ -31,12 +29,12 @@ import (
 )
 
 func TestCollectEthTx(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
@@ -45,49 +43,38 @@ func TestCollectEthTx(t *testing.T) {
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Equal(t, nil, err)
 	ctx := context.Background()
-	tx, _, _ := ethereumClient.TransactionByHash(ctx, common.HexToHash("1f5834f05a156ac8ef9ee1be17b72c1a73e149686364c8fe9509997885ae3409"))
-	contract := contracts.LiquidStaking
-	encodingConfig := application.MakeEncodingConfig()
-	initClientCtx := client.Context{}.
-		WithJSONMarshaler(encodingConfig.Marshaler).
-		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TransactionConfig).
-		WithLegacyAmino(encodingConfig.Amino).
-		WithInput(os.Stdin).
-		WithAccountRetriever(authTypes.AccountRetriever{}).
-		WithBroadcastMode(flags.BroadcastBlock).
-		WithHomeDir(constants.DefaultPBridgeHome)
-	protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
+	// TODO Need correct tx hash of stake tx of LiquidStaking contract in Ropsten
+	//encodingConfig := application.MakeEncodingConfig()
+	//initClientCtx := client.Context{}.
+	//	WithJSONMarshaler(encodingConfig.Marshaler).
+	//	WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+	//	WithTxConfig(encodingConfig.TransactionConfig).
+	//	WithLegacyAmino(encodingConfig.Amino).
+	//	WithInput(os.Stdin).
+	//	WithAccountRetriever(authTypes.AccountRetriever{}).
+	//	WithBroadcastMode(flags.BroadcastBlock).
+	//	WithHomeDir(constants.DefaultPBridgeHome)
+	//protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 
-	TxhashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
-	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
-	amt := new(big.Int)
-	amt.SetInt64(1000)
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
-	}
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
-
-	ethTransaction := db.OutgoingEthereumTransaction{
-		TxHash:   TxhashSuccess,
-		Messages: txd,
-	}
-
-	err = db.SetOutgoingEthereumTx(ethTransaction)
-
-	err = collectEthTx(ethereumClient, &ctx, protoCodec, tx, &contract)
-	require.Equal(t, nil, err)
+	//contract := contracts.LiquidStaking
+	TxhashSuccess := common.HexToHash("0xdb95ee137ac5f900db8fef6bd0f1b7f6901ede1e437e5927117b5f5420c00ce0")
+	tx, pending, err := ethereumClient.TransactionByHash(ctx, TxhashSuccess)
+	require.Nil(t, err)
+	require.Equal(t, false, pending)
+	require.Equal(t, tx.Hash(), TxhashSuccess)
+	//err = collectEthTx(ethereumClient, &ctx, protoCodec, tx, &contract)
+	//require.Equal(t, nil, err)
 
 }
 
 func TestHandleBlock(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
-	configuration.SetPStakeAddress(tmAddress)
 	encodingConfig := application.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithJSONMarshaler(encodingConfig.Marshaler).
@@ -101,7 +88,7 @@ func TestHandleBlock(t *testing.T) {
 
 	protoCodec := codec.NewProtoCodec(initClientCtx.InterfaceRegistry)
 
-	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
+	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
@@ -126,17 +113,17 @@ func TestHandleBlock(t *testing.T) {
 }
 
 func TestProduceToKafka(t *testing.T) {
-	pStakeConfig := configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	test.SetTestConfig()
 	tmAddress, err := casp.GetTendermintAddress()
 	require.Equal(t, nil, err)
-
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress()
+	require.Equal(t, nil, err)
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	defer database.Close()
-	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
+	kafkaProducer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, utils.SaramaConfig())
 	defer func(kafkaProducer sarama.SyncProducer) {
 		err := kafkaProducer.Close()
 		if err != nil {
@@ -148,11 +135,11 @@ func TestProduceToKafka(t *testing.T) {
 	Address := common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa"))
 	amt := new(big.Int)
 	amt.SetInt64(1000)
-	wrapTokenMsg := outgoingTx.WrapTokenMsg{
-		Address: Address,
-		Amount:  amt,
+	wrapTokenMsg := db.WrapTokenMsg{
+		Address:       Address,
+		StakingAmount: amt,
 	}
-	txd := []outgoingTx.WrapTokenMsg{wrapTokenMsg}
+	txd := []db.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   TxhashSuccess,

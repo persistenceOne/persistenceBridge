@@ -7,14 +7,18 @@ package ethereum
 
 import (
 	"context"
-	"github.com/Shopify/sarama"
 	"math/big"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/shutdown"
+	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -29,6 +33,11 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 		}
 	}(kafkaProducer)
 
+	// Need to set it here because configuration isn't initialized when contract objects are created
+	contracts.LiquidStaking.SetAddress(common.HexToAddress(configuration.GetAppConfig().Ethereum.LiquidStakingAddress))
+	contracts.TokenWrapper.SetAddress(common.HexToAddress(configuration.GetAppConfig().Ethereum.TokenWrapperAddress))
+	ethAlertAmount = big.NewInt(0).Mul(big.NewInt(configuration.GetAppConfig().Ethereum.AlertAmount), big.NewInt(1000000000))
+
 	for {
 		if shutdown.GetBridgeStopSignal() {
 			if shutdown.GetKafkaConsumerClosed() {
@@ -36,7 +45,7 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 				shutdown.SetETHStopped(true)
 				return
 			}
-			time.Sleep(1 * time.Second)
+			time.Sleep(1 * time.Second) // thread is put to sleep to prevent 100% CPU usage
 			continue
 		}
 
@@ -49,14 +58,18 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 		ethStatus, err := db.GetEthereumStatus()
 		if err != nil {
-			logging.Error("Stopping Ethereum Listener, unable to get status, Error:", err)
-			shutdown.SetETHStopped(true)
-			return
+			logging.Fatal("Stopping Ethereum Listener, unable to get status, Error:", err)
 		}
 
-		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > 12 {
+		if ethStatus.LastCheckHeight < 0 {
+			logging.Fatal("Stopping Ethereum Listener, eth status height is less than 0:", ethStatus.LastCheckHeight)
+		}
+
+		if (latestEthHeight - uint64(ethStatus.LastCheckHeight)) > constants.EthereumBlockConfirmations {
 			processHeight := big.NewInt(ethStatus.LastCheckHeight + 1)
 			logging.Info("Ethereum Block:", processHeight)
+
+			BalanceCheck(processHeight.Uint64(), client)
 
 			block, err := client.BlockByNumber(ctx, processHeight)
 			if err != nil {
@@ -74,16 +87,12 @@ func StartListening(client *ethclient.Client, sleepDuration time.Duration, broke
 
 			err = db.SetEthereumStatus(processHeight.Int64())
 			if err != nil {
-				logging.Error("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
-				shutdown.SetETHStopped(true)
-				return
+				logging.Fatal("Stopping Ethereum Listener, unable to set (DB) status to", processHeight, "Error:", err)
 			}
 
-			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer)
+			err = onNewBlock(ctx, latestEthHeight, client, &kafkaProducer, protoCodec)
 			if err != nil {
-				logging.Error("Stopping Ethereum Listener, onNewBlock error:", err)
-				shutdown.SetETHStopped(true)
-				return
+				logging.Fatal("Stopping Ethereum Listener, onNewBlock error:", err)
 			}
 		}
 		time.Sleep(sleepDuration)

@@ -5,7 +5,9 @@
 
 package constants
 
-import "os"
+import (
+	"os"
+)
 
 var (
 	TestHomeDir = os.ExpandEnv("$HOME/testPersistenceBridge")

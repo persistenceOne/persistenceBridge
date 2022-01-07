@@ -1,18 +1,17 @@
 package tendermint
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	testingUtilities "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
-	configuration.InitConfig()
-	configuration.SetConfig(test.GetCmdWithConfig())
+	testingUtilities.SetTestConfig()
 	var ethStart int64 = 4772131
 	var tmStart int64 = 1
 	database, err := db.InitializeDB(constants.TestHomeDir, tmStart, ethStart)

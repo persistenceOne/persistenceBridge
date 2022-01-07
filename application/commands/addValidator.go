@@ -7,15 +7,11 @@ package commands
 
 import (
 	"log"
-	"path/filepath"
 
-	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
-	tendermint2 "github.com/persistenceOne/persistenceBridge/tendermint"
 	"github.com/spf13/cobra"
 )
 
@@ -25,21 +21,13 @@ func AddCommand() *cobra.Command {
 		Short: "Add validator address to signing group",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			homePath, err := cmd.Flags().GetString(constants2.FlagPBridgeHome)
+			homePath, err := cmd.Flags().GetString(constants.FlagPBridgeHome)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			pStakeConfig := configuration.InitConfig()
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-			_, err = tendermint2.SetBech32PrefixesAndPStakeWrapAddress()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			configuration.ValidateAndSeal()
+			setAndSealConfig(homePath)
+
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -47,7 +35,7 @@ func AddCommand() *cobra.Command {
 
 			validatorName := args[1]
 
-			rpcEndpoint, err := cmd.Flags().GetString(constants2.FlagRPCEndpoint)
+			rpcEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -81,7 +69,7 @@ func AddCommand() *cobra.Command {
 				}
 			}
 			if len(validators) == 0 {
-				log.Println("No validators in db, panic.")
+				log.Fatalln("No validators found in db.")
 			} else {
 				log.Printf("Total validators %d:\n", len(validators))
 				for i, validator := range validators {
@@ -93,7 +81,7 @@ func AddCommand() *cobra.Command {
 		},
 	}
 
-	addCommand.Flags().String(constants2.FlagRPCEndpoint, constants2.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	addCommand.Flags().String(constants2.FlagPBridgeHome, constants2.DefaultPBridgeHome, "home for pBridge")
+	addCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
+	addCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
 	return addCommand
 }

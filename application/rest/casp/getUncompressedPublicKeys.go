@@ -29,7 +29,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	var response casp.UncompressedPublicKeysResponse
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
+			InsecureSkipVerify: false,
 		},
 	}}
 
@@ -37,7 +37,7 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	if err != nil {
 		return response, err
 	}
-	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
+	request.Header.Set("authorization", configuration.GetAppConfig().CASP.ApiToken)
 	resp, err := client.Do(request)
 	if err != nil {
 		return response, err

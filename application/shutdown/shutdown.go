@@ -15,9 +15,9 @@ func GetBridgeStopSignal() bool {
 	return stopBridge
 }
 
-func SetBridgeStopSignal(value bool) {
+func StopBridge() {
 	if !seal {
-		stopBridge = value
+		stopBridge = true
 		seal = true
 	}
 }

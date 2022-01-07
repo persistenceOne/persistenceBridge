@@ -8,7 +8,6 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
@@ -57,7 +56,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 				shutdown.SetTMStopped(true)
 				return
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(5 * time.Second) // thread is put to sleep to prevent 100% CPU usage
 			continue
 		}
 
@@ -70,9 +69,11 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 		cosmosStatus, err := db.GetCosmosStatus()
 		if err != nil {
-			logging.Error("Stopping Tendermint Listener, unable to get status, Error:", err)
-			shutdown.SetTMStopped(true)
-			return
+			logging.Fatal("Stopping Tendermint Listener, unable to get status, Error:", err)
+		}
+
+		if cosmosStatus.LastCheckHeight < 0 {
+			logging.Fatal("Stopping Tendermint Listener, cosmos status is less than 0")
 		}
 
 		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > 5 {
@@ -98,9 +99,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 
 			err = db.SetCosmosStatus(processHeight)
 			if err != nil {
-				logging.Error("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
-				shutdown.SetTMStopped(true)
-				return
+				logging.Fatal("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
 			}
 
 		}
@@ -121,7 +120,10 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 		return txSearchResult.Txs, nil
 	}
 	resultTxs = append(resultTxs, txSearchResult.Txs...)
-	totalPages := int(math.Ceil(float64(txSearchResult.TotalCount) / float64(txsMaxPerPage)))
+	totalPages := (txSearchResult.TotalCount / txsMaxPerPage) + 1
+	if txSearchResult.TotalCount%txsMaxPerPage == 0 {
+		totalPages = txSearchResult.TotalCount / txsMaxPerPage
+	}
 	for i := page + 1; i <= totalPages; i++ {
 		txSearchResult, err = chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &i, &txsMaxPerPage, "asc")
 		if err != nil {

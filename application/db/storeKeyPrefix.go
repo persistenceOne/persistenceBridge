@@ -20,6 +20,8 @@ const (
 	incomingEthereumTxPrefix
 	tendermintTxToKafkaPrefix
 	ethereumTxToKafkaPrefix
+	kafkaTendermintConsumePrefix
+	kafkaEthereumConsumePrefix
 )
 
 func (storeKeyPrefix storeKeyPrefix) GenerateStoreKey(key []byte) []byte {

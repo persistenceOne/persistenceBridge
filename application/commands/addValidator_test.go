@@ -6,15 +6,18 @@
 package commands
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	constants2 "github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
+	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddCommand(t *testing.T) {
-	database, err := db.OpenDB(constants2.TestDbDir)
+	test.SetTestConfig()
+	database, err := db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	err = db.DeleteAllValidators()
 	require.Nil(t, err)
@@ -25,12 +28,12 @@ func TestAddCommand(t *testing.T) {
 
 	cmd := AddCommand()
 	cmd.SetArgs([]string{validatorAddress, validatorName})
-	err = cmd.Flags().Set(constants2.FlagPBridgeHome, constants2.TestHomeDir)
+	err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
 	require.Equal(t, nil, err)
 	err = cmd.Execute()
 	require.Nil(t, err)
 
-	database, err = db.OpenDB(constants2.TestDbDir)
+	database, err = db.OpenDB(constants.TestDbDir)
 	require.Nil(t, err)
 	address, _ := sdk.ValAddressFromBech32(validatorAddress)
 	validator, err := db.GetValidator(address)

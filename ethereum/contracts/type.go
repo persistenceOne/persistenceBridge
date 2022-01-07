@@ -19,6 +19,7 @@ import (
 type ContractI interface {
 	GetName() string
 	GetAddress() common.Address
+	SetAddress(common.Address)
 	GetABI() abi.ABI
 	SetABI(contractABIString string)
 	GetSDKMsgAndSender() map[string]func(arguments []interface{}) (sdk.Msg, common.Address, error)
@@ -40,6 +41,10 @@ func (contract *Contract) GetName() string {
 
 func (contract *Contract) GetAddress() common.Address {
 	return contract.address
+}
+
+func (contract *Contract) SetAddress(address common.Address) {
+	contract.address = address
 }
 
 func (contract *Contract) GetABI() abi.ABI {

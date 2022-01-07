@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 type IncomingEthereumTx struct {
@@ -33,7 +34,7 @@ func (t *IncomingEthereumTx) Value() ([]byte, error) {
 }
 
 func (t *IncomingEthereumTx) Validate() error {
-	if t.TxHash.String() == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+	if t.TxHash.String() == constants.EthereumEmptyTxHash {
 		return fmt.Errorf("tx hash is empty")
 	}
 	if len(t.MsgBytes) == 0 {
@@ -41,6 +42,9 @@ func (t *IncomingEthereumTx) Validate() error {
 	}
 	if t.MsgType == "" {
 		return fmt.Errorf("invalid msg type")
+	}
+	if t.Sender.String() == constants.EthereumZeroAddress {
+		return fmt.Errorf("invalid sender address")
 	}
 	return nil
 }

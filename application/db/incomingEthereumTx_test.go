@@ -20,7 +20,7 @@ func TestAddIncomingEthereumTx(t *testing.T) {
 
 	ethInTx := IncomingEthereumTx{
 		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
-		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
+		Sender:   common.HexToAddress("0x0000000000000000000000000000000000000001"),
 		MsgBytes: nil,
 		MsgType:  "",
 	}
@@ -42,7 +42,7 @@ func TestGetIncomingEthereumTx(t *testing.T) {
 
 	ethInTx := IncomingEthereumTx{
 		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
-		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
+		Sender:   common.HexToAddress("0x0000000000000000000000000000000000000001"),
 		MsgBytes: []byte("Msg"),
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
@@ -70,7 +70,7 @@ func TestIncomingEthereumTxPrefix(t *testing.T) {
 func TestIncomingEthereumTxKey(t *testing.T) {
 	ethInTx := IncomingEthereumTx{
 		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
-		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
+		Sender:   common.HexToAddress("0x0000000000000000000000000000000000000001"),
 		MsgBytes: []byte("Msg"),
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
@@ -80,7 +80,7 @@ func TestIncomingEthereumTxKey(t *testing.T) {
 func TestIncomingEthereumTxValue(t *testing.T) {
 	ethInTx := IncomingEthereumTx{
 		TxHash:   common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
-		Sender:   common.HexToAddress("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2"),
+		Sender:   common.HexToAddress("0x0000000000000000000000000000000000000001"),
 		MsgBytes: []byte("Msg"),
 		MsgType:  bankTypes.MsgSend{}.Type(),
 	}
@@ -93,11 +93,22 @@ func TestIncomingEthereumTxValue(t *testing.T) {
 
 func TestIncomingEthereumTxValidate(t *testing.T) {
 	ethInTx := IncomingEthereumTx{}
+
 	require.Equal(t, "tx hash is empty", ethInTx.Validate().Error())
 	ethInTx.TxHash = common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b2")
 	require.Equal(t, "empty MsgBytes", ethInTx.Validate().Error())
 	ethInTx.MsgBytes = []byte("Msg")
 	require.Equal(t, "invalid msg type", ethInTx.Validate().Error())
 	ethInTx.MsgType = bankTypes.MsgSend{}.Type()
+	require.Equal(t, "invalid sender address", ethInTx.Validate().Error())
+	ethInTx.Sender = common.HexToAddress("0x0000000000000000000000000000000000000001")
 	require.Nil(t, ethInTx.Validate())
+
+}
+
+func TestCheckIncomingEthereumTxExists(t *testing.T) {
+	db, err := OpenDB(constants.TestDbDir)
+	require.Nil(t, err)
+	require.Equal(t, false, CheckIncomingEthereumTxExists(common.HexToHash("0x679e1f7821bbbb86123c3200a9d4a7f80faa269673357c28b9d6f302454175b1")))
+	db.Close()
 }

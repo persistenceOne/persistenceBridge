@@ -6,10 +6,14 @@
 package configuration
 
 import (
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
@@ -21,6 +25,10 @@ type config struct {
 	TelegramBot telegramBot
 	seal        bool
 	RPCEndpoint string
+}
+
+func (c config) IsSealed() bool {
+	return c.seal
 }
 
 func newConfig() config {
@@ -36,37 +44,52 @@ func newConfig() config {
 }
 
 type ethereumConfig struct {
-	EthereumEndPoint string
-	GasLimit         uint64
+	EthereumEndPoint     string
+	GasLimit             uint64
+	GasFeeCap            int64
+	bridgeAdminAddress   common.Address
+	TokenWrapperAddress  string
+	LiquidStakingAddress string
+	BalanceCheckPeriod   uint64
+	AlertAmount          int64
 }
 
 func newEthereumConfig() ethereumConfig {
 	return ethereumConfig{
-		EthereumEndPoint: constants.DefaultEthereumEndPoint,
-		GasLimit:         constants.DefaultEthGasLimit,
+		EthereumEndPoint:     constants.DefaultEthereumEndPoint,
+		GasLimit:             constants.DefaultEthGasLimit,
+		GasFeeCap:            constants.DefaultEthGasFeeCap,
+		TokenWrapperAddress:  "",
+		LiquidStakingAddress: "",
 	}
 }
 
 type tendermintConfig struct {
-	pStakeAddress     string
-	PStakeDenom       string
+	wrapAddress       string
+	Denom             string
 	BroadcastMode     string
+	GasPrice          string
+	GasAdjustment     float64
 	MinimumWrapAmount int64
 	AccountPrefix     string
 	Node              string
 	ChainID           string
 	CoinType          uint32
+	AvgBlockTime      time.Duration
 }
 
 func newTendermintConfig() tendermintConfig {
 	return tendermintConfig{
-		PStakeDenom:       constants.DefaultDenom,
+		Denom:             constants.DefaultDenom,
 		BroadcastMode:     constants.DefaultBroadcastMode,
+		GasPrice:          constants.DefaultTendermintGasPrice,
+		GasAdjustment:     constants.DefaultTendermintGasAdjustment,
 		MinimumWrapAmount: constants.DefaultMinimumWrapAmount,
 		AccountPrefix:     constants.DefaultAccountPrefix,
 		Node:              constants.DefaultTendermintNode,
 		ChainID:           constants.DefaultTendermintChainId,
 		CoinType:          constants.DefaultTendermintCoinType,
+		AvgBlockTime:      constants.DefaultTendermintAvgBlockTime,
 	}
 }
 
@@ -75,11 +98,10 @@ type caspConfig struct {
 	VaultID                 string
 	TendermintPublicKey     string
 	EthereumPublicKey       string
-	SignatureWaitTime       time.Duration
-	APIToken                string
+	WaitTime                time.Duration
+	ApiToken                string
 	AllowConcurrentKeyUsage bool
-	MaxGetSignatureAttempts int
-	TLSInsecureSkipVerify   bool
+	MaxAttempts             uint
 }
 
 func newCASPConfig() caspConfig {
@@ -88,22 +110,20 @@ func newCASPConfig() caspConfig {
 		VaultID:                 "",
 		TendermintPublicKey:     "",
 		EthereumPublicKey:       "",
-		SignatureWaitTime:       constants.DefaultCASPSignatureWaitTime,
-		APIToken:                "",
+		WaitTime:                constants.DefaultCASPWaitTime,
+		ApiToken:                "",
 		AllowConcurrentKeyUsage: true,
-		MaxGetSignatureAttempts: constants.DefaultCASPMaxGetSignatureAttempt,
-		TLSInsecureSkipVerify:   true,
+		MaxAttempts:             constants.DefaultCASPMaxAttempts,
 	}
 }
 
 type kafkaConfig struct {
-	// Brokers: List of brokers to run kafka cluster
-	Brokers      []string
-	TopicDetail  sarama.TopicDetail
-	ToEth        TopicConsumer
-	ToTendermint TopicConsumer
-	// Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
-	EthUnbondCycleTime time.Duration
+	Brokers                 []string // Brokers: List of brokers to run kafka cluster
+	TopicDetail             sarama.TopicDetail
+	ToEth                   TopicConsumer
+	ToTendermint            TopicConsumer
+	EthUnbondCycleTime      time.Duration // Time for each unbonding transactions 3 days => input nano-seconds 259200000000000
+	MaxTendermintTxAttempts int           // Max attempts in kafka consumer toTendermint to do tx if there is already a tx
 }
 
 type TopicConsumer struct {
@@ -138,13 +158,38 @@ func newKafkaConfig() kafkaConfig {
 			MaxBatchSize: constants.MaxTendermintBatchSize,
 			Ticker:       constants.TendermintTicker,
 		},
-		EthUnbondCycleTime: constants.DefaultEthUnbondCycleTime,
+		EthUnbondCycleTime:      constants.DefaultEthUnbondCycleTime,
+		MaxTendermintTxAttempts: constants.DefaultTendermintMaxTxAttempts,
 	}
 }
 
-func (config tendermintConfig) GetPStakeAddress() string {
-	if config.pStakeAddress == "" {
-		log.Fatalln("pStakeAddress not set")
+func (config tendermintConfig) GetWrapAddress() string {
+	if config.wrapAddress == "" {
+		log.Fatalln("wrapAddress not set")
 	}
-	return config.pStakeAddress
+	return config.wrapAddress
+}
+
+func setWrapAddress(tmAddress sdk.AccAddress) {
+	if !appConfig.seal {
+		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
+			appConfig.Tendermint.wrapAddress = tmAddress.String()
+		} else {
+			panic(fmt.Errorf("pStake wrap address prefix (%s) and Config account prefix (%s) does not match", sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
+		}
+	}
+}
+
+func setBridgeAdminAddress(address common.Address) {
+	if !appConfig.seal {
+		if address.String() != constants.EthereumZeroAddress {
+			appConfig.Ethereum.bridgeAdminAddress = address
+		} else {
+			panic(fmt.Errorf("invalid eth address"))
+		}
+	}
+}
+
+func (ethConfig ethereumConfig) GetBridgeAdminAddress() common.Address {
+	return ethConfig.bridgeAdminAddress
 }

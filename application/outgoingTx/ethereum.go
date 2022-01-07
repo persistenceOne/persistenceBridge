@@ -10,9 +10,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -20,33 +18,28 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
+	"github.com/persistenceOne/persistenceBridge/ethereum/contracts"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
 var ethBridgeAdmin common.Address
 
-type WrapTokenMsg struct {
-	Address common.Address `json:"address"`
-	Amount  *big.Int       `json:"amount"`
-}
-
-func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Hash, error) {
+func EthereumWrapAndStakeToken(client *ethclient.Client, msgs []db.WrapTokenMsg) (common.Hash, error) {
 	if len(msgs) == 0 {
 		return common.Hash{}, fmt.Errorf("no wrap token messages to broadcast")
 	}
-	contractAddress := common.HexToAddress(constants.TokenWrapperAddress)
-	tokenWrapperABI, err := abi.JSON(strings.NewReader(constants.TokenWrapperABI))
-	if err != nil {
-		return common.Hash{}, err
-	}
+	contractAddress := contracts.LiquidStaking.GetAddress()
 	addresses := make([]common.Address, len(msgs))
-	amounts := make([]*big.Int, len(msgs))
+	stakingAmounts := make([]*big.Int, len(msgs))
+	wrappingAmounts := make([]*big.Int, len(msgs))
 	for i, msg := range msgs {
 		addresses[i] = msg.Address
-		amounts[i] = msg.Amount
+		stakingAmounts[i] = msg.StakingAmount
+		wrappingAmounts[i] = msg.WrapAmount
 	}
-	bytesData, err := tokenWrapperABI.Pack("generateUTokensInBatch", addresses, amounts)
+	bytesData, err := contracts.LiquidStaking.GetABI().Pack("stakeDirectInBatch", addresses, stakingAmounts, wrappingAmounts)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -55,7 +48,7 @@ func EthereumWrapToken(client *ethclient.Client, msgs []WrapTokenMsg) (common.Ha
 
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
 	ctx := context.Background()
-	if ethBridgeAdmin.String() == "0x0000000000000000000000000000000000000000" {
+	if ethBridgeAdmin.String() == constants.EthereumZeroAddress {
 		err := setEthBridgeAdmin()
 		if err != nil {
 			return common.Hash{}, err
@@ -76,13 +69,10 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 		return common.Hash{}, err
 	}
 
-	//TODO set it as conf parameter
-	gasFeeCap := big.NewInt(300000000000)
-
 	tx := types.NewTx(&types.DynamicFeeTx{
 		ChainID:   chainID,
 		Nonce:     nonce,
-		GasFeeCap: gasFeeCap,
+		GasFeeCap: big.NewInt(configuration.GetAppConfig().Ethereum.GasFeeCap),
 		GasTipCap: gasTipCap,
 		Gas:       configuration.GetAppConfig().Ethereum.GasLimit,
 		To:        toAddress,
@@ -111,7 +101,7 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 //getEthSignature returns R and S in byte array and V value as int
 func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, error) {
 	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
+	operationID, err := casp.SendDataToSign(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, true)
 	if err != nil {
 		return nil, -1, err
 	}
@@ -130,7 +120,7 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) ([]byte, int, e
 }
 
 func setEthBridgeAdmin() error {
-	if ethBridgeAdmin.String() != "0x0000000000000000000000000000000000000000" {
+	if ethBridgeAdmin.String() != constants.EthereumZeroAddress {
 		logging.Warn("outgoingTx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 		return nil
 	}

@@ -53,17 +53,20 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 					if err != nil {
 						return err
 					}
+					m.Count = m.Count + len(validators)
+					if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+						break ConsumerLoop
+					}
 					m.WithdrawRewards = true
 				}
 				err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {
-					//TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 					logging.Error("failed to produce from: MsgSend to: ToTendermint")
 					break ConsumerLoop
 				}
 				session.MarkMessage(kafkaMsg, "")
-				loop--
-				if loop == 0 {
+				m.Count++
+				if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 					break ConsumerLoop
 				}
 			default:

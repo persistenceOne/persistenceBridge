@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -83,7 +82,6 @@ func TestNewOutgoingTMTransaction(t *testing.T) {
 	}
 	newTendermintTransaction := NewOutgoingTMTransaction(Txhash)
 
-	require.Equal(t, reflect.TypeOf(tendermintTransaction), reflect.TypeOf(newTendermintTransaction))
 	require.Equal(t, tendermintTransaction, newTendermintTransaction)
 
 	db.Close()
@@ -110,16 +108,21 @@ func TestTendermintOutgoingTransactionKey(t *testing.T) {
 	}
 	Key := outgoingTendermintTxPrefix.GenerateStoreKey([]byte(tendermintTransaction.TxHash))
 	expectedKey := tendermintTransaction.Key()
-	require.Equal(t, reflect.TypeOf(Key), reflect.TypeOf(expectedKey))
 	require.Equal(t, expectedKey, Key)
 }
 
 func TestTendermintOutgoingTransactionValidate(t *testing.T) {
-	Txhash := "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
-	tendermintTransaction := OutgoingTendermintTransaction{
-		TxHash: Txhash,
-	}
-	err := tendermintTransaction.Validate()
+	tmTx := OutgoingTendermintTransaction{}
+	require.Equal(t, "OutgoingTendermintTransaction: empty tx hash", tmTx.Validate().Error())
+
+	tmTx.TxHash = "QWERTY"
+	require.Equal(t, "OutgoingTendermintTransaction: error decoding tx hash string encoding/hex: invalid byte: U+0051 'Q'", tmTx.Validate().Error())
+
+	tmTx.TxHash = "ABCDEF"
+	require.Equal(t, "OutgoingTendermintTransaction: invalid tx hash", tmTx.Validate().Error())
+
+	tmTx.TxHash = "B45A62933F1AC783989F05E6E7C43F9B8D802C41F66A7ED6FEED103CBDC8507F"
+	err := tmTx.Validate()
 	require.Nil(t, err)
 }
 
@@ -133,12 +136,10 @@ func TestTendermintOutgoingTransactionValue(t *testing.T) {
 	newValue, err := tendermintTransaction.Value()
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(Value), reflect.TypeOf(newValue))
 	require.Equal(t, Value, newValue)
 }
 
 func TestTendermintOutgoingTransactionPrefix(t *testing.T) {
 	tendermintTransaction := OutgoingTendermintTransaction{}
-	require.Equal(t, reflect.TypeOf(tendermintTransaction.prefix()), reflect.TypeOf(outgoingTendermintTxPrefix))
 	require.Equal(t, outgoingTendermintTxPrefix, tendermintTransaction.prefix())
 }

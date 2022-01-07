@@ -7,6 +7,7 @@ package tendermint
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingTypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
