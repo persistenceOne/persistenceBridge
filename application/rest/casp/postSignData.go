@@ -7,6 +7,7 @@ package casp
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -28,7 +29,7 @@ type SignDataRequest struct {
 	AllowConcurrentKeyUsage bool     `json:"allowConcurrentKeyUsage"`
 }
 
-func SignData(dataToSign, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
+func SignData(ctx context.Context, dataToSign, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
 	var response casp.PostSignDataResponse
 
 	// Encode the data
@@ -47,11 +48,11 @@ func SignData(dataToSign, publicKeys []string, description string) (casp.PostSig
 		TLSClientConfig: &tls.Config{
 			// nolint we might like to skip it by purpose
 			// nolint: gosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, //#nosec
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, // #nosec
 		},
 	}}
 
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID), responseBody)
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID), responseBody)
 	if err != nil {
 		return response, false, err
 	}
@@ -75,7 +76,7 @@ func SignData(dataToSign, publicKeys []string, description string) (casp.PostSig
 	if err != nil || response.OperationID == "" {
 		logging.Error("posting casp sign data, err:", err, "Body:", string(body))
 
-		var errResponse casp.ErrorResponse
+		var errResponse casp.ResponseError
 
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {

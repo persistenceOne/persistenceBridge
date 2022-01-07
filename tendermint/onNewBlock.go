@@ -30,11 +30,15 @@ func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.C
 
 		err := json.Unmarshal(value, &tmTx)
 		if err != nil {
+			// nolint already has %w
+			// nolint: errorlint
 			return fmt.Errorf("%w %s [TM onNewBlock]: %s", ErrUnmarshalOutgoingTransaction, string(key), err.Error())
 		}
 
 		txHashBytes, err := hex.DecodeString(tmTx.TxHash)
 		if err != nil {
+			// nolint already has %w
+			// nolint: errorlint
 			return fmt.Errorf("%w %s [TM onNewBlock]: %s", ErrInvalidTxHash, tmTx.TxHash, err.Error())
 		}
 
@@ -68,11 +72,15 @@ func onNewBlock(ctx context.Context, clientCtx *client.Context, chain *relayer.C
 				if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
 					msgBytes, err := protoCodec.MarshalInterface(msg)
 					if err != nil {
+						// nolint already has %w
+						// nolint: errorlint
 						return fmt.Errorf("%w [TM onNewBlock]: %s", ErrTransactionMessageGeneration, err.Error())
 					}
 
 					err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, kafkaProducer)
 					if err != nil {
+						// nolint already has %w
+						// nolint: errorlint
 						return fmt.Errorf("%w [TM onNewBlock] RetryTendermint: message %q, error %s",
 							ErrAddToKafkaQueue, msg.String(), err.Error())
 					}

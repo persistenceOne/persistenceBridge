@@ -7,6 +7,7 @@ linters:
     - golint # deprecated
     - interfacer # deprecated
     - scopelint # deprecated
+    - ireturn #fixme: enable one day
     - nakedret
     - nolintlint
     - varnamelen
@@ -47,6 +48,19 @@ linters:
     - varcheck
     - nestif
     - nilnil
+    - gochecknoglobals
+    - contextcheck
+    - durationcheck
+    - errorlint
+    - errname
+    - ifshort
+    - importas
+    - noctx
+    - predeclared
+    - promlinter
+    - tenv
+    - thelper
+    - tparallel
 
 linters-settings:
   dogsled:

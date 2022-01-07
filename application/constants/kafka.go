@@ -11,8 +11,8 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-var (
-	DefaultBrokers            = []string{"localhost:9092"}
+const (
+	DefaultBroker             = "localhost:9092"
 	MinEthBatchSize           = 1
 	MaxEthBatchSize           = 30
 	EthTicker                 = 30 * time.Second
@@ -20,8 +20,12 @@ var (
 	MaxTendermintBatchSize    = 30
 	TendermintTicker          = 3 * time.Second
 	DefaultEthUnbondCycleTime = 259200 * time.Second // 3days in seconds
+)
 
+var (
 	// TopicDetail : configs only required for admin to create topics if not present.
+	// nolint value struct is safe to be used as global variable
+	// nolint: gochecknoglobals
 	TopicDetail = TopicDetails{
 		NumPartitions:     1,
 		ReplicationFactor: 1,

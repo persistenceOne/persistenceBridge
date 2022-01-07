@@ -79,7 +79,9 @@ func (c *tendermintConfig) validate() error {
 	}
 
 	if _, err := url.ParseRequestURI(c.Node); err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidTendermintNode, err)
+		// nolint it already has %w
+		// nolint: errorlint
+		return fmt.Errorf("%w: %s", ErrInvalidTendermintNode, err.Error())
 	}
 
 	if !(c.BroadcastMode == flags.BroadcastAsync || c.BroadcastMode == flags.BroadcastSync || c.BroadcastMode == flags.BroadcastBlock) {

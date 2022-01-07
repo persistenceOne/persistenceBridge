@@ -7,6 +7,12 @@ package constants
 
 import "os"
 
+// nolint safe private global vars with access by public function
+// nolint: gochecknoglobals
 var (
-	TestHomeDir = os.ExpandEnv("$HOME/testPersistenceBridge")
+	testHomeDir = os.ExpandEnv("$HOME/testPersistenceBridge")
 )
+
+func TestHomeDir() string {
+	return testHomeDir
+}

@@ -18,13 +18,15 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-var TokenWrapper = Contract{
-	name:    "TOKEN_WRAPPER",
-	address: common.HexToAddress(constants.TokenWrapperAddress),
-	abi:     abi.ABI{},
-	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
-		constants.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
-	},
+func TokenWrapper() Contract {
+	return Contract{
+		name:    "TOKEN_WRAPPER",
+		address: common.HexToAddress(constants.TokenWrapperAddress),
+		abi:     abi.ABI{},
+		methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
+			constants.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
+		},
+	}
 }
 
 func onWithdrawUTokens(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {

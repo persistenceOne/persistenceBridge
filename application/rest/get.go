@@ -7,12 +7,17 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
 )
 
-var httpClient = &http.Client{Timeout: 10 * time.Second}
+const HTTPTimeout = 10 * time.Second
+
+// nolint fixme move to a call context or a new type
+// nolint: gochecknoglobals
+var httpClient = &http.Client{Timeout: HTTPTimeout}
 
 func Get(url string, target interface{}) error {
 	// nolint a body is going to be closed later
@@ -29,7 +34,7 @@ func Get(url string, target interface{}) error {
 		}
 	}(r.Body)
 
-	if err = json.NewDecoder(r.Body).Decode(target); err == io.EOF {
+	if err = json.NewDecoder(r.Body).Decode(target); errors.Is(err, io.EOF) {
 		return nil
 	}
 

@@ -54,7 +54,7 @@ func InitCommand() *cobra.Command {
 	}
 
 	// This will always be used from flag
-	cmd.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	cmd.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome(), "home for pBridge")
 
 	cmd.Flags().String(constants.FlagEthereumEndPoint, constants.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	cmd.Flags().String(constants.FlagKafkaPorts, constants.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")

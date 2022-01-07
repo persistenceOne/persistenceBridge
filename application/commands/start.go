@@ -6,6 +6,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -59,12 +60,15 @@ func StartCommand() *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 
-			ethAddress, err := casp.GetEthAddress()
+			// fixme init context with proper dependancies and timeout
+			ctx := context.Background()
+
+			ethAddress, err := casp.GetEthAddress(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			tmAddress, err := tendermint.SetBech32PrefixesAndPStakeWrapAddress()
+			tmAddress, err := tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -203,7 +207,7 @@ func StartCommand() *cobra.Command {
 	}
 
 	pBridgeCommand.Flags().String(constants.FlagTimeOut, constants.DefaultTimeout, "timeout time for connecting to rpc")
-	pBridgeCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	pBridgeCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome(), "home for pBridge")
 	pBridgeCommand.Flags().Bool(constants.FlagShowDebugLog, false, "show debug logs")
 	pBridgeCommand.Flags().Int(constants.FlagTendermintSleepTime, constants.DefaultTendermintSleepTime, "sleep time between block checking for tendermint in ms")
 	pBridgeCommand.Flags().Int(constants.FlagEthereumSleepTime, constants.DefaultEthereumSleepTime, "sleep time between block checking for ethereum in ms")

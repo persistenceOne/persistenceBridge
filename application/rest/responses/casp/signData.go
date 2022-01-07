@@ -11,15 +11,15 @@ type PostSignDataResponse struct {
 	OperationID string `json:"operationID"`
 }
 
-type ErrorResponse struct {
+type ResponseError struct {
 	Type    string `json:"type"`
 	Title   string `json:"title"`
 	Details string `json:"details,omitempty"`
 	Status  int    `json:"status"`
 }
 
-var _ error = &ErrorResponse{}
+var _ error = &ResponseError{}
 
-func (e ErrorResponse) Error() string {
+func (e ResponseError) Error() string {
 	return fmt.Sprintf("CASP Signing Error: Title: %s, Details: %s, Status: %d", e.Title, e.Details, e.Status)
 }

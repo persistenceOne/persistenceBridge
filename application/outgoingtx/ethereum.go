@@ -26,6 +26,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
+// nolint fixme: move into a config or a proper structure type
+// nolint: gochecknoglobals
 var ethBridgeAdmin common.Address
 
 type WrapTokenMsg struct {
@@ -68,10 +70,11 @@ const (
 )
 
 func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *big.Int, txData []byte) (common.Hash, error) {
+	// fixme: use a proper context with timeout
 	ctx := context.Background()
 
-	if ethBridgeAdmin.String() == constants.EthEmptyAddressString {
-		err := setEthBridgeAdmin()
+	if ethBridgeAdmin == constants.EthEmptyAddress() {
+		err := setEthBridgeAdmin(ctx)
 		if err != nil {
 			return common.Hash{}, err
 		}
@@ -117,7 +120,7 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 		v             int
 	)
 
-	caspSignature, v, err = getEthSignature(tx, signer) // Signature is of 64 bytes, need to append V value
+	caspSignature, v, err = getEthSignature(ctx, tx, signer) // Signature is of 64 bytes, need to append V value
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -138,21 +141,21 @@ func sendTxToEth(client *ethclient.Client, toAddress *common.Address, txValue *b
 }
 
 // getEthSignature returns R and S in byte array and V value as int
-func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature []byte, v int, err error) {
+func getEthSignature(ctx context.Context, tx *types.Transaction, signer types.Signer) (caspSignature []byte, v int, err error) {
 	v = -1
 
 	dataToSign := []string{hex.EncodeToString(signer.Hash(tx).Bytes())}
 
 	var operationID string
 
-	operationID, err = casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
+	operationID, err = casp.GetCASPSigningOperationID(ctx, dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
 	if err != nil {
 		return
 	}
 
 	var signatureResponse caspResponses.SignOperationResponse
 
-	signatureResponse, err = casp.GetCASPSignature(operationID)
+	signatureResponse, err = casp.GetCASPSignature(ctx, operationID)
 	if err != nil {
 		return
 	}
@@ -173,8 +176,8 @@ func getEthSignature(tx *types.Transaction, signer types.Signer) (caspSignature 
 	return
 }
 
-func setEthBridgeAdmin() error {
-	if ethBridgeAdmin.String() != constants.EthEmptyAddressString {
+func setEthBridgeAdmin(ctx context.Context) error {
+	if ethBridgeAdmin != constants.EthEmptyAddress() {
 		logging.Warn("outgoingtx: casp ethereum bridge admin already set to", ethBridgeAdmin.String(), "To change update config and restart")
 
 		return nil
@@ -182,7 +185,7 @@ func setEthBridgeAdmin() error {
 
 	logging.Info("outgoingtx: setting ethereum bridge admin from casp")
 
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys(ctx)
 	if err != nil {
 		return err
 	}

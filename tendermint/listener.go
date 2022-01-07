@@ -58,6 +58,9 @@ func StartListening(initClientCtx *client.Context, database *badger.DB, chain *r
 
 	checkValidatorStatusPeriod := int64(float64(slashingParamsResponse.Params.SignedBlocksWindow) * (percent100 - minSignedPerWindow) / blockPeriodRound)
 
+	// Map to keep track of missed blocks during previous CheckValidators() call
+	var missedBlockCounterForValidator = make(map[string]int64)
+
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
 		err := onNewBlock(ctx, initClientCtx, chain, kafkaProducer, database, protoCodec)
@@ -116,7 +119,7 @@ func StartListening(initClientCtx *client.Context, database *badger.DB, chain *r
 			}
 
 			if processHeight%checkValidatorStatusPeriod == 0 {
-				CheckValidators(chain, database, processHeight)
+				CheckValidators(missedBlockCounterForValidator, chain, database, processHeight)
 			}
 
 			err = handleTxSearchResult(initClientCtx, resultTxs, kafkaProducer, database, protoCodec)

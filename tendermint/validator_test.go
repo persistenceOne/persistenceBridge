@@ -50,5 +50,10 @@ func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
 	require.Equal(t, nil, err)
 
 	processHeight := cosmosStatus.LastCheckHeight + 1
-	CheckValidators(chain, database, processHeight)
+
+	var missedBlockCounterForValidator = make(map[string]int64)
+
+	CheckValidators(missedBlockCounterForValidator, chain, database, processHeight)
+
+	// fixme: no result checks
 }

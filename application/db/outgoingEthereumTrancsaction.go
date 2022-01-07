@@ -15,12 +15,20 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 )
 
+// nolint already has %w
+// nolint: gochecknoglobals
 var (
-	EthEmptyAddress = common.Address{}.String()
-
-	EthEmptyHash       = common.Hash{}
-	EthEmptyHashString = common.Hash{}.String()
+	ethEmptyAddress = common.Address{}
+	ethEmptyHash    = common.Hash{}
 )
+
+func EthEmptyAddress() common.Address {
+	return ethEmptyAddress
+}
+
+func EthEmptyHash() common.Hash {
+	return ethEmptyHash
+}
 
 type OutgoingEthereumTransaction struct {
 	TxHash   common.Hash
@@ -46,7 +54,7 @@ func (ethTx *OutgoingEthereumTransaction) Value() ([]byte, error) {
 }
 
 func (ethTx *OutgoingEthereumTransaction) Validate() error {
-	if ethTx.TxHash == EthEmptyHash {
+	if ethTx.TxHash == EthEmptyHash() {
 		return ErrEmptyTransaction
 	}
 

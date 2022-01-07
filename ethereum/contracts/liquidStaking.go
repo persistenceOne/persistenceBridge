@@ -18,14 +18,16 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-var LiquidStaking = Contract{
-	name:    "LIQUID_STAKING",
-	address: common.HexToAddress(constants.LiquidStakingAddress),
-	abi:     abi.ABI{},
-	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
-		constants.LiquidStakingStake:   onStake,
-		constants.LiquidStakingUnStake: onUnStake,
-	},
+func LiquidStaking() Contract {
+	return Contract{
+		name:    "LIQUID_STAKING",
+		address: common.HexToAddress(constants.LiquidStakingAddress),
+		abi:     abi.ABI{},
+		methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
+			constants.LiquidStakingStake:   onStake,
+			constants.LiquidStakingUnStake: onUnStake,
+		},
+	}
 }
 
 // nolint implements common interface

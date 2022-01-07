@@ -64,9 +64,18 @@ const (
 	DefaultRPCEndpoint                = "localhost:4040"
 )
 
+// nolint safe private global vars with access by public function
+// nolint: gochecknoglobals
 var (
-	DefaultPBridgeHome = os.ExpandEnv(DefaultPBridgeHomePath)
+	defaultPBridgeHome = os.ExpandEnv(DefaultPBridgeHomePath)
 
-	EthEmptyAddress       = common.Address{}
-	EthEmptyAddressString = EthEmptyAddress.String()
+	ethEmptyAddress = common.Address{}
 )
+
+func DefaultPBridgeHome() string {
+	return defaultPBridgeHome
+}
+
+func EthEmptyAddress() common.Address {
+	return ethEmptyAddress
+}

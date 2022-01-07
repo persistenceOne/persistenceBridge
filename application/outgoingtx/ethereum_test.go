@@ -31,7 +31,8 @@ import (
 func TestEthereumWrapToken(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	ethAddress, _ := casp.GetEthAddress()
+	ctx := context.Background()
+	ethAddress, _ := casp.GetEthAddress(ctx)
 	wrapTokenMsg := []WrapTokenMsg{{
 		Address: ethAddress,
 		Amount:  &big.Int{}},
@@ -58,7 +59,8 @@ func TestSendTxToEth(t *testing.T) {
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
 
-	ethAddress, _ := casp.GetEthAddress()
+	ctx := context.Background()
+	ethAddress, _ := casp.GetEthAddress(ctx)
 	tokenWrapperABI, err := abi.JSON(strings.NewReader(tokenWrapper.TokenWrapperABI))
 	require.Nil(t, err)
 
@@ -87,8 +89,8 @@ func TestGetEthSignature(t *testing.T) {
 	ethClient, errorInClient := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, errorInClient, "Error getting ETH client!")
 
-	address, _ := casp.GetEthAddress()
 	ctx := context.Background()
+	address, _ := casp.GetEthAddress(ctx)
 	chainID, err := ethClient.ChainID(ctx)
 	require.Nil(t, err)
 
@@ -130,10 +132,10 @@ func TestGetEthSignature(t *testing.T) {
 func TestSetEthBridgeAdmin(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	err := setEthBridgeAdmin()
+	err := setEthBridgeAdmin(context.Background())
 	require.Nil(t, err)
 
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
-	require.NotEqual(t, constants.EthEmptyAddress, ethBridgeAdmin, "ETH Bridge Admin alreadu set")
+	require.NotEqual(t, constants.EthEmptyAddress(), ethBridgeAdmin, "ETH Bridge Admin alreadu set")
 }

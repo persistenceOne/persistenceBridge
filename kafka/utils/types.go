@@ -51,16 +51,17 @@ func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.Topic
 	}
 
 	// create topics if not present
-	for _, topic := range Topics {
+	for _, topic := range Topics() {
 		if _, ok := adminTopics[topic]; !ok {
 			TopicsInit(admin, topic, topicDetail)
 		}
 	}
 
 	producer := NewProducer(kafkaPorts, config)
+	groups := Groups()
 
-	consumers := make(map[string]sarama.ConsumerGroup, len(Groups))
-	for _, group := range Groups {
+	consumers := make(map[string]sarama.ConsumerGroup, len(groups))
+	for _, group := range groups {
 		consumers[group] = NewConsumerGroup(kafkaPorts, group, config)
 	}
 
@@ -69,6 +70,6 @@ func NewKafkaState(kafkaPorts []string, homeDir string, topicDetail sarama.Topic
 		Admin:         admin,
 		ConsumerGroup: consumers,
 		Producer:      producer,
-		Topics:        Topics,
+		Topics:        Topics(),
 	}
 }

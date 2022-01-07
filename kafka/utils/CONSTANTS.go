@@ -7,22 +7,25 @@ package utils
 
 // Consumer groups
 
-const GroupToEth = "group-to-ethereum"
-const GroupToTendermint = "group-to-tendermint"
-const GroupEthUnbond = "group-ethereum-unbond"
-const GroupMsgSend = "group-msg-send"
-const GroupMsgDelegate = "group-msg-delegate"
-const GroupRedelegate = "group-redelegate"
-const GroupMsgUnbond = "group-msg-unbond"
-const GroupRetryTendermint = "group-retry-tendermint"
+const (
+	GroupToEth           = "group-to-ethereum"
+	GroupToTendermint    = "group-to-tendermint"
+	GroupEthUnbond       = "group-ethereum-unbond"
+	GroupMsgSend         = "group-msg-send"
+	GroupMsgDelegate     = "group-msg-delegate"
+	GroupRedelegate      = "group-redelegate"
+	GroupMsgUnbond       = "group-msg-unbond"
+	GroupRetryTendermint = "group-retry-tendermint"
+)
 
-var Groups = []string{GroupEthUnbond,
-	GroupMsgSend, GroupMsgDelegate, GroupRedelegate, GroupMsgUnbond,
-	GroupToEth, GroupRetryTendermint, GroupToTendermint,
+func Groups() []string {
+	return []string{GroupEthUnbond,
+		GroupMsgSend, GroupMsgDelegate, GroupRedelegate, GroupMsgUnbond,
+		GroupToEth, GroupRetryTendermint, GroupToTendermint,
+	}
 }
 
 // Topics
-
 const (
 	ToEth           = "to-ethereum"
 	ToTendermint    = "to-tendermint"
@@ -35,7 +38,9 @@ const (
 )
 
 // Topics : is list of topics
-var Topics = []string{
-	EthUnbond, MsgSend, MsgDelegate, Redelegate, MsgUnbond,
-	ToEth, RetryTendermint, ToTendermint,
+func Topics() []string {
+	return []string{
+		EthUnbond, MsgSend, MsgDelegate, Redelegate, MsgUnbond,
+		ToEth, RetryTendermint, ToTendermint,
+	}
 }

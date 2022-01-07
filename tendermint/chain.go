@@ -6,6 +6,7 @@
 package tendermint
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -92,7 +93,7 @@ func InitializeAndStartChain(timeout, homePath string) (*relayer.Chain, error) {
 	return chain, nil
 }
 
-func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
+func SetBech32PrefixesAndPStakeWrapAddress(ctx context.Context) (sdkTypes.AccAddress, error) {
 	if configuration.GetAppConfig().Tendermint.AccountPrefix == "" {
 		panic("account prefix is empty")
 	}
@@ -111,7 +112,7 @@ func SetBech32PrefixesAndPStakeWrapAddress() (sdkTypes.AccAddress, error) {
 
 	// Do not seal the config
 
-	tmAddress, err := casp.GetTendermintAddress()
+	tmAddress, err := casp.GetTendermintAddress(ctx)
 	if err != nil {
 		return sdkTypes.AccAddress{}, err
 	}

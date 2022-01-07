@@ -6,6 +6,7 @@
 package casp
 
 import (
+	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,8 +16,8 @@ import (
 	caspQueries "github.com/persistenceOne/persistenceBridge/application/rest/casp"
 )
 
-func GetEthAddress() (common.Address, error) {
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+func GetEthAddress(ctx context.Context) (common.Address, error) {
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys(ctx)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -30,8 +31,8 @@ func GetEthAddress() (common.Address, error) {
 	return crypto.PubkeyToAddress(publicKey), nil
 }
 
-func GetTendermintAddress() (sdk.AccAddress, error) {
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
+func GetTendermintAddress(ctx context.Context) (sdk.AccAddress, error) {
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys(ctx)
 	if err != nil {
 		return nil, err
 	}

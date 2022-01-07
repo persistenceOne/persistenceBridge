@@ -35,19 +35,19 @@ type Contract struct {
 
 var _ ContractI = &Contract{}
 
-func (contract *Contract) GetName() string {
+func (contract Contract) GetName() string {
 	return contract.name
 }
 
-func (contract *Contract) GetAddress() common.Address {
+func (contract Contract) GetAddress() common.Address {
 	return contract.address
 }
 
-func (contract *Contract) GetABI() abi.ABI {
+func (contract Contract) GetABI() abi.ABI {
 	return contract.abi
 }
 
-func (contract *Contract) GetSDKMsgAndSender() map[string]func(arguments []interface{}) (sdk.Msg, common.Address, error) {
+func (contract Contract) GetSDKMsgAndSender() map[string]func(arguments []interface{}) (sdk.Msg, common.Address, error) {
 	return contract.methods
 }
 
@@ -60,7 +60,7 @@ func (contract *Contract) SetABI(contractABIString string) {
 	contract.abi = contractABI
 }
 
-func (contract *Contract) GetMethodAndArguments(inputData []byte) (*abi.Method, []interface{}, error) {
+func (contract Contract) GetMethodAndArguments(inputData []byte) (*abi.Method, []interface{}, error) {
 	txData := hex.EncodeToString(inputData)
 	if txData[:2] == "0x" {
 		txData = txData[2:]

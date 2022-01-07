@@ -6,6 +6,7 @@
 package handler
 
 import (
+	"context"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -101,7 +102,8 @@ func SendBatchToTendermint(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandle
 		if countPendingTx == 0 {
 			var response *sdk.TxResponse
 
-			response, err = outgoingtx.LogMessagesAndBroadcast(handler.Chain, msgs, 0)
+			// fixme: use a proper context with timeout
+			response, err = outgoingtx.LogMessagesAndBroadcast(context.Background(), handler.Chain, msgs, 0)
 			if err != nil {
 				logging.Error("Unable to broadcast tendermint messages:", err)
 

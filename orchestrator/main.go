@@ -25,8 +25,7 @@ func main() {
 	rootCommand.AddCommand(commands.StartCommand())
 	rootCommand.AddCommand(commands.RemoveCommand())
 
-	err := rootCommand.Execute()
-	if err != nil {
+	if err := rootCommand.Execute(); err != nil {
 		panic(err)
 	}
 }

@@ -6,6 +6,7 @@
 package casp
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -17,28 +18,28 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func GetUncompressedTMPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
-	return getUncompressedPublicKeys(configuration.GetAppConfig().Tendermint.CoinType)
+func GetUncompressedTMPublicKeys(ctx context.Context) (casp.UncompressedPublicKeysResponse, error) {
+	return getUncompressedPublicKeys(ctx, configuration.GetAppConfig().Tendermint.CoinType)
 }
 
 const ethCoinType = 60
 
-func GetUncompressedEthPublicKeys() (casp.UncompressedPublicKeysResponse, error) {
-	return getUncompressedPublicKeys(ethCoinType)
+func GetUncompressedEthPublicKeys(ctx context.Context) (casp.UncompressedPublicKeysResponse, error) {
+	return getUncompressedPublicKeys(ctx, ethCoinType)
 }
 
-func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResponse, error) {
+func getUncompressedPublicKeys(ctx context.Context, coinType uint32) (casp.UncompressedPublicKeysResponse, error) {
 	var response casp.UncompressedPublicKeysResponse
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
 			// nolint we might like to skip it by purpose
 			// nolint: gosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, //#nosec
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, // #nosec
 		},
 	}}
 
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/coins/%d/accounts/0/chains/all/addresses?encoding=uncompressed", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID, coinType), http.NoBody)
+	request, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/coins/%d/accounts/0/chains/all/addresses?encoding=uncompressed", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID, coinType), http.NoBody)
 	if err != nil {
 		return response, err
 	}
@@ -55,7 +56,9 @@ func getUncompressedPublicKeys(coinType uint32) (casp.UncompressedPublicKeysResp
 	defer func(body io.Closer) {
 		innerErr := body.Close()
 		if innerErr != nil {
-			logging.Error(fmt.Errorf("%w: %v", ErrCASPUncompressedKeys, innerErr))
+			// nolint it already has %w
+			// nolint: errorlint
+			logging.Error(fmt.Errorf("%w: %s", ErrCASPUncompressedKeys, innerErr.Error()))
 		}
 	}(resp.Body)
 

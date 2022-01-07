@@ -85,7 +85,9 @@ func collectAllWrapAndRevertTxs(clientCtx *client.Context, database *badger.DB, 
 									Denom:    coin.Denom,
 								})
 								if err != nil {
-									return fmt.Errorf("%w: %v", ErrPartialSend, err)
+									// nolint already has %w
+									// nolint: errorlint
+									return fmt.Errorf("%s: %v", ErrPartialSend, err)
 								}
 							}
 						}
@@ -110,7 +112,7 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 	for _, tmTxToKafka := range tmTxToKafkaList {
 		tx, err := db.GetIncomingTendermintTx(database, tmTxToKafka.TxHash, tmTxToKafka.MsgIndex, tmTxToKafka.Denom)
 		if err != nil {
-			logging.Fatal(fmt.Errorf("%w [TM Listener]: %s", ErrGetIncomingTendermintTx, err.Error()))
+			logging.Fatalf("%s [TM Listener]: %s", ErrGetIncomingTendermintTx, err.Error())
 		}
 
 		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
@@ -141,7 +143,7 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaProducer)
 			if err != nil {
-				logging.Fatal(fmt.Errorf("%w ToEth [TM Listener]: %s", ErrAddToKafkaQueue, err.Error()))
+				logging.Fatalf("%s ToEth [TM Listener]: %s", ErrAddToKafkaQueue, err.Error())
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
@@ -174,6 +176,6 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer sarama.SyncPro
 
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaProducer)
 	if err != nil {
-		logging.Fatal(fmt.Errorf("%w ToEth [TM Listener REVERT]: %s", ErrAddToKafkaQueue, err.Error()))
+		logging.Fatalf("%s ToEth [TM Listener REVERT]: %s", ErrAddToKafkaQueue, err.Error())
 	}
 }

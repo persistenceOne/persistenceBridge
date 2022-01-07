@@ -14,13 +14,20 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )
 
-var bot *tb.Bot
-var showDebug bool
-var errorPrefix = []interface{}{"[ERROR]"}
-var warnPrefix = []interface{}{"[WARNING]"}
-var infoPrefix = []interface{}{"[INFO]"}
-var debugPrefix = []interface{}{"[DEBUG]"}
-var fatalPrefix = []interface{}{"[FATAL]"}
+// nolint fixme: move into a config or a proper structure type
+// nolint: gochecknoglobals
+var (
+	bot       *tb.Bot
+	showDebug bool
+)
+
+const (
+	errorPrefix = "[ERROR]"
+	warnPrefix  = "[WARNING]"
+	infoPrefix  = "[INFO]"
+	debugPrefix = "[DEBUG]"
+	fatalPrefix = "[FATAL]"
+)
 
 func InitializeBot() (err error) {
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
@@ -42,33 +49,59 @@ func InitializeBot() (err error) {
 	return err
 }
 
+// fixme introduce a proper logger and put it into a context
 func ShowDebugLog(d bool) {
 	showDebug = d
 }
 
-func Error(err ...interface{}) {
-	log.Println(append(errorPrefix, err...)...)
-	_ = sendMessage("ERROR:\n" + fmt.Sprintln(err...))
+func Error(errs ...interface{}) {
+	logPrefix(errorPrefix, errs)
+	_ = sendMessage("ERROR:\n" + fmt.Sprintln(errs...))
 }
 
-func Warn(warn ...interface{}) {
-	log.Println(append(warnPrefix, warn...)...)
-	_ = sendMessage("WARNING:\n" + fmt.Sprintln(warn...))
+func Errorf(format string, errs ...interface{}) {
+	logfPrefix(format, errorPrefix, errs)
+	_ = sendMessage("ERROR:\n" + fmt.Sprintln(errs...))
 }
 
-func Info(info ...interface{}) {
-	log.Println(append(infoPrefix, info...)...)
+func Warn(warns ...interface{}) {
+	logPrefix(warnPrefix, warns)
+	_ = sendMessage("WARNING:\n" + fmt.Sprintln(warns...))
 }
 
-func Debug(debug ...interface{}) {
+func Warnf(format string, errs ...interface{}) {
+	logfPrefix(format, warnPrefix, errs)
+	_ = sendMessage("WARNING:\n" + fmt.Sprintln(errs...))
+}
+
+func Info(infos ...interface{}) {
+	logPrefix(infoPrefix, infos)
+}
+
+func Infof(format string, infos ...interface{}) {
+	logfPrefix(format, infoPrefix, infos)
+}
+
+func Debug(debugs ...interface{}) {
 	if showDebug {
-		log.Println(append(debugPrefix, debug...)...)
+		logPrefix(debugPrefix, debugs)
 	}
 }
 
-func Fatal(err ...interface{}) {
-	_ = sendMessage("FATAL:\n" + fmt.Sprintln(err...))
-	log.Fatalln(append(fatalPrefix, err...)...)
+func Debugf(format string, debugs ...interface{}) {
+	if showDebug {
+		logfPrefix(format, debugPrefix, debugs)
+	}
+}
+
+func Fatal(errs ...interface{}) {
+	_ = sendMessage("FATAL:\n" + fmt.Sprintln(errs...))
+	logPrefix(fatalPrefix, errs)
+}
+
+func Fatalf(format string, errs ...interface{}) {
+	_ = sendMessage("FATAL:\n" + fmt.Sprintln(errs...))
+	logfPrefix(format, fatalPrefix, errs)
 }
 
 func sendMessage(message string) error {
@@ -82,4 +115,12 @@ func sendMessage(message string) error {
 	}
 
 	return nil
+}
+
+func logPrefix(prefix string, errs ...interface{}) {
+	log.Println(append([]interface{}{prefix}, errs...)...)
+}
+
+func logfPrefix(format, prefix string, errs ...interface{}) {
+	log.Println(prefix, fmt.Sprintf(format, errs...))
 }

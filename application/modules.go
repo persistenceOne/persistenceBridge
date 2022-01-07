@@ -29,6 +29,8 @@ import (
 	"github.com/gravity-devs/liquidity/x/liquidity"
 )
 
+// nolint fixme we need to find a better way without any global state
+// nolint: gochecknoglobals
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	genutil.AppModuleBasic{},

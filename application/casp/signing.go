@@ -6,6 +6,7 @@
 package casp
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 )
 
 // GetCASPSigningOperationID description should be small
-func GetCASPSigningOperationID(dataToSign, publicKeys []string, description string) (string, error) {
+func GetCASPSigningOperationID(ctx context.Context, dataToSign, publicKeys []string, description string) (string, error) {
 	var (
 		signDataResponse caspResponses.PostSignDataResponse
 		busy             bool
@@ -25,7 +26,7 @@ func GetCASPSigningOperationID(dataToSign, publicKeys []string, description stri
 	)
 
 	for {
-		signDataResponse, busy, err = caspQueries.SignData(dataToSign, publicKeys, description)
+		signDataResponse, busy, err = caspQueries.SignData(ctx, dataToSign, publicKeys, description)
 		if err != nil {
 			return "", err
 		}
@@ -38,7 +39,7 @@ func GetCASPSigningOperationID(dataToSign, publicKeys []string, description stri
 	}
 }
 
-func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, error) {
+func GetCASPSignature(ctx context.Context, operationID string) (caspResponses.SignOperationResponse, error) {
 	if operationID == "" {
 		return caspResponses.SignOperationResponse{}, ErrEmptyOperationID
 	}
@@ -48,7 +49,7 @@ func GetCASPSignature(operationID string) (caspResponses.SignOperationResponse, 
 	for {
 		time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
 
-		signOperationResponse, err := caspQueries.GetSignOperation(operationID)
+		signOperationResponse, err := caspQueries.GetSignOperation(ctx, operationID)
 		if err != nil {
 			logging.Error("CASP sign operation:", operationID, " Error:", err)
 

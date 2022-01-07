@@ -9,6 +9,8 @@ import (
 )
 
 func OpenDB(t *testing.T, openDB func(dbPath string) (*badger.DB, error)) (*badger.DB, func(), error) {
+	t.Helper()
+
 	var (
 		closers []func() error
 		dir     string

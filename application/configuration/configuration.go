@@ -18,7 +18,8 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
-// fixme: we cannot use such things as global state if we'd like to have parallel tests
+// nolint fixme: we cannot use such things as global state if we'd like to have parallel tests
+// nolint: gochecknoglobals
 var appConfig = newConfig()
 
 func GetAppConfig() config {

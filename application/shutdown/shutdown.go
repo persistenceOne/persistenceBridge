@@ -5,11 +5,15 @@
 
 package shutdown
 
-var seal = false
-var stopBridge = false
-var tendermintStopped = false
-var ethStopped = false
-var kafkaConsumerClosed = false
+// nolint fixme: each service must know its' status. remove global state
+// nolint: gochecknoglobals
+var (
+	seal                = false
+	stopBridge          = false
+	tendermintStopped   = false
+	ethStopped          = false
+	kafkaConsumerClosed = false
+)
 
 func GetBridgeStopSignal() bool {
 	return stopBridge

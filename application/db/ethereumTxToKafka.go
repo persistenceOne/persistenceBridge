@@ -31,7 +31,7 @@ func (t *EthereumTxToKafka) Value() ([]byte, error) {
 }
 
 func (t *EthereumTxToKafka) Validate() error {
-	if t.TxHash.String() == EthEmptyAddress {
+	if t.TxHash == EthEmptyHash() {
 		return ErrEmptyTransaction
 	}
 

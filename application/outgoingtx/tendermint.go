@@ -6,6 +6,7 @@
 package outgoingtx
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 
@@ -26,10 +27,12 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
+// nolint fixme: move into a config or a proper structure type
+// nolint: gochecknoglobals
 var tmPublicKey cryptotypes.PubKey
 
 // LogMessagesAndBroadcast filters msgs to check repeated withdraw reward message
-func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
+func LogMessagesAndBroadcast(ctx context.Context, chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	msgsTypes := ""
 
 	for _, msg := range msgs {
@@ -43,13 +46,13 @@ func LogMessagesAndBroadcast(chain *relayer.Chain, msgs []sdk.Msg, timeoutHeight
 
 	logging.Info("Messages to tendermint:", msgsTypes)
 
-	return tendermintSignAndBroadcastMsgs(chain, msgs, "pStake@PersistenceOne", timeoutHeight)
+	return tendermintSignAndBroadcastMsgs(ctx, chain, msgs, "pStake@PersistenceOne", timeoutHeight)
 }
 
 // Timeout height should be greater than current block height or set it 0 for none.
-func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
+func tendermintSignAndBroadcastMsgs(ctx context.Context, chain *relayer.Chain, msgs []sdk.Msg, memo string, timeoutHeight uint64) (*sdk.TxResponse, error) {
 	if tmPublicKey == nil {
-		err := setTMPublicKey()
+		err := setTMPublicKey(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +65,7 @@ func tendermintSignAndBroadcastMsgs(chain *relayer.Chain, msgs []sdk.Msg, memo s
 
 	var signature []byte
 
-	signature, err = getTMSignature(bytesToSign)
+	signature, err = getTMSignature(ctx, bytesToSign)
 	if err != nil {
 		return nil, err
 	}
@@ -176,17 +179,17 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 	return ctx.BroadcastTx(txBytes)
 }
 
-func getTMSignature(bytesToSign []byte) ([]byte, error) {
+func getTMSignature(ctx context.Context, bytesToSign []byte) ([]byte, error) {
 	dataToSign := []string{hex.EncodeToString(crypto.Sha256(bytesToSign))}
 
-	operationID, err := casp.GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, "tm")
+	operationID, err := casp.GetCASPSigningOperationID(ctx, dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, "tm")
 	if err != nil {
 		return nil, err
 	}
 
 	var signatureResponse caspResponses.SignOperationResponse
 
-	signatureResponse, err = casp.GetCASPSignature(operationID)
+	signatureResponse, err = casp.GetCASPSignature(ctx, operationID)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +201,7 @@ func getTMSignature(bytesToSign []byte) ([]byte, error) {
 	return hex.DecodeString(signatureResponse.Signatures[0])
 }
 
-func setTMPublicKey() error {
+func setTMPublicKey(ctx context.Context) error {
 	if tmPublicKey != nil {
 		logging.Warn("outgoingtx: casp tendermint public key already set to.", tmPublicKey.String(), "To change update config and restart.")
 
@@ -207,7 +210,7 @@ func setTMPublicKey() error {
 
 	logging.Info("outgoingtx: setting tendermint casp public key")
 
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys()
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedTMPublicKeys(ctx)
 	if err != nil {
 		return err
 	}

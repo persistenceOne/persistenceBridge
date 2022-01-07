@@ -28,24 +28,28 @@ import (
 
 func handleBlock(ctx context.Context, client *ethclient.Client, database *badger.DB, block *types.Block, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) error {
 	for _, transaction := range block.Transactions() {
-		if transaction.To() != nil {
-			var contract contracts.ContractI
+		if transaction.To() == nil {
+			continue
+		}
 
-			switch transaction.To().String() {
-			case contracts.LiquidStaking.GetAddress().String():
-				contract = &contracts.LiquidStaking
-			case contracts.TokenWrapper.GetAddress().String():
-				contract = &contracts.TokenWrapper
-			default:
-			}
+		var contract contracts.ContractI
 
-			if contract != nil {
-				err := collectEthTx(ctx, client, database, protoCodec, transaction, contract)
-				if err != nil {
-					logging.Error("Failed to process ethereum tx:", transaction.Hash().String())
+		switch *transaction.To() {
+		case contracts.LiquidStaking().GetAddress():
+			liquidContract := contracts.LiquidStaking()
+			contract = &liquidContract
+		case contracts.TokenWrapper().GetAddress():
+			tokenWrapperContract := contracts.TokenWrapper()
+			contract = &tokenWrapperContract
+		default:
+		}
 
-					return err
-				}
+		if contract != nil {
+			err := collectEthTx(ctx, client, database, protoCodec, transaction, contract)
+			if err != nil {
+				logging.Error("Failed to process ethereum tx:", transaction.Hash().String())
+
+				return err
 			}
 		}
 	}

@@ -6,6 +6,7 @@
 package commands
 
 import (
+	"context"
 	"log"
 	"path/filepath"
 	"strings"
@@ -40,7 +41,10 @@ func RemoveCommand() *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 
-			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress()
+			// fixme: init with deps and timeout
+			ctx := context.Background()
+
+			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -122,7 +126,7 @@ func RemoveCommand() *cobra.Command {
 	}
 
 	removeCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	removeCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	removeCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome(), "home for pBridge")
 	removeCommand.Flags().String(constants.FlagKafkaPorts, constants.DefaultKafkaPorts, "broker ports kafka is running on")
 
 	return removeCommand

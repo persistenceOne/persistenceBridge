@@ -34,7 +34,7 @@ func (t *IncomingEthereumTx) Value() ([]byte, error) {
 }
 
 func (t *IncomingEthereumTx) Validate() error {
-	if t.TxHash == EthEmptyHash {
+	if t.TxHash == EthEmptyHash() {
 		return ErrEmptyTransaction
 	}
 

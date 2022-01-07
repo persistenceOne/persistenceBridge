@@ -6,6 +6,7 @@
 package casp
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -17,18 +18,20 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
+func GetSignOperation(ctx context.Context, operationID string) (casp.SignOperationResponse, error) {
 	var response casp.SignOperationResponse
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
 			// nolint we might like to skip it by purpose
 			// nolint: gosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, //#nosec
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, // #nosec
 		},
 	}}
 
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s", configuration.GetAppConfig().CASP.URL, operationID), http.NoBody)
+	request, err := http.NewRequestWithContext(ctx, "GET",
+		fmt.Sprintf("%s/casp/api/v1.0/mng/operations/sign/%s",
+			configuration.GetAppConfig().CASP.URL, operationID), http.NoBody)
 	if err != nil {
 		return response, err
 	}
@@ -52,7 +55,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 	if err != nil {
 		logging.Error("getting casp sign operation error: ", err, "Body:", string(body))
 
-		var errResponse casp.ErrorResponse
+		var errResponse casp.ResponseError
 
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {

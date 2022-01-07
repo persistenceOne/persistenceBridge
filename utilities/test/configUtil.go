@@ -14,7 +14,7 @@ import (
 func GetCmdWithConfig() *cobra.Command {
 	var cmd cobra.Command
 
-	cmd.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	cmd.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome(), "home for pBridge")
 	cmd.Flags().String(constants.FlagEthereumEndPoint, constants.DefaultEthereumEndPoint, "ethereum orchestrator to connect")
 	cmd.Flags().String(constants.FlagKafkaPorts, constants.DefaultKafkaPorts, "ports kafka brokers are running on, --ports 192.100.10.10:443,192.100.10.11:443")
 	cmd.Flags().String(constants.FlagDenom, constants.DefaultDenom, "denom name")

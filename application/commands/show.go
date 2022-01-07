@@ -6,6 +6,7 @@
 package commands
 
 import (
+	"context"
 	"log"
 	"path/filepath"
 
@@ -37,19 +38,22 @@ func ShowCommand() *cobra.Command {
 				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
 			}
 
-			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress()
+			// fixme init proper deps and timeout
+			ctx := context.Background()
+
+			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
 			configuration.ValidateAndSeal()
 
-			tmAddress, err := casp.GetTendermintAddress()
+			tmAddress, err := casp.GetTendermintAddress(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			ethAddress, err := casp.GetEthAddress()
+			ethAddress, err := casp.GetEthAddress(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -98,7 +102,7 @@ func ShowCommand() *cobra.Command {
 	}
 
 	showCommand.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc endpoint for bridge relayer")
-	showCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome, "home for pBridge")
+	showCommand.Flags().String(constants.FlagPBridgeHome, constants.DefaultPBridgeHome(), "home for pBridge")
 
 	return showCommand
 }

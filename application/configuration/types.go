@@ -128,7 +128,7 @@ func newTelegramBot() telegramBot {
 
 func newKafkaConfig() kafkaConfig {
 	return kafkaConfig{
-		Brokers:      constants.DefaultBrokers,
+		Brokers:      []string{constants.DefaultBroker},
 		TopicDetails: constants.TopicDetail,
 		ToEth: TopicConsumer{
 			MinBatchSize: constants.MinEthBatchSize,
