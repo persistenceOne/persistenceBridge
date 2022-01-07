@@ -24,8 +24,7 @@ func GetSignOperation(operationID string) (casp.SignOperationResponse, error) {
 		TLSClientConfig: &tls.Config{
 			// nolint we might like to skip it by purpose
 			// nolint: gosec
-			// #nosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify,
+			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, //#nosec
 		},
 	}}
 
