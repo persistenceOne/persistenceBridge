@@ -72,17 +72,17 @@ endif
 
 lintci:
 	golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 --config .golangci.yaml
-	#cosmossec ./... -quiet -tests # fails with panic
+	#cosmossec -quiet -tests ./... # fails with panic
 .PHONY: lintci
 
 lintci-install:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${GOBIN} v1.43.0
-	git clone --depth 1 https://github.com/informalsystems/gosec.git cosmossec && cd cosmossec/cmd/gosec && go build -o ${GOBIN}/cosmossec && chmod 0544 ${GOBIN}/cosmossec && cd ../../.. && rm -Rdf ./cosmossec
+	# git clone --depth 1 https://github.com/informalsystems/gosec.git cosmossec && cd cosmossec/cmd/gosec && go build -o ${GOBIN}/cosmossec && chmod 0544 ${GOBIN}/cosmossec && cd ../../.. && rm -Rdf ./cosmossec
 .PHONY: lintci-install
 
 lintci-remove:
 	rm ${GOBIN}/golangci-lint
-	rm -Rdf ./gosec ./cosmossec ${GOBIN}/cosmossec
+	# rm -Rdf ./gosec ./cosmossec ${GOBIN}/cosmossec
 .PHONY: lintci-remove
 
 lintci-update: lintci-remove lintci-install

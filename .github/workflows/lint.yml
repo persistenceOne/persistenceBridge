@@ -86,14 +86,14 @@ jobs:
       - name: Build
         run: make
 
-  tendermint-sec:
+  cosmos-sec:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
     steps:
-      - name: Run Tendermint Gosec
+      - name: Run Cosmos Gosec
         uses: actions/checkout@v2
       - name: Run Gosec Security Scanner
         uses: informalsystems/gosec@master
         with:
-          args: ./...
+          args: -quiet -test ./...
