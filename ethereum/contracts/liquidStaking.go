@@ -10,7 +10,6 @@ import (
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -19,15 +18,18 @@ import (
 )
 
 func LiquidStaking() Contract {
-	return Contract{
+	c := Contract{
 		name:    "LIQUID_STAKING",
 		address: common.HexToAddress(constants.LiquidStakingAddress),
-		abi:     abi.ABI{},
 		methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
 			constants.LiquidStakingStake:   onStake,
 			constants.LiquidStakingUnStake: onUnStake,
 		},
 	}
+
+	c.SetABI(constants.LiquidStakingABI)
+
+	return c
 }
 
 // nolint implements common interface

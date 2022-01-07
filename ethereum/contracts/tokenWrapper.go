@@ -10,7 +10,6 @@ import (
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -19,14 +18,17 @@ import (
 )
 
 func TokenWrapper() Contract {
-	return Contract{
+	c := Contract{
 		name:    "TOKEN_WRAPPER",
 		address: common.HexToAddress(constants.TokenWrapperAddress),
-		abi:     abi.ABI{},
 		methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
 			constants.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
 		},
 	}
+
+	c.SetABI(constants.TokenWrapperABI)
+
+	return c
 }
 
 func onWithdrawUTokens(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
