@@ -16,7 +16,6 @@ import (
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
 	"os"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -43,8 +42,6 @@ func TestLogMessagesAndBroadcast(t *testing.T) {
 	re := regexp.MustCompile(`^[0-9a-fA-f]{64}`)
 	require.NotNil(t, txResponse)
 	require.Equal(t, true, re.MatchString(txResponse.TxHash))
-	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(txResponse))
-	require.Equal(t, reflect.TypeOf(""), reflect.TypeOf(txResponse.String()))
 }
 
 func TestBroadcastTMTx(t *testing.T) {
@@ -73,7 +70,6 @@ func TestBroadcastTMTx(t *testing.T) {
 	re := regexp.MustCompile(`^[0-9a-fA-F]`)
 	require.Equal(t, true, re.MatchString(broadcastTMmsg.TxHash))
 	require.NotNil(t, broadcastTMmsg)
-	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(broadcastTMmsg))
 }
 
 func TestGetTMBytesToSign(t *testing.T) {
@@ -114,9 +110,6 @@ func TestGetTMSignature(t *testing.T) {
 		t.Errorf("Error getting TM signature: \n %v", err)
 	}
 	require.Equal(t, 64, len(tmSignature))
-	require.Equal(t, reflect.TypeOf([]byte{}), reflect.TypeOf(tmSignature))
-	require.NotNil(t, tmSignature)
-	require.Equal(t, 64, len(tmSignature))
 }
 
 func TestSetTMPublicKey(t *testing.T) {
@@ -146,7 +139,6 @@ func TestTendermintSignAndBroadcastMsgs(t *testing.T) {
 	require.Equal(t, nil, err)
 	re := regexp.MustCompile(`^[0-9a-fA-F]{64}`)
 	require.Equal(t, true, re.MatchString(tmSignAndBroadcastMsg.TxHash))
-	require.Equal(t, reflect.TypeOf(&sdk.TxResponse{}), reflect.TypeOf(tmSignAndBroadcastMsg))
 	require.NotNil(t, tmSignAndBroadcastMsg)
 }
 

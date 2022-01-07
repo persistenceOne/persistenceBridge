@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -53,7 +52,6 @@ func TestAccountLimiterKey(t *testing.T) {
 
 	key := acc.Key()
 	expectedKey := accountLimiterPrefix.GenerateStoreKey(acc.AccountAddress.Bytes())
-	require.Equal(t, reflect.TypeOf(key), reflect.TypeOf(expectedKey))
 	require.Equal(t, expectedKey, key)
 	require.NotEqual(t, nil, key)
 }

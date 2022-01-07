@@ -9,7 +9,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	test "github.com/persistenceOne/persistenceBridge/utilities/testing"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -38,7 +37,6 @@ func TestSendDataToSign(t *testing.T) {
 	caspSignatureOperationID, err := SendDataToSign(dataToSign, publickey, false)
 	require.Nil(t, err, "Error getting casp signing OperationID")
 	require.NotNil(t, caspSignatureOperationID)
-	require.Equal(t, reflect.TypeOf(""), reflect.TypeOf(caspSignatureOperationID))
 	require.NotEqual(t, "", caspSignatureOperationID, "Empty OperationID")
 
 }

@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -83,7 +82,6 @@ func TestNewOutgoingTMTransaction(t *testing.T) {
 	}
 	newTendermintTransaction := NewOutgoingTMTransaction(Txhash)
 
-	require.Equal(t, reflect.TypeOf(tendermintTransaction), reflect.TypeOf(newTendermintTransaction))
 	require.Equal(t, tendermintTransaction, newTendermintTransaction)
 
 	db.Close()
@@ -110,7 +108,6 @@ func TestTendermintOutgoingTransactionKey(t *testing.T) {
 	}
 	Key := outgoingTendermintTxPrefix.GenerateStoreKey([]byte(tendermintTransaction.TxHash))
 	expectedKey := tendermintTransaction.Key()
-	require.Equal(t, reflect.TypeOf(Key), reflect.TypeOf(expectedKey))
 	require.Equal(t, expectedKey, Key)
 }
 
@@ -139,12 +136,10 @@ func TestTendermintOutgoingTransactionValue(t *testing.T) {
 	newValue, err := tendermintTransaction.Value()
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(Value), reflect.TypeOf(newValue))
 	require.Equal(t, Value, newValue)
 }
 
 func TestTendermintOutgoingTransactionPrefix(t *testing.T) {
 	tendermintTransaction := OutgoingTendermintTransaction{}
-	require.Equal(t, reflect.TypeOf(tendermintTransaction.prefix()), reflect.TypeOf(outgoingTendermintTxPrefix))
 	require.Equal(t, outgoingTendermintTxPrefix, tendermintTransaction.prefix())
 }

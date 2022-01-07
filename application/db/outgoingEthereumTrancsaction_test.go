@@ -14,7 +14,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
 	"math/big"
-	"reflect"
 	"testing"
 )
 
@@ -152,7 +151,6 @@ func TestNewETHTransaction(t *testing.T) {
 	err := outgoingEthereumTransaction.Validate()
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(ethTransaction), reflect.TypeOf(outgoingEthereumTransaction))
 	require.Equal(t, ethTransaction, outgoingEthereumTransaction)
 }
 

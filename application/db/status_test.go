@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
@@ -72,7 +71,6 @@ func TestStatusValue(t *testing.T) {
 
 func TestStatusPrefix(t *testing.T) {
 	status := Status{}
-	require.Equal(t, reflect.TypeOf(statusPrefix), reflect.TypeOf(status.prefix()))
 	require.Equal(t, statusPrefix, status.prefix())
 }
 
