@@ -72,7 +72,7 @@ endif
 
 lintci:
 	golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 --config .golangci.yaml
-	#cosmossec -quiet -tests ./... # fails with panic
+	#cosmossec -quiet -tests -nosec ./... # fails with panic
 .PHONY: lintci
 
 lintci-install:
