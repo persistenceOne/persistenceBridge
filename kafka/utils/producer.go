@@ -45,38 +45,3 @@ func ProducerDeliverMessages(msgBytes [][]byte, topic string, producer sarama.Sy
 
 	return producer.SendMessages(sendMsgs)
 }
-
-/*
-// SendToKafka : handles sending message to kafka
-func SendToKafka(msg KafkaMsg, kafkaState KafkaState, cdc *codec.LegacyAmino) []byte {
-	err := ProducerDeliverMessage(msg, "Topic", kafkaState.Producer, cdc)
-	if err != nil {
-		jsonResponse, Error := cdc.MarshalJSON(struct {
-			Response string `json:"response"`
-		}{Response: "Something is up with kafka server, restart rest and kafka."})
-		if Error != nil {
-			panic(Error)
-		}
-
-		SetTicketIDtoDB(msg.TicketID, kafkaState.KafkaDB, cdc, jsonResponse)
-	} else {
-		jsonResponse, err := cdc.MarshalJSON(struct {
-			Error string `json:"error"`
-		}{Error: "Request in process, wait and try after some time"})
-		if err != nil {
-			panic(err)
-		}
-		SetTicketIDtoDB(msg.TicketID, kafkaState.KafkaDB, cdc, jsonResponse)
-	}
-
-	jsonResponse, Error := cdc.MarshalJSON(struct {
-		TicketID Ticket `json:"ticketID"`
-	}{TicketID: msg.TicketID})
-
-	if err != nil {
-		panic(err)
-	}
-
-	return jsonResponse
-}
-*/

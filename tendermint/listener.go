@@ -8,7 +8,6 @@ package tendermint
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
@@ -99,11 +98,16 @@ func StartListening(initClientCtx *client.Context, database *badger.DB, chain *r
 
 		cosmosStatus, err := db.GetCosmosStatus(database)
 		if err != nil {
-			logging.Error("Stopping Tendermint Listener, unable to get status, Error:", err)
+			logging.Fatal("Stopping Tendermint Listener, unable to get status, Error:", err)
+		}
 
-			shutdown.SetTMStopped(true)
+		if cosmosStatus.LastCheckHeight < 0 {
+			logging.Fatal("Stopping Tendermint Listener, cosmos status is less than 0")
+		}
 
-			return
+
+		if cosmosStatus.LastCheckHeight < 0 {
+			logging.Fatal("Stopping Tendermint Listener, cosmos status is less than 0")
 		}
 
 		if (abciInfo.Response.LastBlockHeight - cosmosStatus.LastCheckHeight) > finality {
@@ -133,11 +137,7 @@ func StartListening(initClientCtx *client.Context, database *badger.DB, chain *r
 
 			err = db.SetCosmosStatus(database, processHeight)
 			if err != nil {
-				logging.Error("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
-
-				shutdown.SetTMStopped(true)
-
-				return
+				logging.Fatal("Stopping Tendermint Listener, unable to set (DB) status to", processHeight, "Error:", err)
 			}
 		}
 
@@ -167,7 +167,11 @@ func getAllTxResults(ctx context.Context, chain *relayer.Chain, height int64) ([
 
 	resultTxs = append(resultTxs, txSearchResult.Txs...)
 
-	totalPages := int(math.Ceil(float64(txSearchResult.TotalCount) / float64(txsMaxPerPage)))
+	totalPages := (txSearchResult.TotalCount / txsMaxPerPage) + 1
+	if txSearchResult.TotalCount%txsMaxPerPage == 0 {
+		totalPages = txSearchResult.TotalCount / txsMaxPerPage
+	}
+
 	for i := page + 1; i <= totalPages; i++ {
 		txSearchResult, err = chain.Client.TxSearch(ctx, fmt.Sprintf("tx.height=%d", height), true, &i, &txsMaxPerPage, "asc")
 		if err != nil {

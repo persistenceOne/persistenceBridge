@@ -35,12 +35,10 @@ func handleBlock(ctx context.Context, client *ethclient.Client, database *badger
 		var contract contracts.ContractI
 
 		switch *transaction.To() {
-		case contracts.LiquidStaking().GetAddress():
-			liquidContract := contracts.LiquidStaking()
-			contract = &liquidContract
-		case contracts.TokenWrapper().GetAddress():
-			tokenWrapperContract := contracts.TokenWrapper()
-			contract = &tokenWrapperContract
+		case contracts.LiquidStaking.GetAddress():
+			contract = &contracts.LiquidStaking
+		case contracts.TokenWrapper.GetAddress():
+			contract = &contracts.TokenWrapper
 		default:
 		}
 

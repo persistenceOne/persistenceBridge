@@ -15,4 +15,5 @@ const (
 	ErrEmptyDenom             = consterr.Error("empty denom")
 	ErrEmptyFromAddress       = consterr.Error("from address empty")
 	ErrInvalidFromAddress     = consterr.Error("invalid from address")
+	ErrInvalidTransactionHash = consterr.Error("invalid tx hash")
 )

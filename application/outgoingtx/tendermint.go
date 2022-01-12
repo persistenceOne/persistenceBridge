@@ -81,20 +81,20 @@ func tendermintSignAndBroadcastMsgs(ctx context.Context, chain *relayer.Chain, m
 }
 
 // Timeout height should be greater than current block height or set it 0 for none.
-func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, *tx.Factory, error) {
+func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, msgs []sdk.Msg, memo string, timeoutHeight uint64) ([]byte, client.TxBuilder, tx.Factory, error) {
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from)
 
 	txFactory, err := tx.PrepareFactory(ctx, chain.TxFactory(0))
 	if err != nil {
-		return []byte{}, nil, &txFactory, err
+		return []byte{}, nil, tx.Factory{}, err
 	}
 
 	var adjusted uint64
 
 	_, adjusted, err = tx.CalculateGas(ctx.QueryWithData, txFactory, msgs...)
 	if err != nil {
-		return []byte{}, nil, &txFactory, err
+		return []byte{}, nil, tx.Factory{}, err
 	}
 
 	txFactory = txFactory.WithGas(adjusted).WithMemo(memo).WithTimeoutHeight(timeoutHeight)
@@ -103,7 +103,7 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 
 	txBuilder, err = tx.BuildUnsignedTx(txFactory, msgs...)
 	if err != nil {
-		return []byte{}, nil, &txFactory, err
+		return []byte{}, nil, tx.Factory{}, err
 	}
 
 	signMode := txFactory.SignMode()
@@ -130,21 +130,20 @@ func getTMBytesToSign(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, ms
 
 	err = txBuilder.SetSignatures(sig)
 	if err != nil {
-		return []byte{}, txBuilder, &txFactory, err
+		return []byte{}, txBuilder, tx.Factory{}, err
 	}
 
 	var bytesToSign []byte
 
 	bytesToSign, err = ctx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
 	if err != nil {
-		return []byte{}, txBuilder, &txFactory, err
+		return []byte{}, txBuilder, tx.Factory{}, err
 	}
 
-	return bytesToSign, txBuilder, &txFactory, nil
+	return bytesToSign, txBuilder, txFactory, nil
 }
 
-// broadcastTMTx chalk swarm motion broom chapter team guard bracket invest situate circle deny tuition park economy movie subway chase alert popular slogan emerge cricket category
-func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory *tx.Factory) (*sdk.TxResponse, error) {
+func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBytes []byte, txBuilder client.TxBuilder, txFactory tx.Factory) (*sdk.TxResponse, error) {
 	from := sdk.AccAddress(fromPublicKey.Address())
 	ctx := chain.CLIContext(0).WithFromAddress(from).WithBroadcastMode(configuration.GetAppConfig().Tendermint.BroadcastMode)
 
@@ -182,7 +181,7 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 func getTMSignature(ctx context.Context, bytesToSign []byte) ([]byte, error) {
 	dataToSign := []string{hex.EncodeToString(crypto.Sha256(bytesToSign))}
 
-	operationID, err := casp.GetCASPSigningOperationID(ctx, dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, "tm")
+	operationID, err := casp.SendDataToSign(ctx, dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, false)
 	if err != nil {
 		return nil, err
 	}

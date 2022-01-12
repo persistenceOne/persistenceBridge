@@ -17,26 +17,25 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-// GetCASPSigningOperationID description should be small
-func GetCASPSigningOperationID(ctx context.Context, dataToSign, publicKeys []string, description string) (string, error) {
-	var (
-		signDataResponse caspResponses.PostSignDataResponse
-		busy             bool
-		err              error
-	)
+const (
+	tendermintDescription = "tm"
+	ethereumDescription   = "eth"
+)
 
-	for {
-		signDataResponse, busy, err = caspQueries.SignData(ctx, dataToSign, publicKeys, description)
-		if err != nil {
-			return "", err
-		}
+// SendDataToSign returns operation id from CASP
+func SendDataToSign(ctx context.Context, dataToSign []string, publicKeys []string, isEthTx bool) (string, error) {
+	description := tendermintDescription
 
-		if !busy {
-			return signDataResponse.OperationID, nil
-		}
-
-		time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
+	if isEthTx {
+		description = ethereumDescription
 	}
+
+	signDataResponse, err := caspQueries.PostSignData(ctx, dataToSign, publicKeys, description)
+	if err != nil {
+		return "", err
+	}
+
+	return signDataResponse.OperationID, nil
 }
 
 func GetCASPSignature(ctx context.Context, operationID string) (caspResponses.SignOperationResponse, error) {
@@ -44,10 +43,10 @@ func GetCASPSignature(ctx context.Context, operationID string) (caspResponses.Si
 		return caspResponses.SignOperationResponse{}, ErrEmptyOperationID
 	}
 
-	attempts := 0
+	attempts := uint(0)
 
 	for {
-		time.Sleep(configuration.GetAppConfig().CASP.SignatureWaitTime)
+		time.Sleep(configuration.GetAppConfig().CASP.WaitTime)
 
 		signOperationResponse, err := caspQueries.GetSignOperation(ctx, operationID)
 		if err != nil {
@@ -66,8 +65,8 @@ func GetCASPSignature(ctx context.Context, operationID string) (caspResponses.Si
 				logging.Error("attempt:", attempts, err)
 			}
 
-			if attempts >= configuration.GetAppConfig().CASP.MaxGetSignatureAttempts {
-				return signOperationResponse, fmt.Errorf("%w: %s", ErrCantGetOperationApprovals, operationID)
+			if attempts >= configuration.GetAppConfig().CASP.MaxAttempts {
+				return signOperationResponse, fmt.Errorf("unable to get approvals for operation: %s", operationID)
 			}
 
 			continue

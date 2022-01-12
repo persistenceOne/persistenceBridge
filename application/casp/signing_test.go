@@ -8,7 +8,7 @@
 package casp
 
 import (
-	"reflect"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,10 +22,11 @@ func TestGetCASPSignature(t *testing.T) {
 
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
 
-	operationID, err := GetCASPSigningOperationID(dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, "eth")
+	ctx := context.Background()
+	operationID, err := SendDataToSign(ctx, dataToSign, []string{configuration.GetAppConfig().CASP.EthereumPublicKey}, true)
 	require.Nil(t, err, "Error getting OperationId")
 
-	caspSignature, errCS := GetCASPSignature(operationID)
+	caspSignature, errCS := GetCASPSignature(ctx, operationID)
 	require.Nil(t, errCS, "Error getting casp Signature")
 	require.Equal(t, caspSignature.IsApproved, true)
 	require.Equal(t, caspSignature.Description, "eth")
@@ -35,16 +36,15 @@ func TestGetCASPSignature(t *testing.T) {
 	require.NotNil(t, caspSignature.Signatures)
 }
 
-func TestGetCASPSigningOperationID(t *testing.T) {
+func TestSendDataToSign(t *testing.T) {
 	dataToSign := []string{"55C53F5D490297900CEFA825D0C8E8E9532EE8A118ABE7D8570762CD38BE9818"}
-	description := "60"
-	publickey := []string{"3056301006072A8648CE3D020106052B8104000A0342000413109ECEADCBF6122EF44184B207F8C6820E509497792DDFB166BC090A0FB4447CFFCE16BAAF9EC7F57D14C02641B3A6A698614D973ED744E725A85E62535DA4"}
 
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	caspSignatureOperationID, err := GetCASPSigningOperationID(dataToSign, publickey, description)
-	require.Nil(t, err, "Error getting casp sigining OperationID")
+	publickey := []string{configuration.GetAppConfig().CASP.TendermintPublicKey}
+
+	caspSignatureOperationID, err := SendDataToSign(context.Background(), dataToSign, publickey, false)
+	require.Nil(t, err, "Error getting casp signing OperationID")
 	require.NotNil(t, caspSignatureOperationID)
-	require.Equal(t, reflect.TypeOf(""), reflect.TypeOf(caspSignatureOperationID))
 	require.NotEqual(t, "", caspSignatureOperationID, "Empty OperationID")
 }

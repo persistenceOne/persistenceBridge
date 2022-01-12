@@ -22,7 +22,7 @@ func GetEthAddress(ctx context.Context) (common.Address, error) {
 		return common.Address{}, err
 	}
 
-	if len(uncompressedPublicKeys.Items) == 0 {
+	if len(uncompressedPublicKeys.Items) != 1 {
 		return common.Address{}, fmt.Errorf("%w: ethereum", ErrNoPublicKeys)
 	}
 
@@ -37,7 +37,7 @@ func GetTendermintAddress(ctx context.Context) (sdk.AccAddress, error) {
 		return nil, err
 	}
 
-	if len(uncompressedPublicKeys.Items) == 0 {
+	if len(uncompressedPublicKeys.Items) != 1 {
 		return nil, fmt.Errorf("%w: tendermint", ErrNoPublicKeys)
 	}
 

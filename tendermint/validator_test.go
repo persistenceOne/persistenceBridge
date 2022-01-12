@@ -23,7 +23,7 @@ func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
 		tmStart  = 1
 	)
 
-	database, err := db.InitializeDB(constants.TestHomeDir, tmStart, ethStart)
+	database, err := db.InitializeDB(constants.TestHomeDir(), tmStart, ethStart)
 	require.Nil(t, err)
 
 	defer func() {
@@ -32,7 +32,7 @@ func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
 	}()
 
 	var chain *relayer.Chain
-	chain, err = InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	chain, err = InitializeAndStartChain("336h", constants.DefaultPBridgeHome())
 	require.Nil(t, err)
 
 	var address types.ValAddress
@@ -43,11 +43,11 @@ func TestHandleSlashedOrAboutToBeSlashed(t *testing.T) {
 		Address: address,
 		Name:    "test1",
 	})
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	var cosmosStatus db.Status
 	cosmosStatus, err = db.GetCosmosStatus(database)
-	require.Equal(t, nil, err)
+	require.Nil(t, err)
 
 	processHeight := cosmosStatus.LastCheckHeight + 1
 

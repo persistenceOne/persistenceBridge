@@ -8,6 +8,7 @@ package db
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dgraph-io/badger/v3"
@@ -46,8 +47,8 @@ func (t *IncomingTendermintTx) Value() ([]byte, error) {
 }
 
 func (t *IncomingTendermintTx) Validate() error {
-	if len(t.TxHash.Bytes()) == 0 {
-		return ErrEmptyTransaction
+	if len(t.TxHash.Bytes()) != 32 {
+		return fmt.Errorf("incomingTendermintTx: %w", ErrInvalidTransactionHash)
 	}
 
 	if t.Denom == "" {

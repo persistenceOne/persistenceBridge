@@ -8,6 +8,7 @@
 package casp
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,13 +20,14 @@ import (
 func TestGetSignOperation(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	operationID := "69544933-2767-4e09-af4a-c2dacb9a20af"
-	responseRecieved, err := GetSignOperation(operationID)
+	ctx := context.Background()
+
+	operationID := "dba4017b-6e88-4693-8c4c-372d283534ad"
+	responseRecieved, err := GetSignOperation(ctx, operationID)
 	require.Nil(t, err)
 	require.Equal(t, responseRecieved.StatusText, "Completed")
 	require.Equal(t, responseRecieved.IsApproved, true)
-	require.Equal(t, responseRecieved.AccountID, "bd4c618e-8046-4fef-bdaa-9716ade77553")
 
-	_, err = GetSignOperation("")
+	_, err = GetSignOperation(ctx, "dba4017b-6e88-4693-8c4c-372d283534ae")
 	require.Equal(t, "Operation not found", err.Error())
 }

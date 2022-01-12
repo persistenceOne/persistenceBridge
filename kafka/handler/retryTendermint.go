@@ -11,6 +11,7 @@ import (
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -25,6 +26,10 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
 		}
 	}()
+
+	if m.Count <= 0 {
+		return nil
+	}
 
 	claimMsgChan := claim.Messages()
 
@@ -52,20 +57,28 @@ ConsumerLoop:
 			}
 
 			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
-				var loop int
-
-				loop, err = WithdrawRewards(configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count, m.ProtoCodec, producer, m.Chain, m.DB)
+				validators, err := db.GetValidators(m.DB)
 				if err != nil {
 					return err
 				}
 
+				loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - m.Count
+				if loop <= len(validators) {
+					return nil
+				}
+
+				loop, err = WithdrawRewards(loop, m.ProtoCodec, producer, m.Chain, m.DB)
+
 				m.WithdrawRewards = true
 				m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
+
+				if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+					break ConsumerLoop
+				}
 			}
 
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, error:", err)
 
 				break ConsumerLoop

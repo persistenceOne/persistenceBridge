@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/dgraph-io/badger/v3"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
@@ -60,23 +61,33 @@ ConsumerLoop:
 		return ErrKafkaNilMessage
 	}
 
-	err := SendBatchToEth(kafkaMsgs, m)
+	// 1.add to database
+	msgBytes := make([][]byte, len(kafkaMsgs))
+
+	for i := range kafkaMsgs {
+		msgBytes[i] = kafkaMsgs[i].Value
+	}
+
+	index, err := db.AddKafkaEthereumConsume(m.DB, kafkaMsg.Offset, msgBytes)
 	if err != nil {
 		return err
 	}
 
+	// 2.set kafka offset so all next steps are independent of kafka consumer queue.
 	session.MarkMessage(kafkaMsg, "")
 
-	return nil
+	return SendBatchToEth(index, m)
 }
 
-func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingtx.WrapTokenMsg, error) {
-	msgs := make([]outgoingtx.WrapTokenMsg, len(kafkaMsgs))
+func convertMsgBytesToEthMsg(msgBytes [][]byte) ([]db.WrapTokenMsg, error) {
+	msgs := make([]db.WrapTokenMsg, len(msgBytes))
 
-	for i := range kafkaMsgs {
-		var msg outgoingtx.WrapTokenMsg
+	var err error
 
-		err := json.Unmarshal(kafkaMsgs[i].Value, &msg)
+	for i := range msgBytes {
+		var msg db.WrapTokenMsg
+
+		err = json.Unmarshal(msgBytes[i], &msg)
 		if err != nil {
 			return nil, err
 		}
@@ -88,15 +99,19 @@ func convertKafkaMsgsToEthMsg(kafkaMsgs []sarama.ConsumerMessage) ([]outgoingtx.
 }
 
 // SendBatchToEth : Handling of msgSend
-func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) error {
-	msgs, err := convertKafkaMsgsToEthMsg(kafkaMsgs)
+func SendBatchToEth(index uint64, handler MsgHandler) error {
+	kafkaConsume, err := db.GetKafkaEthereumConsume(handler.DB, index)
 	if err != nil {
-		return err
+		logging.Fatal(err)
+	}
+	msgs, err := convertMsgBytesToEthMsg(kafkaConsume.MsgBytes)
+	if err != nil {
+		logging.Fatal(err)
 	}
 
 	logging.Info("batched messages to send to ETH:", msgs)
 
-	hash, err := outgoingtx.EthereumWrapToken(handler.EthClient, msgs)
+	hash, err := outgoingtx.EthereumWrapAndStakeToken(handler.EthClient, msgs)
 	if err != nil {
 		logging.Error("Unable to do ethereum tx (adding messages again to kafka), messages:", msgs, "error:", err)
 
@@ -110,15 +125,31 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 			}
 		}()
 
-		for i := range kafkaMsgs {
-			err = utils.ProducerDeliverMessage(kafkaMsgs[i].Value, utils.ToEth, producer)
+		err = db.DeleteKafkaEthereumConsume(handler.DB, index)
+		if err != nil {
+			logging.Error("Failed to delete Ethereum msg at index: ", index, " Error: ", err)
+		}
+
+		var msgBytes []byte
+
+		for i := range msgs {
+			msgBytes, err = json.Marshal(msgs[i])
 			if err != nil {
-				logging.Error("Failed to add msg to kafka queue, message:", msgs[i], "error:", err)
-				// TODO @Puneet continue or return? ~ Log (ALERT) and continue, need to manually do the failed ones.
+				logging.Error("Failed to Marshal an unmarshalled msg")
+			}
+
+			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, producer)
+			if err != nil {
+				logging.Error("Failed to add msg to kafka ToEth queue (need to do manually), message:", msgs[i], "error:", err)
 			}
 		}
 
 		return err
+	}
+
+	err = db.UpdateKafkaEthereumConsumeTxHash(handler.DB, index, hash)
+	if err != nil {
+		logging.Fatal(err)
 	}
 
 	err = db.SetOutgoingEthereumTx(handler.DB, db.NewOutgoingETHTransaction(hash, msgs))
@@ -128,5 +159,49 @@ func SendBatchToEth(kafkaMsgs []sarama.ConsumerMessage, handler MsgHandler) erro
 
 	logging.Info("Broadcast Eth Tx hash:", hash.String())
 
+	checkKafkaEthereumConsumeDBAndAddToRetry(handler.DB)
+
 	return nil
+}
+
+func checkKafkaEthereumConsumeDBAndAddToRetry(database *badger.DB) {
+	// all logging, no return
+	kafkaEthereumConsumes, err := db.GetEmptyTxHashesETH(database)
+	if err != nil {
+		logging.Error(err)
+	}
+
+	if len(kafkaEthereumConsumes) > 0 {
+		config := utils.SaramaConfig()
+		producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
+
+		defer func() {
+			err := producer.Close()
+			if err != nil {
+				logging.Error("failed to close producer in topic: SendBatchToEth, err:", err)
+			}
+		}()
+
+		for _, kafkaEthereumConsume := range kafkaEthereumConsumes {
+
+			err = db.DeleteKafkaEthereumConsume(database, kafkaEthereumConsume.Index)
+			if err != nil {
+				logging.Error("Failed to delete Ethereum msg at index: ", kafkaEthereumConsume.Index, " Error: ", err)
+			}
+
+			for _, msgByte := range kafkaEthereumConsume.MsgBytes {
+				err = utils.ProducerDeliverMessage(msgByte, utils.ToEth, producer)
+				if err != nil {
+					var msg db.WrapTokenMsg
+
+					if jsonErr := json.Unmarshal(msgByte, &msg); jsonErr != nil {
+						logging.Error("Failed to Unmarshal Retry ToEth queue msg", "error:", jsonErr)
+					}
+
+					logging.Error("Failed to add msg to kafka ToEth queue (need to do manually), message:", msg, "error:", err)
+				}
+			}
+		}
+	}
+
 }

@@ -7,9 +7,11 @@ package db
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 type IncomingEthereumTx struct {
@@ -34,7 +36,7 @@ func (t *IncomingEthereumTx) Value() ([]byte, error) {
 }
 
 func (t *IncomingEthereumTx) Validate() error {
-	if t.TxHash == EthEmptyHash() {
+	if t.TxHash == constants.EthereumEmptyTxHash() {
 		return ErrEmptyTransaction
 	}
 
@@ -44,6 +46,10 @@ func (t *IncomingEthereumTx) Validate() error {
 
 	if t.MsgType == "" {
 		return ErrInvalidTransactionType
+	}
+
+	if t.Sender == constants.EthereumZeroAddress() {
+		return fmt.Errorf("invalid sender address")
 	}
 
 	return nil

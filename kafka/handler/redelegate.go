@@ -17,7 +17,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func (m *MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (m *MsgHandler) HandleRedelegate(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
@@ -57,10 +57,15 @@ func (m *MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim s
 		return err
 	}
 
-	// query validator delegation
+	if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count < len(validatorSet) {
+		logging.Error("ReDelegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
+
+		return nil
+	}
+
 	var delegations stakingTypes.DelegationResponses
 
-	delegations, err = tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), m.Chain)
+	delegations, err = tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetWrapAddress(), m.Chain)
 	if err != nil {
 		return err
 	}
@@ -88,10 +93,10 @@ func (m *MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim s
 
 	for i, validator := range validatorSet {
 		msgRedelegate := &stakingTypes.MsgBeginRedelegate{
-			DelegatorAddress:    configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+			DelegatorAddress:    configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 			ValidatorSrcAddress: redelegationSourceAddress.String(),
 			ValidatorDstAddress: validator.Address.String(),
-			Amount:              sdk.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, redistributeAmount),
+			Amount:              sdk.NewCoin(configuration.GetAppConfig().Tendermint.Denom, redistributeAmount),
 		}
 
 		if i == len(validatorSet)-1 {
@@ -113,6 +118,7 @@ func (m *MsgHandler) HandleRelegate(session sarama.ConsumerGroupSession, claim s
 				return err
 			}
 
+			// that's why the receiver is by pointer
 			m.Count++
 		}
 	}

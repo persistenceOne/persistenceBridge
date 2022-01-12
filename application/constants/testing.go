@@ -5,7 +5,9 @@
 
 package constants
 
-import "os"
+import (
+	"os"
+)
 
 // nolint safe private global vars with access by public function
 // nolint: gochecknoglobals

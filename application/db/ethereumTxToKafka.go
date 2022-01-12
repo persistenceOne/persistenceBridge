@@ -10,6 +10,7 @@ import (
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
 type EthereumTxToKafka struct {
@@ -31,7 +32,7 @@ func (t *EthereumTxToKafka) Value() ([]byte, error) {
 }
 
 func (t *EthereumTxToKafka) Validate() error {
-	if t.TxHash == EthEmptyHash() {
+	if t.TxHash == constants.EthereumEmptyTxHash() {
 		return ErrEmptyTransaction
 	}
 

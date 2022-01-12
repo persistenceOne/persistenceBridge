@@ -19,14 +19,14 @@ import (
 )
 
 func TestAddressIsDelegatorToValidator(t *testing.T) {
-	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome())
 
 	delegatorToValidator := AddressIsDelegatorToValidator("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", "cosmosvaloper1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d76ktteq", chain)
-	require.Equal(t, true, delegatorToValidator)
+	require.Equal(t, false, delegatorToValidator)
 }
 
 func TestQueryDelegatorDelegations(t *testing.T) {
-	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome())
 
 	queryResponse, err := QueryDelegatorDelegations("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", chain)
 	if err != nil {
@@ -37,7 +37,7 @@ func TestQueryDelegatorDelegations(t *testing.T) {
 }
 
 func TestQueryDelegatorValidatorDelegations(t *testing.T) {
-	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome())
 
 	query, err := QueryDelegatorValidatorDelegations("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", "cosmosvaloper1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d76ktteq", chain)
 	if err != nil {
@@ -55,7 +55,7 @@ func TestQueryDelegatorValidatorDelegations(t *testing.T) {
 }
 
 func TestQueryValidatorDelegator(t *testing.T) {
-	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	chain, _ := InitializeAndStartChain("336h", constants.DefaultPBridgeHome())
 
 	query, err := QueryValidatorDelegator("cosmos1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d7lzl74n", "cosmosvaloper1t48p2wwqafhsgmf0uf7wcmk3zkq9f5d76ktteq", chain)
 	if err != nil {

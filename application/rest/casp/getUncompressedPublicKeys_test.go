@@ -8,6 +8,7 @@
 package casp
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -19,12 +20,14 @@ import (
 func TestGetUncompressedPublicKeys(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	funcResponse, err := GetUncompressedTMPublicKeys()
+	ctx := context.Background()
+
+	funcResponse, err := GetUncompressedTMPublicKeys(ctx)
 	require.Nil(t, err)
 	require.Equal(t, funcResponse.AccountName, "tendermint")
 	require.Equal(t, 1, len(funcResponse.Items))
 
-	funcResponse, err = GetUncompressedEthPublicKeys()
+	funcResponse, err = GetUncompressedEthPublicKeys(ctx)
 	require.Nil(t, err)
 	require.Equal(t, funcResponse.AccountName, "ethereum")
 	require.Equal(t, 1, len(funcResponse.Items))

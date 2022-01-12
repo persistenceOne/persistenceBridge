@@ -23,9 +23,7 @@ func GetSignOperation(ctx context.Context, operationID string) (casp.SignOperati
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// nolint we might like to skip it by purpose
-			// nolint: gosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, // #nosec
+			InsecureSkipVerify: false,
 		},
 	}}
 

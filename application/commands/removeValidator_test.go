@@ -60,7 +60,7 @@ func TestRemoveCommand(t *testing.T) {
 
 		cmd := RemoveCommand()
 
-		err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
+		err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir())
 		require.Nil(t, err)
 
 		cmd.SetArgs([]string{validatorAddress2})

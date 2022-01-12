@@ -8,7 +8,9 @@ package casp
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -18,7 +20,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-// GetTMPubKey Should include prefix "04"
+// GetTMPubKey caspPubKey should include prefix "04"
 func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 	x, y := getXY(caspPubKey)
 
@@ -34,7 +36,7 @@ func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 	return &secp256k1.PubKey{Key: pk}
 }
 
-// GetEthPubKey Should include prefix "04"
+// GetEthPubKey caspPubKey should include prefix "04"
 func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	x, y := getXY(caspPubKey)
 
@@ -47,11 +49,20 @@ func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	return publicKey
 }
 
-// getXY Should include prefix "04"
+// getXY caspPubKey should include prefix "04"
 func getXY(caspPubKey string) (x, y *big.Int) {
+	s := strings.Split(caspPubKey, "")
+	if s[0] != "0" && s[1] != "4" {
+		logging.Fatal("invalid casp public key")
+	}
+
 	pubKeyBytes, err := hex.DecodeString(string([]rune(caspPubKey)[2:])) // uncompressed pubkey
 	if err != nil {
 		logging.Fatal(err)
+	}
+
+	if len(pubKeyBytes) != 64 {
+		logging.Fatal(fmt.Sprintf("invalid casp public key, length (%v) not equal to 64", len(pubKeyBytes)))
 	}
 
 	x = big.NewInt(0).SetBytes(pubKeyBytes[0:32])

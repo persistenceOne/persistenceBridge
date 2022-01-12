@@ -8,11 +8,14 @@ package configuration
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/persistenceOne/persistenceBridge/utilities/ethtypes"
 	"github.com/spf13/cobra"
 
 	"github.com/persistenceOne/persistenceBridge/application/constants"
@@ -26,10 +29,18 @@ func GetAppConfig() config {
 	return appConfig.DeepCopy()
 }
 
+func NewConfigFromFile(homePath string) {
+	_, err := toml.DecodeFile(filepath.Join(homePath, "config.toml"), &appConfig)
+
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
+	}
+}
+
 func SetPStakeAddress(tmAddress sdk.AccAddress) {
 	if !appConfig.seal {
 		if strings.Contains(tmAddress.String(), GetAppConfig().Tendermint.AccountPrefix) {
-			appConfig.Tendermint.pStakeAddress = tmAddress.String()
+			appConfig.Tendermint.wrapAddress = tmAddress.String()
 		} else {
 			panic(fmt.Errorf("%w: address prefix (%s), config account prefix (%s)",
 				ErrIncorrectAccountPrefix, sdk.GetConfig().GetBech32AccountAddrPrefix(), GetAppConfig().Tendermint.AccountPrefix))
@@ -42,119 +53,149 @@ func SetConfig(cmd *cobra.Command) config {
 		return appConfig
 	}
 
+	// ---- Tendermint configuration ----
 	denom, err := cmd.Flags().GetString(constants.FlagDenom)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if denom != "" {
-		appConfig.Tendermint.PStakeDenom = denom
-	}
+	appConfig.Tendermint.Denom = denom
 
 	accountPrefix, err := cmd.Flags().GetString(constants.FlagAccountPrefix)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if accountPrefix != "" {
-		appConfig.Tendermint.AccountPrefix = accountPrefix
-	}
+	appConfig.Tendermint.AccountPrefix = accountPrefix
 
-	ethereumEndPoint, err := cmd.Flags().GetString(constants.FlagEthereumEndPoint)
+	tmNode, err := cmd.Flags().GetString(constants.FlagTendermintNode)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if ethereumEndPoint != "" {
-		appConfig.Ethereum.EthereumEndPoint = ethereumEndPoint
-	}
+	appConfig.Tendermint.Node = tmNode
 
-	ethGasLimit, err := cmd.Flags().GetUint64(constants.FlagEthGasLimit)
+	tmChainID, err := cmd.Flags().GetString(constants.FlagTendermintChainID)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if ethGasLimit != 0 {
-		appConfig.Ethereum.GasLimit = ethGasLimit
-	}
+	appConfig.Tendermint.ChainID = tmChainID
 
-	ports, err := cmd.Flags().GetString(constants.FlagKafkaPorts)
+	tmGasPrice, err := cmd.Flags().GetString(constants.FlagTMGasPrice)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if ports != "" {
-		appConfig.Kafka.Brokers = strings.Split(ports, ",")
+	appConfig.Tendermint.GasPrice = tmGasPrice
+
+	tmGasAdjust, err := cmd.Flags().GetFloat64(constants.FlagTMGasAdjustment)
+	if err != nil {
+		log.Fatalln(err)
 	}
+
+	appConfig.Tendermint.GasAdjustment = tmGasAdjust
 
 	broadcastMode, err := cmd.Flags().GetString(constants.FlagBroadcastMode)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if broadcastMode != "" {
-		if broadcastMode == flags.BroadcastBlock || broadcastMode == flags.BroadcastAsync || broadcastMode == flags.BroadcastSync {
-			appConfig.Tendermint.BroadcastMode = broadcastMode
-		} else {
-			log.Fatalln(ErrInvalidBroadcastMode)
-		}
+	appConfig.Tendermint.BroadcastMode = broadcastMode
+
+	minWrapAmt, err := cmd.Flags().GetInt64(constants.FlagMinimumWrapAmount)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
+	appConfig.Tendermint.MinimumWrapAmount = minWrapAmt
+	// **** Tendermint configuration ****
+
+	// ---- Ethereum configuration ----
+	ethereumEndPoint, err := cmd.Flags().GetString(constants.FlagEthereumEndPoint)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	appConfig.Ethereum.EthereumEndPoint = ethereumEndPoint
+
+	ethGasLimit, err := cmd.Flags().GetUint64(constants.FlagEthGasLimit)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	appConfig.Ethereum.GasLimit = ethGasLimit
+
+	ethGasFeeCap, err := cmd.Flags().GetInt64(constants.FlagEthGasFeeCap)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	appConfig.Ethereum.GasFeeCap = ethGasFeeCap
+
+	appConfig.Ethereum.TokenWrapperAddress, err = ethtypes.FromStringFlag(cmd, constants.FlagTokenWrapperAddress)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	appConfig.Ethereum.LiquidStakingAddress, err = ethtypes.FromStringFlag(cmd, constants.FlagLiquidStakingAddress)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// **** Ethereum configuration ****
+
+	// ---- Kafka configuration ----
+	ports, err := cmd.Flags().GetString(constants.FlagKafkaPorts)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	appConfig.Kafka.Brokers = strings.Split(ports, ",")
+	// **** Kafka configuration ****
+
+	// ---- CASP configuration ----
 	caspURL, err := cmd.Flags().GetString(constants.FlagCASPURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if caspURL != "" {
-		appConfig.CASP.URL = caspURL
+	appConfig.CASP.URL = caspURL
+
+	caspApi, err := cmd.Flags().GetString(constants.FlagCASPApiToken)
+	if err != nil {
+		log.Fatalln(err)
 	}
+
+	appConfig.CASP.APIToken = caspApi
 
 	caspVaultID, err := cmd.Flags().GetString(constants.FlagCASPVaultID)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if caspVaultID != "" {
-		appConfig.CASP.VaultID = caspVaultID
-	}
-
-	csapAPIToken, err := cmd.Flags().GetString(constants.FlagCASPApiToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	if csapAPIToken != "" {
-		appConfig.CASP.APIToken = csapAPIToken
-	}
+	appConfig.CASP.VaultID = caspVaultID
 
 	caspTMPublicKey, err := cmd.Flags().GetString(constants.FlagCASPTMPublicKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if caspTMPublicKey != "" {
-		appConfig.CASP.TendermintPublicKey = caspTMPublicKey
-	}
+	appConfig.CASP.TendermintPublicKey = caspTMPublicKey
 
 	caspEthPublicKey, err := cmd.Flags().GetString(constants.FlagCASPEthPublicKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if caspTMPublicKey != "" {
-		appConfig.CASP.EthereumPublicKey = caspEthPublicKey
-	}
+	appConfig.CASP.EthereumPublicKey = caspEthPublicKey
 
-	caspSignatureWaitTime, err := cmd.Flags().GetInt(constants.FlagCASPSignatureWaitTime)
+	caspWaitTime, err := cmd.Flags().GetInt(constants.FlagCASPWaitTime)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if caspSignatureWaitTime >= 0 {
-		appConfig.CASP.SignatureWaitTime = time.Duration(caspSignatureWaitTime) * time.Second
-	} else if appConfig.CASP.SignatureWaitTime < 0 {
-		log.Fatalln("invalid casp signature wait time")
-	}
+	appConfig.CASP.WaitTime = time.Duration(caspWaitTime) * time.Second
 
 	caspConcurrentKey, err := cmd.Flags().GetBool(constants.FlagCASPConcurrentKey)
 	if err != nil {
@@ -163,52 +204,36 @@ func SetConfig(cmd *cobra.Command) config {
 
 	appConfig.CASP.AllowConcurrentKeyUsage = caspConcurrentKey
 
-	caspMaxGetSignatureAttempts, err := cmd.Flags().GetInt(constants.FlagCASPMaxGetSignatureAttempts)
+	caspMaxAttempts, err := cmd.Flags().GetUint(constants.FlagCASPMaxAttempts)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if caspMaxGetSignatureAttempts > 0 {
-		appConfig.CASP.MaxGetSignatureAttempts = caspMaxGetSignatureAttempts
-	} else if appConfig.CASP.SignatureWaitTime < 0 {
-		log.Fatalln("invalid casp MaxGetSignatureAttempts")
-	}
+	appConfig.CASP.MaxAttempts = caspMaxAttempts
+	// **** CASP configuration ****
 
-	bridgeRPCEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	if bridgeRPCEndpoint != "" {
-		appConfig.RPCEndpoint = bridgeRPCEndpoint
-	}
-
-	minWrapAmt, err := cmd.Flags().GetInt64(constants.FlagMinimumWrapAmount)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	if minWrapAmt >= 0 {
-		appConfig.Tendermint.MinimumWrapAmount = minWrapAmt
-	}
-
+	// ---- Telegram configuration ----
 	telegramBotToken, err := cmd.Flags().GetString(constants.FlagTelegramBotToken)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if telegramBotToken != "" {
-		appConfig.TelegramBot.Token = telegramBotToken
-	}
+	appConfig.TelegramBot.Token = telegramBotToken
 
 	telegramBotChatID, err := cmd.Flags().GetInt64(constants.FlagTelegramChatID)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if telegramBotChatID != 0 {
-		appConfig.TelegramBot.ChatID = telegramBotChatID
+	appConfig.TelegramBot.ChatID = telegramBotChatID
+	// **** Telegram configuration ****
+
+	bridgeRPCEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
+	if err != nil {
+		log.Fatalln(err)
 	}
+
+	appConfig.RPCEndpoint = bridgeRPCEndpoint
 
 	appConfig.isFilled = true
 
@@ -221,4 +246,34 @@ func ValidateAndSeal() {
 	}
 
 	appConfig.seal = true
+}
+
+func SetCASPAddresses(wrapAddress sdk.AccAddress, bridgeAdminAddress common.Address) {
+	if appConfig.seal {
+		return
+	}
+
+	setBech32Prefixes()
+	setWrapAddress(wrapAddress)
+	setBridgeAdminAddress(bridgeAdminAddress)
+}
+
+func setBech32Prefixes() {
+	if appConfig.Tendermint.AccountPrefix == "" {
+		panic("account prefix is empty")
+	}
+
+	bech32PrefixAccAddr := appConfig.Tendermint.AccountPrefix
+	bech32PrefixAccPub := appConfig.Tendermint.AccountPrefix + sdk.PrefixPublic
+	bech32PrefixValAddr := appConfig.Tendermint.AccountPrefix + sdk.PrefixValidator + sdk.PrefixOperator
+	bech32PrefixValPub := appConfig.Tendermint.AccountPrefix + sdk.PrefixValidator + sdk.PrefixOperator + sdk.PrefixPublic
+	bech32PrefixConsAddr := appConfig.Tendermint.AccountPrefix + sdk.PrefixValidator + sdk.PrefixConsensus
+	bech32PrefixConsPub := appConfig.Tendermint.AccountPrefix + sdk.PrefixValidator + sdk.PrefixConsensus + sdk.PrefixPublic
+
+	bech32Configuration := sdk.GetConfig()
+	bech32Configuration.SetBech32PrefixForAccount(bech32PrefixAccAddr, bech32PrefixAccPub)
+	bech32Configuration.SetBech32PrefixForValidator(bech32PrefixValAddr, bech32PrefixValPub)
+	bech32Configuration.SetBech32PrefixForConsensusNode(bech32PrefixConsAddr, bech32PrefixConsPub)
+
+	// Do not seal the config.
 }

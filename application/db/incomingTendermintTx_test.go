@@ -15,9 +15,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dgraph-io/badger/v3"
-	"github.com/stretchr/testify/require"
-
 	"github.com/persistenceOne/persistenceBridge/utilities/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddToPendingIncomingTendermintTx(t *testing.T) {
@@ -27,7 +26,7 @@ func TestAddToPendingIncomingTendermintTx(t *testing.T) {
 	require.Nil(t, err)
 
 	tmInTx := &IncomingTendermintTx{
-		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610D"),
 		MsgIndex:    0,
 		Denom:       "stake",
 		FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
@@ -53,7 +52,7 @@ func TestSetIncomingTendermintTxProduced(t *testing.T) {
 		require.Nil(t, err)
 
 		tmInTx := &IncomingTendermintTx{
-			TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+			TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610D"),
 			MsgIndex:    0,
 			Denom:       "stake",
 			FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
@@ -86,7 +85,7 @@ func TestGetIncomingTendermintTx(t *testing.T) {
 		require.Nil(t, err)
 
 		tmInTx := &IncomingTendermintTx{
-			TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+			TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610D"),
 			MsgIndex:    0,
 			Denom:       "stake",
 			FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
@@ -116,7 +115,7 @@ func TestIncomingTendermintTxPrefix(t *testing.T) {
 
 func TestIncomingTendermintTxKey(t *testing.T) {
 	tmInTx := IncomingTendermintTx{
-		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610D"),
 		MsgIndex:    0,
 		Denom:       "stake",
 		FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
@@ -131,7 +130,7 @@ func TestIncomingTendermintTxKey(t *testing.T) {
 
 func TestIncomingTendermintTxValue(t *testing.T) {
 	tmInTx := IncomingTendermintTx{
-		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"),
+		TxHash:      []byte("DC6C86075B1466B65BAC2FF08E8A610D"),
 		MsgIndex:    0,
 		Denom:       "stake",
 		FromAddress: "cosmos1xa8zh6vjx042rw3kvj9r32sgctm4frpl88rm3f",
@@ -149,7 +148,7 @@ func TestIncomingTendermintTxValue(t *testing.T) {
 
 func TestIncomingTendermintTxValidate(t *testing.T) {
 	tmInTx := IncomingTendermintTx{}
-	require.ErrorIs(t, tmInTx.Validate(), ErrEmptyTransaction)
+	require.ErrorIs(t, tmInTx.Validate(), ErrInvalidTransactionHash)
 
 	const (
 		txHash     = "DC6C86075B1466B65BAC2FF08E8A610DB1C04378695C2D0AD380E997E4277FF9"
@@ -179,4 +178,14 @@ func TestIncomingTendermintTxValidate(t *testing.T) {
 
 	tmInTx.Amount = sdk.NewInt(1)
 	require.Nil(t, tmInTx.Validate())
+}
+
+func TestCheckIncomingTendermintTxExists(t *testing.T) {
+	database, closeFn, err := test.OpenDB(t, OpenDB)
+	defer closeFn()
+
+	require.Nil(t, err)
+
+	h, _ := hex.DecodeString("DC6C86075B1466B65BAC2FF08E8A610D")
+	require.Equal(t, false, CheckIncomingTendermintTxExists(database, h, 1, "stake"))
 }

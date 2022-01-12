@@ -66,11 +66,7 @@ func set(db *badger.DB, dbi KeyValue) error {
 		return txn.Set(dbi.Key(), b)
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func iterateKeyValues(db *badger.DB, prefix []byte, operation func(key []byte, value []byte) error) error {

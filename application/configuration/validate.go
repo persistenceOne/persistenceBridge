@@ -6,14 +6,16 @@
 package configuration
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 )
 
-// Validate: panics if config is not valid
 func (c config) validate() error {
 	if err := c.Ethereum.validate(); err != nil {
 		return err
@@ -43,31 +45,54 @@ func (c config) validate() error {
 }
 
 // Validate :panics if config is not valid
-func (cfg *ethereumConfig) validate() error {
-	if cfg.GasLimit <= 0 {
+func (c ethereumConfig) validate() error {
+	if _, err := url.ParseRequestURI(c.EthereumEndPoint); err != nil {
+		return fmt.Errorf("invalid EthereumEndPoint: %v", err)
+	}
+
+	if c.GasLimit == 0 {
 		return ErrInvalidGasLimit
+	}
+
+	if c.GasFeeCap <= 0 {
+		return fmt.Errorf("invalid eth gas fee cap")
+	}
+
+	if c.LiquidStakingAddress == constants.EthereumZeroAddress() {
+		return fmt.Errorf("empty liquid staking contract address")
+	}
+
+	if c.TokenWrapperAddress == constants.EthereumZeroAddress() {
+		return fmt.Errorf("empty token wrapper contract address")
+	}
+
+	if c.bridgeAdminAddress == constants.EthereumZeroAddress() {
+		return fmt.Errorf("bridgeAdminAddress is empty")
+	}
+
+	if c.BalanceCheckPeriod <= 0 || c.AlertAmount <= 0 {
+		return fmt.Errorf("invalid ethereum balance alert configuration")
 	}
 
 	return nil
 }
 
-// Validate :panics if config is not valid
-func (c *tendermintConfig) validate() error {
-	if c.pStakeAddress == "" {
-		return ErrPStakeAddressEmpty
-	}
-
-	_, err := sdk.AccAddressFromBech32(c.pStakeAddress)
-	if err != nil {
-		return err
-	}
-
+func (c tendermintConfig) validate() error {
 	if c.AccountPrefix == "" {
-		return ErrEmptyAccountPrefix
+		return fmt.Errorf("account prefix cannot be empty")
 	}
 
-	if c.PStakeDenom == "" {
-		return ErrEmptyDenom
+	if c.Denom == "" {
+		return fmt.Errorf("denom cannot be empty")
+	}
+
+	if _, err := strconv.ParseFloat(c.GasPrice, 64); err != nil {
+		return fmt.Errorf("invalied tendermint gas price %v", err)
+	}
+
+	// fixme: float-point compare
+	if c.GasAdjustment <= 1.0 {
+		return fmt.Errorf("tendermint gas adjustment should be greater than 1 (recommended 1.5, current: %v)", c.GasAdjustment)
 	}
 
 	if c.MinimumWrapAmount < 0 {
@@ -86,6 +111,19 @@ func (c *tendermintConfig) validate() error {
 
 	if !(c.BroadcastMode == flags.BroadcastAsync || c.BroadcastMode == flags.BroadcastSync || c.BroadcastMode == flags.BroadcastBlock) {
 		return ErrInvalidBroadcastMode
+	}
+
+	if c.wrapAddress == "" {
+		return fmt.Errorf("wrapAddress empty")
+	}
+
+	_, err := sdk.AccAddressFromBech32(c.wrapAddress)
+	if err != nil {
+		return err
+	}
+
+	if c.AvgBlockTime.Nanoseconds() == 0 {
+		return fmt.Errorf("tendermint chain avg block time cannot be 0")
 	}
 
 	return nil
@@ -109,6 +147,14 @@ func (c *kafkaConfig) validate() error {
 		return fmt.Errorf("ethereum %w", ErrTooBigMinBatchSize)
 	}
 
+	if c.MaxTendermintTxAttempts <= 0 {
+		return errors.New("Kafka.MaxTendermintTxAttempts cannot be less than equal to 0")
+	}
+
+	if c.EthUnbondCycleTime.Nanoseconds() == 0 {
+		return fmt.Errorf("kafka EthUnbondCycleTime time cannot be 0")
+	}
+
 	return nil
 }
 
@@ -121,8 +167,8 @@ func (c *caspConfig) validate() error {
 		return ErrCaspAPITokenEmpty
 	}
 
-	if c.URL == "" {
-		return ErrCaspURLEmpty
+	if _, err := url.ParseRequestURI(c.URL); err != nil {
+		return fmt.Errorf("invalid casp url: %v", err)
 	}
 
 	if c.TendermintPublicKey == "" {
@@ -133,8 +179,12 @@ func (c *caspConfig) validate() error {
 		return fmt.Errorf("ethereum %w", ErrCaspPublicEmpty)
 	}
 
-	if c.MaxGetSignatureAttempts <= 0 {
-		return ErrTooLowCaspMaxGetSignatureAttempts
+	if c.MaxAttempts == 0 {
+		return fmt.Errorf("casp MaxAttempts cannot be equal to 0")
+	}
+
+	if c.WaitTime.Nanoseconds() == 0 {
+		return fmt.Errorf("casp wait time cannot be 0")
 	}
 
 	return nil

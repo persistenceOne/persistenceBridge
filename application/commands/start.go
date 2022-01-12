@@ -47,6 +47,12 @@ func StartCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
+			pStakeConfig := configuration.GetAppConfig()
+			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
+			if err != nil {
+				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
+			}
+
 			showDebugLog, err := cmd.Flags().GetBool(constants.FlagShowDebugLog)
 			if err != nil {
 				log.Fatalln(err)
@@ -54,34 +60,16 @@ func StartCommand() *cobra.Command {
 
 			logging.ShowDebugLog(showDebugLog)
 
-			pStakeConfig := configuration.GetAppConfig()
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-
-			// fixme init context with proper dependancies and timeout
-			ctx := context.Background()
-
-			ethAddress, err := casp.GetEthAddress(ctx)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			tmAddress, err := tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			configuration.ValidateAndSeal()
-
 			err = logging.InitializeBot()
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			logging.Info("Bridge (Wrap) Tendermint Address:", tmAddress.String())
-			logging.Info("Bridge (Admin) Ethereum Address:", ethAddress.String())
+			// fixme: do not change global state
+			setAndSealConfig(homePath)
+
+			// refresh config after change
+			pStakeConfig = configuration.GetAppConfig()
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants.FlagTendermintSleepTime)
 			if err != nil {
@@ -145,9 +133,9 @@ func StartCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			ethereumClient, err := ethclient.Dial(pStakeConfig.Ethereum.EthereumEndPoint)
+			ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 			if err != nil {
-				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", pStakeConfig.Ethereum.EthereumEndPoint, err.Error())
+				log.Fatalf("Error while dialing to eth orchestrator %s: %s\n", configuration.GetAppConfig().Ethereum.EthereumEndPoint, err.Error())
 			}
 
 			encodingConfig := application.MakeEncodingConfig()
@@ -164,6 +152,7 @@ func StartCommand() *cobra.Command {
 			protoCodec := codec.NewProtoCodec(clientContext.InterfaceRegistry)
 			kafkaState := utils.NewKafkaState(pStakeConfig.Kafka.Brokers, homePath, constants.ToKafkaTopicDetail(pStakeConfig.Kafka.TopicDetails))
 
+			// fixme: should they be bufferized chan struct{}?
 			end := make(chan bool)
 			ended := make(chan bool)
 
@@ -185,7 +174,7 @@ func StartCommand() *cobra.Command {
 			for sig := range signalChan {
 				logging.Info("STOP SIGNAL RECEIVED:", sig.String(), "(Might take around a minute to stop)")
 
-				shutdown.SetBridgeStopSignal(true)
+				shutdown.StopBridge()
 
 				for {
 					if !shutdown.GetKafkaConsumerClosed() {
@@ -215,4 +204,32 @@ func StartCommand() *cobra.Command {
 	pBridgeCommand.Flags().Int64(constants.FlagEthereumStartHeight, constants.DefaultEthereumStartHeight, fmt.Sprintf("Start checking height on ethereum chain from this height (default %d - starts from where last left)", constants.DefaultEthereumStartHeight))
 
 	return pBridgeCommand
+}
+
+func setAndSealConfig(homePath string) {
+	pStakeConfig := configuration.GetAppConfig()
+	_, err := toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
+	if err != nil {
+		log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
+	}
+
+	// fixme init context with proper dependancies and timeout
+	ctx := context.Background()
+
+	ethAddress, err := casp.GetEthAddress(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	tmAddress, err := tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
+
+	logging.Info("Bridge (Wrap) Tendermint Address:", configuration.GetAppConfig().Tendermint.GetWrapAddress())
+	logging.Info("Bridge (Admin) Ethereum Address:", configuration.GetAppConfig().Ethereum.GetBridgeAdminAddress().String())
+
+	configuration.ValidateAndSeal()
 }

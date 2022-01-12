@@ -63,7 +63,7 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 		return loop, err
 	}
 
-	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetPStakeAddress(), chain)
+	delegatorDelegations, err := tendermint.QueryDelegatorDelegations(configuration.GetAppConfig().Tendermint.GetWrapAddress(), chain)
 	if err != nil {
 		errStatus, ok := status.FromError(err)
 		if ok && errStatus.Code() == codes.NotFound {
@@ -81,14 +81,13 @@ func WithdrawRewards(loop int, protoCodec *codec.ProtoCodec, producer sarama.Syn
 		}
 
 		withdrawRewardsMsg := &distributionTypes.MsgWithdrawDelegatorReward{
-			DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+			DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 			ValidatorAddress: validator.Address.String(),
 		}
 
 		withdrawRewardsMsgBytes, err := protoCodec.MarshalInterface(withdrawRewardsMsg)
 		if err != nil {
 			logging.Error("Failed to Marshal WithdrawMessage, Error:", err)
-
 			return loop, err
 		}
 

@@ -15,14 +15,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/dgraph-io/badger/v3"
 	goEthCommon "github.com/ethereum/go-ethereum/common"
 	tmCoreTypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -61,8 +62,8 @@ func collectAllWrapAndRevertTxs(clientCtx *client.Context, database *badger.DB, 
 
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
-			case *banktypes.MsgSend:
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetPStakeAddress() {
+			case *bankTypes.MsgSend:
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetWrapAddress() {
 					if memo != "DO_NOT_REVERT" {
 						for _, coin := range txMsg.Amount {
 							// Do not check for TendermintTxToKafka exists.
@@ -115,35 +116,60 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 			logging.Fatalf("%s [TM Listener]: %s", ErrGetIncomingTendermintTx, err.Error())
 		}
 
-		validEthMemo := goEthCommon.IsHexAddress(tx.Memo)
+		validMemo := true
 
-		var ethAddress goEthCommon.Address
+		var (
+			ethAddress goEthCommon.Address
+			ratio      sdk.Dec
+		)
 
-		if validEthMemo {
-			ethAddress = goEthCommon.HexToAddress(tx.Memo)
-			validEthMemo = goEthCommon.Address{}.String() != tx.Memo
+		ethAddress, ratio, err = getWrapAddressAndStakingRatio(tx.Memo)
+		if err != nil {
+			validMemo = false
 		}
 
-		if tx.Denom == configuration.GetAppConfig().Tendermint.PStakeDenom && validEthMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
+		if tx.Denom == configuration.GetAppConfig().Tendermint.Denom && validMemo && tx.Amount.GTE(sdk.NewInt(configuration.GetAppConfig().Tendermint.MinimumWrapAmount)) {
 			logging.Info("Tendermint Wrap Tx:", tx.TxHash, "Msg Index:", tx.MsgIndex, "Amount:", tx.Amount.String())
 
-			ethTxMsg := outgoingtx.WrapTokenMsg{
-				Address: ethAddress,
-				Amount:  tx.Amount.BigInt(),
+			fromAddress, err := sdk.AccAddressFromBech32(tx.FromAddress)
+			if err != nil {
+				logging.Fatal(err)
 			}
+
+			stakingAmount := sdk.NewDecFromInt(tx.Amount).Mul(ratio).TruncateInt()
+			wrapAmount := tx.Amount.Sub(stakingAmount)
+
+			ethTxMsg := db.NewWrapTokenMsg(fromAddress, tx.TxHash, stakingAmount.BigInt(), ethAddress, wrapAmount.BigInt())
 
 			var msgBytes []byte
 
 			msgBytes, err = json.Marshal(ethTxMsg)
 			if err != nil {
-				panic(err)
+				logging.Fatal(err)
 			}
 
-			logging.Info("Adding wrap token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "amount:", tx.Amount.String())
+			logging.Info("DIRECT STAKING: Adding wrap & stake token msg to kafka producer ToEth, from:", tx.FromAddress, "to:", ethAddress.String(), "wrap amount:", wrapAmount.String(), "staking amount:", stakingAmount.String())
 
 			err = utils.ProducerDeliverMessage(msgBytes, utils.ToEth, kafkaProducer)
 			if err != nil {
 				logging.Fatalf("%s ToEth [TM Listener]: %s", ErrAddToKafkaQueue, err.Error())
+			}
+
+			if stakingAmount.GT(sdk.ZeroInt()) {
+				stakingMsg := &stakingTypes.MsgDelegate{
+					DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
+					ValidatorAddress: "",
+					Amount:           sdk.NewCoin(configuration.GetAppConfig().Tendermint.Denom, stakingAmount),
+				}
+				stakingMsgBytes, err := protoCodec.MarshalInterface(stakingMsg)
+				if err != nil {
+					logging.Fatal("Tendermint Listener: Staking Message marshalling failed:", err.Error())
+				}
+				logging.Info("DIRECT STAKING: Adding direct staking msg to kafka producer MsgDelegate, from:", tx.FromAddress, "to:", ethAddress.String(), "direct staking amount:", stakingAmount.String())
+				err = utils.ProducerDeliverMessage(stakingMsgBytes, utils.MsgDelegate, kafkaProducer)
+				if err != nil {
+					logging.Fatalf("failed to add staking msg to kafka queue MsgDelegate [TM Listener]: %s", err.Error())
+				}
 			}
 		} else {
 			revertToken := sdk.NewCoin(tx.Denom, tx.Amount)
@@ -161,8 +187,8 @@ func wrapOrRevert(kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCode
 }
 
 func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer sarama.SyncProducer, protoCodec *codec.ProtoCodec) {
-	msg := &banktypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+	msg := &bankTypes.MsgSend{
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   toAddress,
 		Amount:      coins,
 	}
@@ -172,10 +198,45 @@ func revertCoins(toAddress string, coins sdk.Coins, kafkaProducer sarama.SyncPro
 		logging.Fatal(err)
 	}
 
-	logging.Info("REVERT: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
+	logging.Info("REVERT COINS: adding send coin msg to kafka producer MsgSend, to:", toAddress, "amount:", coins.String())
 
 	err = utils.ProducerDeliverMessage(msgBytes, utils.MsgSend, kafkaProducer)
 	if err != nil {
 		logging.Fatalf("%s ToEth [TM Listener REVERT]: %s", ErrAddToKafkaQueue, err.Error())
 	}
+}
+
+func getWrapAddressAndStakingRatio(memo string) (goEthCommon.Address, sdk.Dec, error) {
+	split := strings.Split(memo, ",")
+	if len(split) > 2 || len(split) == 0 {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
+	}
+
+	isEthAddress := false
+
+	var ethAddress goEthCommon.Address
+	if goEthCommon.IsHexAddress(split[0]) {
+		ethAddress = goEthCommon.HexToAddress(split[0])
+		isEthAddress = ethAddress != constants.EthereumZeroAddress()
+	}
+
+	if !isEthAddress {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
+	}
+
+	if len(split) == 1 {
+		return ethAddress, sdk.ZeroDec(), nil
+	}
+
+	ratio, err := sdk.NewDecFromStr(split[1])
+
+	if err != nil {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge")
+	}
+
+	if ratio.IsNegative() {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("negative ratio: invalid memo for bridge")
+	}
+
+	return ethAddress, ratio, nil
 }

@@ -15,7 +15,6 @@ import (
 	"net/http"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/rest/responses/casp"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -29,7 +28,7 @@ type SignDataRequest struct {
 	AllowConcurrentKeyUsage bool     `json:"allowConcurrentKeyUsage"`
 }
 
-func SignData(ctx context.Context, dataToSign, publicKeys []string, description string) (casp.PostSignDataResponse, bool, error) {
+func PostSignData(ctx context.Context, dataToSign, publicKeys []string, description string) (casp.PostSignDataResponse, error) {
 	var response casp.PostSignDataResponse
 
 	// Encode the data
@@ -46,15 +45,13 @@ func SignData(ctx context.Context, dataToSign, publicKeys []string, description 
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// nolint we might like to skip it by purpose
-			// nolint: gosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, // #nosec
+			InsecureSkipVerify: false,
 		},
 	}}
 
 	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/casp/api/v1.0/mng/vaults/%s/sign", configuration.GetAppConfig().CASP.URL, configuration.GetAppConfig().CASP.VaultID), responseBody)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
 
 	request.Header.Set("authorization", configuration.GetAppConfig().CASP.APIToken)
@@ -62,14 +59,19 @@ func SignData(ctx context.Context, dataToSign, publicKeys []string, description 
 
 	resp, err := client.Do(request)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
 
-	defer resp.Body.Close()
+	defer func(body io.Closer) {
+		err := body.Close()
+		if err != nil {
+			logging.Error(err)
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
 
 	err = json.Unmarshal(body, &response)
@@ -80,17 +82,13 @@ func SignData(ctx context.Context, dataToSign, publicKeys []string, description 
 
 		err = json.Unmarshal(body, &errResponse)
 		if err != nil {
-			logging.Error("CASP SIGNING ERROR (Unknown response type):", err)
+			logging.Error("CASP SIGNING ERROR (Unknown error response type):", err)
 
-			return response, false, err
+			return response, err
 		}
 
-		if errResponse.Title == constants.VaultBusy {
-			return response, true, nil
-		}
-
-		return response, false, errResponse
+		return response, errResponse
 	}
 
-	return response, false, err
+	return response, err
 }

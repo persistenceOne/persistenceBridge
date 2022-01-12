@@ -6,22 +6,20 @@
 package commands
 
 import (
-	"context"
+	"errors"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
-	"github.com/persistenceOne/persistenceBridge/tendermint"
 )
 
 func RemoveCommand() *cobra.Command {
@@ -35,21 +33,7 @@ func RemoveCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			pStakeConfig := configuration.GetAppConfig()
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-
-			// fixme: init with deps and timeout
-			ctx := context.Background()
-
-			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			configuration.ValidateAndSeal()
+			setAndSealConfig(homePath)
 
 			validatorAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -83,32 +67,39 @@ func RemoveCommand() *cobra.Command {
 				log.Printf("Db is already open: %v", err)
 				log.Printf("sending rpc")
 
-				validators, err = rpc.RemoveValidator(validatorAddress, rpcEndpoint)
-				if err != nil {
-					return err
+				var err2 error
+				validators, err2 = rpc.ShowValidators("", rpcEndpoint)
+				if err2 != nil {
+					return err2
+				}
+
+				if len(validators) <= 1 {
+					return errors.New(fmt.Sprintf("Cannot remove any more validators, total validators: %v", len(validators)))
+				}
+
+				validators, err2 = rpc.RemoveValidator(validatorAddress, rpcEndpoint)
+				if err2 != nil {
+					return err2
 				}
 			} else {
 				defer database.Close()
+
+				var err2 error
+				validators, err = db.GetValidators(database)
+				if err2 != nil {
+					return err2
+				}
+				if len(validators) <= 1 {
+					return errors.New(fmt.Sprintf("Cannot remove any more validators, total validators: %v", len(validators)))
+				}
 
 				err = db.DeleteValidator(database, validatorAddress)
 				if err != nil {
 					return err
 				}
-
-				validators, err = db.GetValidators(database)
-				if err != nil {
-					return err
-				}
-			}
-
-			if len(validators) == 0 {
-				log.Println("IMPORTANT: No validator present to redelegate!!!")
-
-				return ErrNoValidators
 			}
 
 			log.Printf("Total validators %d:\n", len(validators))
-
 			for i, validator := range validators {
 				log.Printf("%d. %s - %s\n", i+1, validator.Name, validator.Address.String())
 			}
@@ -118,6 +109,7 @@ func RemoveCommand() *cobra.Command {
 			err = utils.ProducerDeliverMessage(validatorAddress, utils.Redelegate, producer)
 			if err != nil {
 				log.Printf("failed to produce message to topic %v\n", utils.Redelegate)
+
 				return err
 			}
 

@@ -8,6 +8,7 @@
 package contracts
 
 import (
+	"context"
 	"math/big"
 	"testing"
 
@@ -22,14 +23,20 @@ import (
 func TestOnWithdrawUTokens(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	tmAddress, err := casp.GetTendermintAddress()
+	ctx := context.Background()
+
+	tmAddress, err := casp.GetTendermintAddress(ctx)
 	require.Nil(t, err)
 
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress(ctx)
+	require.Nil(t, err)
+
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	i := new(big.Int)
 	i.SetInt64(1000)
 	arr := []interface{}{common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")), i, "cosmos1aqxce9xssqsyjfm3gt39w4gf9u9dxgax6qjk79"}
+
 	sendCoinMsg, ercAddress, err := onWithdrawUTokens(arr)
 	require.Nil(t, err)
 	require.Equal(t, common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")).String(), ercAddress.String())
@@ -38,6 +45,7 @@ func TestOnWithdrawUTokens(t *testing.T) {
 	require.NotNil(t, sendCoinMsgString)
 
 	arr = []interface{}{common.BytesToAddress([]byte("0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa")), i, ""}
-	_, _, err = onWithdrawUTokens(arr)
+
+	sendCoinMsg, ercAddress, err = onWithdrawUTokens(arr)
 	require.Equal(t, "empty address string is not allowed", err.Error())
 }

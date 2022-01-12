@@ -55,7 +55,7 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 			return err
 		}
 	case utils.ToTendermint:
-		err := m.HandleToTendermint(session, claim)
+		err := m.HandleToTendermint(m.DB, session, claim)
 		if err != nil {
 			logging.Error("failed to handle for topic ToTendermint with error:", err)
 			return err
@@ -85,7 +85,7 @@ func (m MsgHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 			return err
 		}
 	case utils.Redelegate:
-		err := m.HandleRelegate(session, claim)
+		err := m.HandleRedelegate(session, claim)
 		if err != nil {
 			logging.Error("failed to handle for topic Redelegate with error:", err)
 			return err

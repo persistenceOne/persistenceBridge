@@ -30,7 +30,7 @@ relays transactions between a Cosmos-SDK chain and ethereum.
 
 ## Installation Steps
 
-> Prerequisite: go1.15+ required. [ref](https://golang.org/doc/install)
+> Prerequisite: go1.16+ required. [ref](https://golang.org/doc/install)
 
 > Prerequisite: git. [ref](https://github.com/git/git)
 
@@ -59,6 +59,7 @@ checking from last checked height + 1
 ```shell 
 persistenceBridge init
 ```
+Start the `kafka` server. The starting script is available at `.script/startup.sh`
 
 This generates a `config.toml` file in `$HOME/.persistenceBridge/` with empty and default values. Update this file as per configuration (Telegram configuration is not compulsory). 
 
@@ -67,10 +68,13 @@ Add participating validators:
 persistenceBridge add [validator_address] [validator_name]
 ```
 
+Before starting the bridge, the `wrap address` (on cosmos chain) and `bridge admin` (on eth chain) should have some token balance otherwise bridge won't be able to do tx. Both the address can be queried (after all the configuration has been filled) by:
+`persistenceBridge show`
+
 Now when starting for the first time:
 
 ```shell 
-persistenceBridge start --tmStart 1 --ethStart 4772131
+persistenceBridge start --tmStart [START_HEIGHT_ON_COSMOS_CHAIN] --ethStart [START_HEIGHT_ON_ETHEREUM_CHAIN]
 ```
 
 When starting next time

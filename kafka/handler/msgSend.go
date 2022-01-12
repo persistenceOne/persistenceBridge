@@ -14,7 +14,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (m *MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	config := utils.SaramaConfig()
 	producer := utils.NewProducer(configuration.GetAppConfig().Kafka.Brokers, config)
 
@@ -60,12 +60,17 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 						return err
 					}
 
+					m.Count += len(validators)
+
+					if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+						break ConsumerLoop
+					}
+
 					m.WithdrawRewards = true
 				}
 
 				err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 				if err != nil {
-					// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 					logging.Error("failed to produce from: MsgSend to: ToTendermint")
 
 					break ConsumerLoop
@@ -73,8 +78,10 @@ func (m MsgHandler) HandleMsgSend(session sarama.ConsumerGroupSession, claim sar
 
 				session.MarkMessage(kafkaMsg, "")
 
-				loop--
-				if loop == 0 {
+				// that's why method uses a pointer receiver
+				m.Count++
+
+				if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 					break ConsumerLoop
 				}
 			default:

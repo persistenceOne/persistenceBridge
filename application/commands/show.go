@@ -6,19 +6,14 @@
 package commands
 
 import (
-	"context"
 	"log"
 	"path/filepath"
 
-	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 
-	"github.com/persistenceOne/persistenceBridge/application/casp"
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/application/rpc"
-	"github.com/persistenceOne/persistenceBridge/tendermint"
 )
 
 func ShowCommand() *cobra.Command {
@@ -31,35 +26,7 @@ func ShowCommand() *cobra.Command {
 				log.Fatalln(err)
 			}
 
-			pStakeConfig := configuration.GetAppConfig()
-
-			_, err = toml.DecodeFile(filepath.Join(homePath, "config.toml"), &pStakeConfig)
-			if err != nil {
-				log.Fatalf("Error decoding pStakeConfig file: %v\n", err.Error())
-			}
-
-			// fixme init proper deps and timeout
-			ctx := context.Background()
-
-			_, err = tendermint.SetBech32PrefixesAndPStakeWrapAddress(ctx)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			configuration.ValidateAndSeal()
-
-			tmAddress, err := casp.GetTendermintAddress(ctx)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			ethAddress, err := casp.GetEthAddress(ctx)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			log.Println("Tendermint Address:", tmAddress.String())
-			log.Println("Ethereum Address:", ethAddress.String())
+			setAndSealConfig(homePath)
 
 			rpcEndpoint, err := cmd.Flags().GetString(constants.FlagRPCEndpoint)
 			if err != nil {
@@ -88,7 +55,7 @@ func ShowCommand() *cobra.Command {
 			}
 
 			if len(validators) == 0 {
-				log.Println("No validators in db, panic.")
+				log.Fatalln("No validators in db, panic.")
 			} else {
 				log.Printf("Total validators %d:\n", len(validators))
 

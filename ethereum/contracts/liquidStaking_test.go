@@ -8,6 +8,7 @@
 package contracts
 
 import (
+	"context"
 	"math/big"
 	"testing"
 
@@ -22,10 +23,15 @@ import (
 func TestOnStake(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	tmAddress, err := casp.GetTendermintAddress()
+	ctx := context.Background()
+
+	tmAddress, err := casp.GetTendermintAddress(ctx)
 	require.Nil(t, err)
 
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress(ctx)
+	require.Nil(t, err)
+
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	i := new(big.Int)
 	i.SetInt64(1000)
@@ -42,10 +48,15 @@ func TestOnStake(t *testing.T) {
 func TestOnUnStake(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	tmAddress, err := casp.GetTendermintAddress()
+	ctx := context.Background()
+
+	tmAddress, err := casp.GetTendermintAddress(ctx)
 	require.Nil(t, err)
 
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress(ctx)
+	require.Nil(t, err)
+
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	i := new(big.Int)
 	i.SetInt64(1000)

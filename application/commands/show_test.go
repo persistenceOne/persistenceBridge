@@ -41,7 +41,7 @@ func TestShowCommand(t *testing.T) {
 
 	{
 		cmd := ShowCommand()
-		err := cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
+		err := cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir())
 		require.Nil(t, err)
 
 		err = cmd.Execute()

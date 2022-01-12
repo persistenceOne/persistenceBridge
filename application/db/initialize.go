@@ -43,6 +43,29 @@ func InitializeDB(dbPath string, tendermintStart, ethereumStart int64) (*badger.
 		}
 	}
 
+	_, err = GetKafkaTendermintConsumeStatus(database)
+	if err != nil {
+		if err == badger.ErrKeyNotFound {
+			err = SetKafkaTendermintConsumeStatus(database, 0)
+			if err != nil {
+				return database, err
+			}
+		} else {
+			return database, err
+		}
+	}
+	_, err = GetKafkaEthereumConsumeStatus(database)
+	if err != nil {
+		if err != badger.ErrKeyNotFound {
+			return database, err
+		}
+
+		err = SetKafkaEthereumConsumeStatus(database, 0)
+		if err != nil {
+			return database, err
+		}
+	}
+
 	return database, nil
 }
 

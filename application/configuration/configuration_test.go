@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/utilities/test"
@@ -39,27 +40,18 @@ func TestSetConfigAndChange(t *testing.T) {
 }
 
 // fixme tests depends on each other
-func TestSetPStakeAddress(t *testing.T) {
-	SetConfig(test.GetCmdWithConfig())
-	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
-
-	SetPStakeAddress(pStakeAddress)
-	require.Equal(t, GetAppConfig().Tendermint.pStakeAddress, pStakeAddress.String(), "PStakeAddress not set")
-}
-
 func TestValidateAndSeal(t *testing.T) {
 	SetConfig(test.GetCmdWithConfig())
-	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
 
-	SetPStakeAddress(pStakeAddress)
+	wrapAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	SetCASPAddresses(wrapAddress, common.HexToAddress("0x5988ab40c82bbbb2067eec1e19b08cdc8d5e22d5"))
+
 	ValidateAndSeal()
 	require.Equal(t, GetAppConfig().seal, true, "appConfig did not get validated")
 }
 
-func TestGetPStakeAddress(t *testing.T) {
+func TestGetWrapAddress(t *testing.T) {
 	config := SetConfig(test.GetCmdWithConfig())
-
-	pStakeAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
-	SetPStakeAddress(pStakeAddress)
-	require.Equal(t, config.Tendermint.GetPStakeAddress(), pStakeAddress.String(), "pStakeAddress not set")
+	wrapAddress, _ := sdk.AccAddressFromBech32("cosmos1lfeqaqld74e2mmatx8luut0r4fajfu7kh3580u")
+	require.Equal(t, config.Tendermint.GetWrapAddress(), wrapAddress.String(), "wrapAddress not set")
 }

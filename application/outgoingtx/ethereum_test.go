@@ -18,6 +18,7 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
+	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/ethereum/abi/tokenWrapper"
 	"github.com/persistenceOne/persistenceBridge/utilities/test"
 
@@ -33,16 +34,17 @@ func TestEthereumWrapToken(t *testing.T) {
 
 	ctx := context.Background()
 	ethAddress, _ := casp.GetEthAddress(ctx)
-	wrapTokenMsg := []WrapTokenMsg{{
-		Address: ethAddress,
-		Amount:  &big.Int{}},
+	wrapTokenMsg := []db.WrapTokenMsg{{
+		Address:       ethAddress,
+		StakingAmount: &big.Int{}},
 	}
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, err)
 
 	var txHash common.Hash
-	txHash, err = EthereumWrapToken(ethereumClient, wrapTokenMsg)
+
+	txHash, err = EthereumWrapAndStakeToken(ethereumClient, wrapTokenMsg)
 	require.NotNil(t, txHash)
 	require.Nil(t, err)
 	require.Equal(t, reflect.TypeOf(common.Hash{}), reflect.TypeOf(txHash))
@@ -120,7 +122,7 @@ func TestGetEthSignature(t *testing.T) {
 	})
 
 	signer := types.NewEIP155Signer(chainID)
-	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(tx, signer)
+	ethSignature, signatureResponse, errorGettingSignature := getEthSignature(context.Background(), tx, signer)
 	require.Nil(t, errorGettingSignature, "Error getting signature response")
 	require.Equal(t, reflect.TypeOf([]byte{}), reflect.TypeOf(ethSignature))
 	require.Equal(t, reflect.TypeOf(0), reflect.TypeOf(signatureResponse))
@@ -137,5 +139,5 @@ func TestSetEthBridgeAdmin(t *testing.T) {
 
 	re := regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
 	require.Equal(t, true, re.MatchString(ethBridgeAdmin.String()))
-	require.NotEqual(t, constants.EthEmptyAddress(), ethBridgeAdmin, "ETH Bridge Admin alreadu set")
+	require.NotEqual(t, constants.EthereumZeroAddress(), ethBridgeAdmin, "ETH Bridge Admin alreadu set")
 }

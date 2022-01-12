@@ -8,6 +8,7 @@
 package casp
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"math/big"
 	"reflect"
@@ -26,7 +27,7 @@ import (
 func TestGetTMPubKey(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys(context.Background())
 	require.Nil(t, err, "Failed to get casp Response")
 
 	tmpKey := GetTMPubKey(uncompressedPublicKeys.Items[0])
@@ -41,27 +42,28 @@ func TestGetTMPubKey(t *testing.T) {
 func TestGetEthPubKey(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys(context.Background())
 	require.Nil(t, err, "Failed to get casp Response")
 
-	ethPubliKey := uncompressedPublicKeys.Items[0]
-	ethKey := GetEthPubKey(ethPubliKey)
+	ethPublicKey := uncompressedPublicKeys.Items[0]
+	ethKey := GetEthPubKey(ethPublicKey)
 	require.Equal(t, 20, len(crypto.PubkeyToAddress(ethKey)))
+	require.NotNil(t, ethKey)
+
 	require.Equal(t, reflect.TypeOf(ecdsa.PublicKey{}), reflect.TypeOf(ethKey))
 	require.Equal(t, reflect.TypeOf(&big.Int{}), reflect.TypeOf(ethKey.X))
 	require.Equal(t, reflect.TypeOf(&big.Int{}), reflect.TypeOf(ethKey.Y))
-	require.NotNil(t, ethKey)
 }
 
 func TestGetXY(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys()
+	uncompressedPublicKeys, err := caspQueries.GetUncompressedEthPublicKeys(context.Background())
 	require.Nil(t, err, "Failed to get casp Response")
 
 	x, y := getXY(uncompressedPublicKeys.Items[0])
 	require.NotNil(t, x)
 	require.NotNil(t, y)
-	require.Equal(t, 32, len(y.Bytes()))
-	require.Equal(t, 32, len(y.Bytes()))
+	require.LessOrEqual(t, 32, len(x.Bytes()))
+	require.LessOrEqual(t, 32, len(y.Bytes()))
 }

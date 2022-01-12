@@ -24,6 +24,10 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 	}()
 
+	if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+		return nil
+	}
+
 	claimMsgChan := claim.Messages()
 
 	var (
@@ -45,7 +49,6 @@ ConsumerLoop:
 
 			err := utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
-				// TODO @Puneet return err?? ~ can return, since already logging no logic changes.
 				logging.Error("failed to produce from MsgUnbond to ToTendermint, error:", err)
 
 				break ConsumerLoop

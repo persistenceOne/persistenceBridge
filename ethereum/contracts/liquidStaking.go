@@ -10,6 +10,7 @@ import (
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -17,19 +18,14 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func LiquidStaking() Contract {
-	c := Contract{
-		name:    "LIQUID_STAKING",
-		address: common.HexToAddress(constants.LiquidStakingAddress),
-		methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
-			constants.LiquidStakingStake:   onStake,
-			constants.LiquidStakingUnStake: onUnStake,
-		},
-	}
-
-	c.SetABI(constants.LiquidStakingABI)
-
-	return c
+var LiquidStaking = Contract{
+	name:    "LIQUID_STAKING",
+	address: configuration.GetAppConfig().Ethereum.LiquidStakingAddress,
+	abi:     abi.ABI{},
+	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
+		constants.LiquidStakingStake:   onStake,
+		constants.LiquidStakingUnStake: onUnStake,
+	},
 }
 
 // nolint implements common interface
@@ -39,9 +35,9 @@ func onStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 
 	stakeMsg := &stakingTypes.MsgDelegate{
-		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ValidatorAddress: "",
-		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
+		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.Denom, amount),
 	}
 
 	logging.Info("Received ETH Stake Tx from:", ercAddress.String(), "amount:", amount.String())
@@ -56,9 +52,9 @@ func onUnStake(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
 	amount := sdkTypes.NewIntFromBigInt(arguments[1].(*big.Int))
 
 	unStakeMsg := &stakingTypes.MsgUndelegate{
-		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		DelegatorAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ValidatorAddress: "",
-		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount),
+		Amount:           sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.Denom, amount),
 	}
 
 	logging.Info("Received ETH UnStake Tx from:", ercAddress.String(), "amount:", amount.String())

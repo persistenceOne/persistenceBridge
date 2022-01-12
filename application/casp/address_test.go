@@ -8,6 +8,7 @@
 package casp
 
 import (
+	"context"
 	"regexp"
 	"testing"
 
@@ -20,7 +21,7 @@ import (
 func TestGetEthAddress(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	ethAddress, err := GetEthAddress()
+	ethAddress, err := GetEthAddress(context.Background())
 	require.Nil(t, err)
 	require.NotNil(t, ethAddress)
 	require.Equal(t, 20, len(ethAddress))
@@ -32,7 +33,7 @@ func TestGetEthAddress(t *testing.T) {
 func TestGetTendermintAddress(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	tenderMintAddress, errTMA := GetTendermintAddress()
+	tenderMintAddress, errTMA := GetTendermintAddress(context.Background())
 	require.Nil(t, errTMA, "Error Getting Tendermint address")
 	require.NotNil(t, tenderMintAddress)
 	require.Equal(t, 20, len(tenderMintAddress))

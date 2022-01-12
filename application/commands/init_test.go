@@ -21,13 +21,13 @@ import (
 func TestInitCommand(t *testing.T) {
 	cmd := InitCommand()
 
-	err := cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
+	err := cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir())
 	require.Nil(t, err)
 
 	err = cmd.Execute()
 	require.Nil(t, err)
 
 	config := configuration.GetAppConfig()
-	_, err = toml.DecodeFile(filepath.Join(constants.TestHomeDir, "config.toml"), &config)
+	_, err = toml.DecodeFile(filepath.Join(constants.TestHomeDir(), "config.toml"), &config)
 	require.Nil(t, err)
 }

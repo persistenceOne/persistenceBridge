@@ -6,7 +6,9 @@
 package db
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	"github.com/dgraph-io/badger/v3"
 )
@@ -34,6 +36,16 @@ func (tmTx *OutgoingTendermintTransaction) Value() ([]byte, error) {
 }
 
 func (tmTx *OutgoingTendermintTransaction) Validate() error {
+	if tmTx.TxHash == "" {
+		return fmt.Errorf("OutgoingTendermintTransaction: empty tx hash")
+	}
+	hexBytes, err := hex.DecodeString(tmTx.TxHash)
+	if err != nil {
+		return fmt.Errorf("OutgoingTendermintTransaction: error decoding tx hash string %v", err)
+	}
+	if len(hexBytes) != 32 {
+		return fmt.Errorf("OutgoingTendermintTransaction: invalid tx hash")
+	}
 	return nil
 }
 

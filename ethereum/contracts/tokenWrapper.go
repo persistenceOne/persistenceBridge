@@ -10,6 +10,7 @@ import (
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -17,18 +18,13 @@ import (
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
 
-func TokenWrapper() Contract {
-	c := Contract{
-		name:    "TOKEN_WRAPPER",
-		address: common.HexToAddress(constants.TokenWrapperAddress),
-		methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
-			constants.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
-		},
-	}
-
-	c.SetABI(constants.TokenWrapperABI)
-
-	return c
+var TokenWrapper = Contract{
+	name:    "TOKEN_WRAPPER",
+	address: configuration.GetAppConfig().Ethereum.TokenWrapperAddress,
+	abi:     abi.ABI{},
+	methods: map[string]func(arguments []interface{}) (sdkTypes.Msg, common.Address, error){
+		constants.TokenWrapperWithdrawUTokens: onWithdrawUTokens,
+	},
 }
 
 func onWithdrawUTokens(arguments []interface{}) (sdkTypes.Msg, common.Address, error) {
@@ -41,9 +37,9 @@ func onWithdrawUTokens(arguments []interface{}) (sdkTypes.Msg, common.Address, e
 	}
 
 	sendCoinMsg := &bankTypes.MsgSend{
-		FromAddress: configuration.GetAppConfig().Tendermint.GetPStakeAddress(),
+		FromAddress: configuration.GetAppConfig().Tendermint.GetWrapAddress(),
 		ToAddress:   atomAddress.String(),
-		Amount:      sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.PStakeDenom, amount)),
+		Amount:      sdkTypes.NewCoins(sdkTypes.NewCoin(configuration.GetAppConfig().Tendermint.Denom, amount)),
 	}
 
 	logging.Info("Received ETH Unwrap Tx from:", ercAddress.String(), "amount:", amount.String(), "toAddress:", atomAddress.String())

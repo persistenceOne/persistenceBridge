@@ -11,13 +11,11 @@ import (
 	"time"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/persistenceOne/persistenceBridge/application/casp"
-
 	"github.com/cosmos/relayer/helpers"
 	"github.com/cosmos/relayer/relayer"
 	tendermintService "github.com/tendermint/tendermint/libs/service"
 
+	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
 )
@@ -28,8 +26,8 @@ func getChain() *relayer.Chain {
 		ChainID:        configuration.GetAppConfig().Tendermint.ChainID,
 		RPCAddr:        configuration.GetAppConfig().Tendermint.Node,
 		AccountPrefix:  configuration.GetAppConfig().Tendermint.AccountPrefix,
-		GasAdjustment:  1.5,
-		GasPrices:      "0.025" + configuration.GetAppConfig().Tendermint.PStakeDenom,
+		GasAdjustment:  configuration.GetAppConfig().Tendermint.GasAdjustment,
+		GasPrices:      configuration.GetAppConfig().Tendermint.GasPrice + configuration.GetAppConfig().Tendermint.Denom,
 		TrustingPeriod: "21h",
 	}
 }

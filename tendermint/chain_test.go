@@ -8,11 +8,9 @@
 package tendermint
 
 import (
-	"reflect"
 	"regexp"
 	"testing"
 
-	"github.com/cosmos/relayer/relayer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
@@ -23,10 +21,9 @@ import (
 func TestInitializeAndStartChain(t *testing.T) {
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	initAndStartChain, err := InitializeAndStartChain("336h", constants.DefaultPBridgeHome)
+	initAndStartChain, err := InitializeAndStartChain("336h", constants.DefaultPBridgeHome())
 	require.Nil(t, err)
 
-	require.Equal(t, reflect.TypeOf(&relayer.Chain{}), reflect.TypeOf(initAndStartChain))
 	require.NotNil(t, initAndStartChain)
 
 	re := regexp.MustCompile(`^cosmos$`)

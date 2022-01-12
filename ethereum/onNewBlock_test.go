@@ -19,7 +19,6 @@ import (
 	"github.com/persistenceOne/persistenceBridge/application/casp"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
 	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/application/outgoingtx"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/test"
 )
@@ -28,17 +27,21 @@ func TestOnNewBlock(t *testing.T) {
 	pStakeConfig := configuration.GetAppConfig()
 	configuration.SetConfig(test.GetCmdWithConfig())
 
-	tmAddress, err := casp.GetTendermintAddress()
+	ctx := context.Background()
+
+	tmAddress, err := casp.GetTendermintAddress(ctx)
 	require.Nil(t, err)
 
-	configuration.SetPStakeAddress(tmAddress)
+	ethAddress, err := casp.GetEthAddress(ctx)
+	require.Nil(t, err)
+
+	configuration.SetCASPAddresses(tmAddress, ethAddress)
 
 	ethereumClient, err := ethclient.Dial(configuration.GetAppConfig().Ethereum.EthereumEndPoint)
 	require.Nil(t, err)
 
 	kafkaProducer := utils.NewProducer(pStakeConfig.Kafka.Brokers, utils.SaramaConfig())
 
-	ctx := context.Background()
 	latestEthHeight, err := ethereumClient.BlockNumber(ctx)
 	require.Nil(t, err)
 
@@ -53,12 +56,12 @@ func TestOnNewBlock(t *testing.T) {
 	amt := new(big.Int)
 	amt.SetInt64(1000)
 
-	wrapTokenMsg := outgoingtx.WrapTokenMsg{
-		Address: address,
-		Amount:  amt,
+	wrapTokenMsg := db.WrapTokenMsg{
+		Address:       address,
+		StakingAmount: amt,
 	}
 
-	txd := []outgoingtx.WrapTokenMsg{wrapTokenMsg}
+	txd := []db.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction := db.OutgoingEthereumTransaction{
 		TxHash:   txHashFail,
@@ -68,7 +71,7 @@ func TestOnNewBlock(t *testing.T) {
 	err = db.SetOutgoingEthereumTx(database, ethTransaction)
 	require.Nil(t, err)
 
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, kafkaProducer, database)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, kafkaProducer, nil, database)
 	require.Nil(t, err)
 
 	txHashSuccess := common.HexToHash("0x8e08d80c37c884467b9b48a77e658711615a5cfde43f95fccfb3b95ee66cd6ea")
@@ -76,12 +79,12 @@ func TestOnNewBlock(t *testing.T) {
 	amt = new(big.Int)
 	amt.SetInt64(1000)
 
-	wrapTokenMsg = outgoingtx.WrapTokenMsg{
-		Address: address,
-		Amount:  amt,
+	wrapTokenMsg = db.WrapTokenMsg{
+		Address:       address,
+		StakingAmount: amt,
 	}
 
-	txd = []outgoingtx.WrapTokenMsg{wrapTokenMsg}
+	txd = []db.WrapTokenMsg{wrapTokenMsg}
 
 	ethTransaction = db.OutgoingEthereumTransaction{
 		TxHash:   txHashSuccess,
@@ -91,6 +94,6 @@ func TestOnNewBlock(t *testing.T) {
 	err = db.SetOutgoingEthereumTx(database, ethTransaction)
 	require.Nil(t, err)
 
-	err = onNewBlock(ctx, latestEthHeight, ethereumClient, kafkaProducer, database)
+	err = onNewBlock(ctx, latestEthHeight, ethereumClient, kafkaProducer, nil, database)
 	require.Nil(t, err)
 }

@@ -42,7 +42,7 @@ func TestAddCommand(t *testing.T) {
 	cmd := AddCommand()
 	cmd.SetArgs([]string{validatorAddress, validatorName})
 
-	err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir)
+	err = cmd.Flags().Set(constants.FlagPBridgeHome, constants.TestHomeDir())
 	require.Nil(t, err)
 
 	err = cmd.Execute()

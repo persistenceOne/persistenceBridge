@@ -33,9 +33,7 @@ func getUncompressedPublicKeys(ctx context.Context, coinType uint32) (casp.Uncom
 
 	client := &http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// nolint we might like to skip it by purpose
-			// nolint: gosec
-			InsecureSkipVerify: configuration.GetAppConfig().CASP.TLSInsecureSkipVerify, // #nosec
+			InsecureSkipVerify: false,
 		},
 	}}
 
