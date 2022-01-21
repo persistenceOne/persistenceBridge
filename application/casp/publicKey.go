@@ -58,7 +58,9 @@ func getXY(caspPubKey string) (x, y *big.Int) {
 	if len(pubKeyBytes) != 64 {
 		logging.Fatal(fmt.Sprintf("invalid casp public key, length (%v) not equal to 64", len(pubKeyBytes)))
 	}
-	x.SetBytes(pubKeyBytes[0:32])
-	y.SetBytes(pubKeyBytes[32:])
+
+	x = big.NewInt(0).SetBytes(pubKeyBytes[0:32])
+	y = big.NewInt(0).SetBytes(pubKeyBytes[32:])
+
 	return
 }

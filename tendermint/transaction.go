@@ -204,5 +204,8 @@ func getWrapAddressAndStakingRatio(memo string) (goEthCommon.Address, sdk.Dec, e
 	if ratio.IsNegative() {
 		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("negative ratio: invalid memo for bridge")
 	}
+	if ratio.GT(sdk.NewDec(1)) {
+		return goEthCommon.Address{}, sdk.Dec{}, fmt.Errorf("invalid memo for bridge, ratio cannot be greater than 1")
+	}
 	return ethAddress, ratio, nil
 }
