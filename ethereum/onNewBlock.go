@@ -37,6 +37,7 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 			} else {
 				logging.Error("Receipt fetch failed [onNewBlock] eth tx (need to check manually):", ethTx.TxHash.String(), "Error:", err)
 			}
+			return nil
 		}
 		deleteTx := false
 		if txReceipt.Status == 0 {
