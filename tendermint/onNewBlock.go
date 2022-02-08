@@ -50,26 +50,25 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 				return err
 			}
 
-				transaction, ok := txInterface.(signing.Tx)
-				if !ok {
-					return fmt.Errorf("unable to parse transaction into signing.Tx [TM onNewBlock]")
-				}
-				for _, msg := range transaction.GetMsgs() {
-					if sdkTypes.MsgTypeURL(msg) != constants.MsgWithdrawDelegatorRewardTypeUrl {
-						msgBytes, err := protoCodec.MarshalInterface(msg)
-						if err != nil {
-							return fmt.Errorf("failed to generate msgBytes [TM onNewBlock]: %s", err.Error())
-						}
-						err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, *kafkaProducer)
-						if err != nil {
-							return fmt.Errorf("failed to add messages of %s to kafka queue [TM onNewBlock] RetryTendermint: %s", msg.String(), err.Error())
-						}
+			transaction, ok := txInterface.(signing.Tx)
+			if !ok {
+				return fmt.Errorf("unable to parse transaction into signing.Tx [TM onNewBlock]")
+			}
+			for _, msg := range transaction.GetMsgs() {
+				if sdkTypes.MsgTypeURL(msg) != constants.MsgWithdrawDelegatorRewardTypeUrl {
+					msgBytes, err := protoCodec.MarshalInterface(msg)
+					if err != nil {
+						return fmt.Errorf("failed to generate msgBytes [TM onNewBlock]: %s", err.Error())
+					}
+					err = utils.ProducerDeliverMessage(msgBytes, utils.RetryTendermint, *kafkaProducer)
+					if err != nil {
+						return fmt.Errorf("failed to add messages of %s to kafka queue [TM onNewBlock] RetryTendermint: %s", msg.String(), err.Error())
 					}
 				}
-			} else {
-				logging.Info("Broadcast tendermint tx successful. Hash:", tmTx.TxHash, "Block:", txResult.Height)
 			}
-			return db.DeleteOutgoingTendermintTx(tmTx.TxHash)
+		} else {
+			logging.Info("Broadcast tendermint tx successful. Hash:", tmTx.TxHash, "Block:", txResult.Height)
 		}
+		return db.DeleteOutgoingTendermintTx(tmTx.TxHash)
 	})
 }

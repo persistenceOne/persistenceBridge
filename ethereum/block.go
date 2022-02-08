@@ -10,8 +10,6 @@ import (
 	"fmt"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/persistenceOne/persistenceBridge/application/constants"
-	"github.com/persistenceOne/persistenceBridge/application/db"
-	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/codec"
