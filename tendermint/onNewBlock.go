@@ -10,12 +10,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 
 	"github.com/Shopify/sarama"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	distributionTypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/relayer/relayer"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
@@ -54,7 +55,7 @@ func onNewBlock(ctx context.Context, clientCtx client.Context, chain *relayer.Ch
 				return fmt.Errorf("unable to parse transaction into signing.Tx [TM onNewBlock]")
 			}
 			for _, msg := range transaction.GetMsgs() {
-				if msg.Type() != distributionTypes.TypeMsgWithdrawDelegatorReward {
+				if sdkTypes.MsgTypeURL(msg) != constants.MsgWithdrawDelegatorRewardTypeUrl {
 					msgBytes, err := protoCodec.MarshalInterface(msg)
 					if err != nil {
 						return fmt.Errorf("failed to generate msgBytes [TM onNewBlock]: %s", err.Error())

@@ -9,8 +9,8 @@ import (
 	"errors"
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	"github.com/persistenceOne/persistenceBridge/application/db"
 	"github.com/persistenceOne/persistenceBridge/kafka/utils"
 	"github.com/persistenceOne/persistenceBridge/utilities/logging"
@@ -46,7 +46,7 @@ ConsumerLoop:
 			if err != nil {
 				return err
 			}
-			if msg.Type() == bankTypes.TypeMsgSend && !m.WithdrawRewards {
+			if sdk.MsgTypeURL(msg) == constants.MsgSendTypeUrl && !m.WithdrawRewards {
 				validators, err := db.GetValidators()
 				if err != nil {
 					return err
