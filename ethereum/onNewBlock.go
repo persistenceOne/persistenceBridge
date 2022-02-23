@@ -34,10 +34,12 @@ func onNewBlock(ctx context.Context, latestBlockHeight uint64, client *ethclient
 		if err != nil {
 			if txReceipt == nil && err == ethereum.NotFound {
 				logging.Info("Broadcast ethereum tx pending:", ethTx.TxHash)
-			} else {
-				logging.Error("Receipt fetch failed [onNewBlock] eth tx (need to check manually):", ethTx.TxHash.String(), "Error:", err)
+				return nil
 			}
+			logging.Error("Receipt fetch failed [onNewBlock] eth tx (need to check manually):", ethTx.TxHash.String(), "Error:", err)
+			return err
 		}
+
 		deleteTx := false
 		if txReceipt.Status == 0 {
 			logging.Error("Broadcast ethereum tx failed, Hash:", ethTx.TxHash.String(), "Block:", txReceipt.BlockNumber.Uint64())
