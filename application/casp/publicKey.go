@@ -28,6 +28,9 @@ func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 		X:     x,
 		Y:     y,
 	}
+	if !(pubKey.Curve.IsOnCurve(pubKey.X, pubKey.Y)) {
+		logging.Fatal("not a valid public key")
+	}
 	pubkeyObject := (*btcec.PublicKey)(&pubKey)
 	pk := pubkeyObject.SerializeCompressed()
 	return &secp256k1.PubKey{Key: pk}
@@ -36,16 +39,25 @@ func GetTMPubKey(caspPubKey string) cryptotypes.PubKey {
 // GetEthPubKey caspPubKey should include prefix "04"
 func GetEthPubKey(caspPubKey string) ecdsa.PublicKey {
 	x, y := getXY(caspPubKey)
+
 	publicKey := ecdsa.PublicKey{
 		Curve: crypto.S256(),
 		X:     x,
 		Y:     y,
 	}
+
+	if !(publicKey.Curve.IsOnCurve(publicKey.X, publicKey.Y)) {
+		logging.Fatal("not a valid public key = ")
+	}
 	return publicKey
+
 }
 
 // getXY caspPubKey should include prefix "04"
 func getXY(caspPubKey string) (x, y *big.Int) {
+	if len(caspPubKey) < 2 {
+		logging.Fatal("Invalid length of caspPubKey = " + caspPubKey)
+	}
 	s := strings.Split(caspPubKey, "")
 	if s[0] != "0" && s[1] != "4" {
 		logging.Fatal("invalid casp public key")
@@ -55,6 +67,7 @@ func getXY(caspPubKey string) (x, y *big.Int) {
 	if err != nil {
 		logging.Fatal(err)
 	}
+
 	if len(pubKeyBytes) != 64 {
 		logging.Fatal(fmt.Sprintf("invalid casp public key, length (%v) not equal to 64", len(pubKeyBytes)))
 	}

@@ -6,9 +6,9 @@
 package casp
 
 type UncompressedPublicKeysResponse struct {
-	TotalItems   int      `json:"totalItems"`
+	TotalItems   int64    `json:"totalItems"`
 	Items        []string `json:"items"`
 	Chains       []string `json:"chains"`
 	AccountName  string   `json:"accountName"`
-	AccountIndex int      `json:"accountIndex"`
+	AccountIndex int64    `json:"accountIndex"`
 }

@@ -8,6 +8,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"github.com/dgraph-io/badger/v3"
 	"log"
 	"strings"
 	"time"
@@ -76,7 +77,12 @@ func RemoveCommand() *cobra.Command {
 					return err2
 				}
 			} else {
-				defer database.Close()
+				defer func(database *badger.DB) {
+					err := database.Close()
+					if err != nil {
+						log.Fatalln(err)
+					}
+				}(database)
 
 				var err2 error
 				validators, err2 = db.GetValidators()

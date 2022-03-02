@@ -7,7 +7,6 @@ package handler
 
 import (
 	"errors"
-
 	"github.com/Shopify/sarama"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -64,6 +63,10 @@ ConsumerLoop:
 			return err
 		}
 		totalDelegations := TotalDelegations(delegatorDelegations)
+		if totalDelegations == sdk.ZeroInt() {
+			logging.Fatal("total delegations is zero")
+			return errors.New("total delegations is zero")
+		}
 		if sum.GT(totalDelegations) {
 			return errors.New("unbondings requested are greater than delegated tokens")
 		}
