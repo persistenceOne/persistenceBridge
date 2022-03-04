@@ -10,5 +10,5 @@ type UncompressedPublicKeysResponse struct {
 	Items        []string `json:"items"`
 	Chains       []string `json:"chains"`
 	AccountName  string   `json:"accountName"`
-	AccountIndex int64    `json:"accountIndex"`
+	AccountIndex uint32   `json:"accountIndex"`
 }
