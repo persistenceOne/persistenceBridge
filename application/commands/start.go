@@ -50,12 +50,12 @@ func StartCommand() *cobra.Command {
 			}
 			logging.ShowDebugLog(showDebugLog)
 
+			setAndSealConfig(homePath)
+
 			err = logging.InitializeBot()
 			if err != nil {
 				log.Fatalln(err)
 			}
-
-			setAndSealConfig(homePath)
 
 			tmSleepTime, err := cmd.Flags().GetInt(constants.FlagTendermintSleepTime)
 			if err != nil {
