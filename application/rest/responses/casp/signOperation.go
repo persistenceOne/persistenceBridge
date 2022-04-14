@@ -38,16 +38,16 @@ type SignOperationResponse struct {
 			GlobalStatus string `json:"globalStatus"`
 			IsOffline    bool   `json:"isOffline"`
 		} `json:"members"`
-		RequiredApprovals int  `json:"requiredApprovals"`
-		Order             int  `json:"order"`
-		DeactivateAllowed bool `json:"deactivateAllowed"`
-		IsOffline         bool `json:"isOffline"`
+		RequiredApprovals int64 `json:"requiredApprovals"`
+		Order             int64 `json:"order"`
+		DeactivateAllowed bool  `json:"deactivateAllowed"`
+		IsOffline         bool  `json:"isOffline"`
 	} `json:"groups"`
 	VaultName           string   `json:"vaultName"`
 	PublicKeys          []string `json:"publicKeys"`
 	DataToSign          []string `json:"dataToSign"`
 	Signatures          []string `json:"signatures,omitempty"`
-	V                   []int    `json:"v,omitempty"`
+	V                   []int64  `json:"v,omitempty"`
 	LedgerHashAlgorithm string   `json:"ledgerHashAlgorithm"`
 	CollectedData       struct {
 		CollectionComplete   bool          `json:"collectionComplete"`
@@ -61,7 +61,7 @@ func (response SignOperationResponse) GetPendingParticipantsApprovals() error {
 		return fmt.Errorf("no groups found")
 	}
 	for _, group := range response.Groups {
-		totalApproval := 0
+		totalApproval := int64(0)
 		membersAwaiting := ""
 		for _, member := range group.Members {
 			if member.ApprovedAt == "" {

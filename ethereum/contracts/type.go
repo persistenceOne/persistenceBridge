@@ -7,6 +7,7 @@ package contracts
 
 import (
 	"encoding/hex"
+	"fmt"
 	"log"
 	"strings"
 
@@ -64,26 +65,31 @@ func (contract *Contract) SetABI(contractABIString string) {
 }
 
 func (contract *Contract) GetMethodAndArguments(inputData []byte) (*abi.Method, []interface{}, error) {
+
 	txData := hex.EncodeToString(inputData)
-	if txData[:2] == "0x" {
-		txData = txData[2:]
-	}
+	if len(txData) > 9 {
 
-	decodedSig, err := hex.DecodeString(txData[:8])
-	if err != nil {
-		logging.Fatal("Unable decode method ID (decodeSig) of", contract.name, "Error:", err)
-	}
+		if txData[:2] == "0x" {
+			txData = txData[2:]
+		}
 
-	method, err := contract.abi.MethodById(decodedSig)
-	if err != nil {
-		logging.Fatal("Unable to fetch method of", contract.name, "Error:", err)
-	}
+		decodedSig, err := hex.DecodeString(txData[:8])
+		if err != nil {
+			logging.Fatal("Unable decode method ID (decodeSig) of", contract.name, "Error:", err)
+		}
 
-	decodedData, err := hex.DecodeString(txData[8:])
-	if err != nil {
-		logging.Fatal("Unable to decode input data of", contract.name, "Error:", err)
-	}
+		method, err := contract.abi.MethodById(decodedSig)
+		if err != nil {
+			logging.Fatal("Unable to fetch method of", contract.name, "Error:", err)
+		}
 
-	arguments, err := method.Inputs.Unpack(decodedData)
-	return method, arguments, err
+		decodedData, err := hex.DecodeString(txData[8:])
+		if err != nil {
+			logging.Fatal("Unable to decode input data of", contract.name, "Error:", err)
+		}
+
+		arguments, err := method.Inputs.Unpack(decodedData)
+		return method, arguments, err
+	}
+	return nil, nil, fmt.Errorf("invalid input data")
 }

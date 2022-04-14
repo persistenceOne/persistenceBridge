@@ -6,6 +6,7 @@
 package commands
 
 import (
+	"github.com/dgraph-io/badger/v3"
 	"log"
 
 	"github.com/persistenceOne/persistenceBridge/application/constants"
@@ -41,7 +42,12 @@ func ShowCommand() *cobra.Command {
 					return err2
 				}
 			} else {
-				defer database.Close()
+				defer func(database *badger.DB) {
+					err := database.Close()
+					if err != nil {
+						log.Fatalln(err)
+					}
+				}(database)
 
 				validators, err = db.GetValidators()
 				if err != nil {

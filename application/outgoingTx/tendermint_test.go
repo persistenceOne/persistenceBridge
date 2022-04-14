@@ -110,6 +110,13 @@ func TestGetTMSignature(t *testing.T) {
 		t.Errorf("Error getting TM signature: \n %v", err)
 	}
 	require.Equal(t, 64, len(tmSignature))
+
+	dataToSign = []string{""}
+	bytesToSign = []byte(strings.Join(dataToSign, ""))
+	_, err = getTMSignature(bytesToSign)
+	if err != nil {
+		t.Errorf("Empty data to sign: %v", err)
+	}
 }
 
 func TestSetTMPublicKey(t *testing.T) {

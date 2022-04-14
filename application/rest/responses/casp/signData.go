@@ -15,7 +15,7 @@ type ErrorResponse struct {
 	Type    string `json:"type"`
 	Title   string `json:"title"`
 	Details string `json:"details,omitempty"`
-	Status  int    `json:"status"`
+	Status  int64  `json:"status"`
 }
 
 var _ error = &ErrorResponse{}
