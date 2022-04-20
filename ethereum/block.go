@@ -95,7 +95,7 @@ func handleBlock(client *ethclient.Client, ctx *context.Context, block *types.Bl
 			}
 			methodRaw = constants.TokenWrapperWithdrawUTokens
 			contract = &contracts.TokenWrapper
-			args = []interface{}{withdrawUTokenEvent.AccountAddress, withdrawUTokenEvent.Tokens, withdrawUTokenEvent.ToChainAddress}
+			args = []interface{}{withdrawUTokenEvent.AccountAddress, withdrawUTokenEvent.FinalTokens, withdrawUTokenEvent.ToChainAddress}
 		default:
 		}
 		err = collectEthTx(protoCodec, vLog.TxHash, methodRaw, contract, args)
