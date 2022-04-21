@@ -196,7 +196,7 @@ func ParseLiquidStakingUnstakeTokensEvent(vLog types.Log) (liquidStaking.LiquidS
 	var event liquidStaking.LiquidStakingUnstakeTokens
 	err := contracts.LiquidStaking.GetABI().UnpackIntoInterface(&event, EventUnstakeTokens, vLog.Data)
 	if err != nil {
-		return event, errors.New("failed to Unpack event StakeTokens")
+		return event, errors.New("failed to Unpack event UnstakeTokens")
 	}
 	event.Raw = vLog
 	event.AccountAddress = common.HexToAddress(vLog.Topics[1].Hex())
@@ -208,7 +208,7 @@ func ParseTokenWrapperWithdrawUTokensEvent(vLog types.Log) (tokenWrapper.TokenWr
 	var event tokenWrapper.TokenWrapperWithdrawUTokens
 	err := contracts.TokenWrapper.GetABI().UnpackIntoInterface(&event, EventWithdrawUTokens, vLog.Data)
 	if err != nil {
-		return event, errors.New("failed to Unpack event StakeTokens")
+		return event, errors.New("failed to Unpack event WithdrawUTokens")
 	}
 	event.Raw = vLog
 	event.AccountAddress = common.HexToAddress(vLog.Topics[1].Hex())
