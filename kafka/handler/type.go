@@ -18,7 +18,7 @@ type MsgHandler struct {
 	ProtoCodec      *codec.ProtoCodec
 	Chain           *relayer.Chain
 	EthClient       *ethclient.Client
-	Count           int
+	Count           *int
 	WithdrawRewards bool
 }
 
