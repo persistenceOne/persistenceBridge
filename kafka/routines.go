@@ -62,8 +62,9 @@ func consumeToEthMsgs(ctx context.Context, state utils.KafkaState,
 	protoCodec *codec.ProtoCodec, chain *relayer.Chain, ethereumClient *ethclient.Client, end, ended chan bool) {
 	consumerGroup := state.ConsumerGroup[utils.GroupToEth]
 	for {
+		count := 0
 		msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0}
+			Chain: chain, EthClient: ethereumClient, Count: &count}
 		err := consumerGroup.Consume(ctx, []string{utils.ToEth}, msgHandler)
 		if err != nil {
 			logging.Error("Consumer group.Consume:", err)
@@ -89,8 +90,9 @@ func consumeToTendermintMessages(ctx context.Context, state utils.KafkaState,
 	groupMsgToTendermint := state.ConsumerGroup[utils.GroupToTendermint]
 
 	for {
+		count := 0
 		msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-			Chain: chain, EthClient: ethereumClient, Count: 0, WithdrawRewards: false}
+			Chain: chain, EthClient: ethereumClient, Count: &count, WithdrawRewards: false}
 		err := groupRedelegate.Consume(ctx, []string{utils.Redelegate}, msgHandler)
 		if err != nil {
 			logging.Error("Consumer groupRedelegate.Consume:", err)
@@ -138,8 +140,9 @@ func consumeUnbondings(ctx context.Context, state utils.KafkaState,
 			logging.Fatal(err)
 		}
 		if time.Now().Unix() > nextEpochTime.Epoch {
+			count := 0
 			msgHandler := handler.MsgHandler{ProtoCodec: protoCodec,
-				Chain: chain, EthClient: ethereumClient, Count: 0}
+				Chain: chain, EthClient: ethereumClient, Count: &count}
 			err := ethUnbondConsumerGroup.Consume(ctx, []string{utils.EthUnbond}, msgHandler)
 			if err != nil {
 				logging.Error("Consumer group.Consume for EthUnbond:", err)
