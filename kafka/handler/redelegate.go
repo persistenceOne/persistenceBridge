@@ -48,7 +48,7 @@ func (m MsgHandler) HandleRedelegate(session sarama.ConsumerGroupSession, claim 
 	if err != nil {
 		return err
 	}
-	if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count < len(validatorSet) {
+	if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-*m.Count < len(validatorSet) {
 		logging.Error("ReDelegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
 		return nil
 	}
@@ -96,7 +96,7 @@ func (m MsgHandler) HandleRedelegate(session sarama.ConsumerGroupSession, claim 
 				logging.Error("failed to produce message from topic Redelegate to ToTendermint")
 				return err
 			}
-			m.Count++
+			*m.Count++
 		}
 	}
 	session.MarkMessage(kafkaMsg, "")

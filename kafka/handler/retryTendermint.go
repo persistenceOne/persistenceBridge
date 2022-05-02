@@ -25,7 +25,7 @@ func (m MsgHandler) HandleRetryTendermint(session sarama.ConsumerGroupSession, c
 			logging.Error("failed to close producer in topic RetryTendermint, error:", err)
 		}
 	}()
-	if m.Count <= 0 {
+	if *m.Count < 0 {
 		return nil
 	}
 	claimMsgChan := claim.Messages()
@@ -51,7 +51,7 @@ ConsumerLoop:
 				if err != nil {
 					return err
 				}
-				loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - m.Count
+				loop := configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - *m.Count
 				if loop <= len(validators) {
 					return nil
 				}
@@ -60,20 +60,21 @@ ConsumerLoop:
 					return err
 				}
 				m.WithdrawRewards = true
-				m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
-				if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+				*m.Count = configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize - loop
+				if !checkCount(*m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 					break ConsumerLoop
 				}
 			}
 
+			logging.Info("Producing to kafka From RetryTendermint to ToTendermint: ", msg)
 			err = utils.ProducerDeliverMessage(kafkaMsg.Value, utils.ToTendermint, producer)
 			if err != nil {
 				logging.Error("failed to produce from: RetryTendermint to: ToTendermint, error:", err)
 				break ConsumerLoop
 			}
 			session.MarkMessage(kafkaMsg, "")
-			m.Count++
-			if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+			*m.Count++
+			if !checkCount(*m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 				break ConsumerLoop
 			}
 		default:

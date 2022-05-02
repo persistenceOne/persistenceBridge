@@ -62,7 +62,7 @@ ConsumerLoop:
 		if err != nil {
 			return err
 		}
-		if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-m.Count < len(validators) {
+		if configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize-*m.Count < len(validators) {
 			logging.Error("Delegate transaction number is higher than slots available, probably increase to tendermint MaxBatchSize")
 			return nil
 		}
@@ -92,7 +92,7 @@ ConsumerLoop:
 					logging.Error("failed to produce message from: MsgDelegate to ToTendermint")
 					return err
 				}
-				m.Count++
+				*m.Count++
 			}
 		}
 		session.MarkMessage(kafkaMsg, "")

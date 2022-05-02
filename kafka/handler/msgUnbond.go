@@ -23,7 +23,7 @@ func (m MsgHandler) HandleMsgUnbond(session sarama.ConsumerGroupSession, claim s
 		}
 	}()
 
-	if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+	if !checkCount(*m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 		return nil
 	}
 
@@ -46,8 +46,8 @@ ConsumerLoop:
 				break ConsumerLoop
 			}
 			session.MarkMessage(kafkaMsg, "")
-			m.Count++
-			if !checkCount(m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
+			*m.Count++
+			if !checkCount(*m.Count, configuration.GetAppConfig().Kafka.ToTendermint.MaxBatchSize) {
 				break ConsumerLoop
 			}
 		default:
