@@ -41,6 +41,9 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 	}
 	checkValidatorStatusPeriod := int64(float64(slashingParamsResponse.Params.SignedBlocksWindow) * (1 - minSignedPerWindow) / 10)
 
+	// above lowerLimitForWarningValidator limit, if a validator has missed blocks then start sending warnings
+	lowerLimitForWarningValidator := int64((float64(slashingParamsResponse.Params.SignedBlocksWindow) * (1 - minSignedPerWindow)) * 0.7)
+
 	for {
 		// For Tendermint, we can directly query without waiting for blocks since there is finality
 		err := onNewBlock(ctx, initClientCtx, chain, &kafkaProducer, protoCodec)
@@ -87,7 +90,7 @@ func StartListening(initClientCtx client.Context, chain *relayer.Chain, brokers 
 			}
 
 			if processHeight%checkValidatorStatusPeriod == 0 {
-				CheckValidators(chain, processHeight)
+				CheckValidators(chain, processHeight, lowerLimitForWarningValidator)
 			}
 
 			err = handleTxSearchResult(initClientCtx, resultTxs, &kafkaProducer, protoCodec)
