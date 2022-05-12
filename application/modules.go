@@ -26,11 +26,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeClient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer"
-	ibc "github.com/cosmos/ibc-go/v2/modules/core"
-	ibcClientClient "github.com/cosmos/ibc-go/v2/modules/core/02-client/client"
+	ica "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibc "github.com/cosmos/ibc-go/v3/modules/core"
+	ibcClientClient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
 	"github.com/gravity-devs/liquidity/x/liquidity"
-	"github.com/strangelove-ventures/packet-forward-middleware/router"
+	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
 )
 
 var ModuleBasics = module.NewBasicManager(
@@ -61,4 +62,5 @@ var ModuleBasics = module.NewBasicManager(
 	vesting.AppModuleBasic{},
 	liquidity.AppModuleBasic{},
 	router.AppModuleBasic{},
+	ica.AppModuleBasic{},
 )

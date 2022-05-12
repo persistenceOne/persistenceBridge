@@ -24,6 +24,7 @@ func TestGetTMPubKey(t *testing.T) {
 	require.Equal(t, 20, len(tmpKey.Address().Bytes()))
 	require.Equal(t, true, re.MatchString(tmpKey.String()), "TM Public Key regex not matching")
 	require.NotNil(t, tmpKey)
+
 }
 
 func TestGetEthPubKey(t *testing.T) {

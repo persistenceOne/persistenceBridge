@@ -39,7 +39,15 @@ func InitCommand() *cobra.Command {
 			if err = os.MkdirAll(homeDir, os.ModePerm); err != nil {
 				panic(err)
 			}
+			err = os.Chmod(homeDir, os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
 			if err := ioutil.WriteFile(filepath.Join(homeDir, "config.toml"), buf.Bytes(), 0600); err != nil {
+				panic(err)
+			}
+			err = os.Chmod(filepath.Join(homeDir, "config.toml"), 0600)
+			if err != nil {
 				panic(err)
 			}
 			log.Println("generated configuration file at ", filepath.Join(homeDir, "config.toml"))

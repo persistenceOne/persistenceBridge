@@ -157,6 +157,9 @@ func broadcastTMTx(chain *relayer.Chain, fromPublicKey cryptotypes.PubKey, sigBy
 }
 
 func getTMSignature(bytesToSign []byte) ([]byte, error) {
+	if len(bytesToSign) == 0 {
+		return nil, fmt.Errorf("bytes to sign is empty")
+	}
 	dataToSign := []string{hex.EncodeToString(crypto.Sha256(bytesToSign))}
 	operationID, err := casp.SendDataToSign(dataToSign, []string{configuration.GetAppConfig().CASP.TendermintPublicKey}, false)
 	if err != nil {

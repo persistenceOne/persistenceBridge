@@ -6,6 +6,7 @@
 package commands
 
 import (
+	"github.com/dgraph-io/badger/v3"
 	"log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,7 +54,12 @@ func AddCommand() *cobra.Command {
 					return err2
 				}
 			} else {
-				defer database.Close()
+				defer func(database *badger.DB) {
+					err := database.Close()
+					if err != nil {
+						log.Fatalln(err)
+					}
+				}(database)
 
 				err2 := db.SetValidator(db.Validator{
 					Address: validatorAddress,
