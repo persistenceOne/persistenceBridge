@@ -14,6 +14,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"net/http"
+
 )
 
 var bot *tb.Bot
@@ -49,6 +50,26 @@ func InitializeBot() (err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	values := map[string]string{"name": "John Doe", "occupation": "gardener"}
+	json_data, err := json.Marshal(values)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resp, err := http.Post("https://hooks.slack.com/services/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", "application/json",
+		bytes.NewBuffer(json_data))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var res map[string]interface{}
+
+	json.NewDecoder(resp.Body).Decode(&res)
+
+	fmt.Println(res["json"])
 
 	return err
 }
