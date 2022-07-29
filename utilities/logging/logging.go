@@ -33,6 +33,20 @@ func InitializeBot() (err error) {
 		}
 	}
 
+	values := map[string]string{"name": "John Doe", "occupation": "gardener"}
+	json_data, err := json.Marshal(values)
+	resp, err := http.Post("https://hooks.slack.com/services/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", "application/json",
+		bytes.NewBuffer(json_data))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var res map[string]interface{}
+
+	json.NewDecoder(resp.Body).Decode(&res)
+
+	fmt.Println(res["json"])
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
 		bot, err = tb.NewBot(tb.Settings{Token: configuration.GetAppConfig().TelegramBot.Token})
 		if err != nil {
@@ -50,26 +64,6 @@ func InitializeBot() (err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	values := map[string]string{"name": "John Doe", "occupation": "gardener"}
-	json_data, err := json.Marshal(values)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	resp, err := http.Post("https://hooks.slack.com/services/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", "application/json",
-		bytes.NewBuffer(json_data))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var res map[string]interface{}
-
-	json.NewDecoder(resp.Body).Decode(&res)
-
-	fmt.Println(res["json"])
 
 	return err
 }
