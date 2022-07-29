@@ -25,15 +25,12 @@ var debugPrefix = []interface{}{"[DEBUG]"}
 var fatalPrefix = []interface{}{"[FATAL]"}
 
 func InitializeBot() (err error) {
-	fmt.Println("inside Bot")
-
 	if configuration.GetAppConfig().InitSlackBot {
 		err = sendSlackMessage("pBridge bot initialized")
 		if err != nil {
 			return err
 		}
 	}
-
 
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
 		bot, err = tb.NewBot(tb.Settings{Token: configuration.GetAppConfig().TelegramBot.Token})
@@ -49,11 +46,9 @@ func InitializeBot() (err error) {
 		}
 	}
 
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	return err
 }
@@ -72,7 +67,6 @@ func Warn(warn ...interface{}) {
 	log.Println(append(warnPrefix, warn...)...)
 	_ = sendMessage("WARNING:\n" + fmt.Sprintln(warn...))
 	_ = sendSlackMessage("WARNING:\n" + fmt.Sprintln(warn...))
-
 }
 
 func Info(info ...interface{}) {
