@@ -52,7 +52,6 @@ func StartCommand() *cobra.Command {
 
 			setAndSealConfig(homePath)
 
-			fmt.Println("Bot")
 			err = logging.InitializeBot()
 			if err != nil {
 				log.Fatalln(err)

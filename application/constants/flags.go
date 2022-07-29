@@ -46,6 +46,8 @@ const (
 	FlagTendermintChainID     = "chainID"
 	FlagTokenWrapperAddress   = "tokenWrapper"
 	FlagLiquidStakingAddress  = "liquidStaking"
+	FlagInitSlackBot          = "initSlack"
+
 )
 
 var (
