@@ -109,8 +109,9 @@ func sendSlackMessage(message string) error {
 
 	jsonData, err := json.Marshal(values)
 	fmt.Println("jsonData",jsonData)
+	fmt.Println("url","https://hooks.slack.com/services"+constants.Slack)
 
-	_, err = http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json", bytes.NewBuffer(jsonData))
+	_, err = http.Post("https://hooks.slack.com/services"+constants.Slack, "application/json", bytes.NewBuffer(jsonData))
 
 	if err != nil {
 		log.Fatal(err)
