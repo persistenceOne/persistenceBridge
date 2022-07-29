@@ -97,10 +97,9 @@ func sendMessage(message string) error {
 }
 
 func sendSlackMessage(message string) error {
-	values := map[string]string{"text": message}
+	values := map[string]string{"text": "message"}
 	json_data, err := json.Marshal(values)
-	resp, err := http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json",
-		bytes.NewBuffer(json_data))
+	resp, err := http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json", bytes.NewBuffer(json_data))
 
 	if err != nil {
 		log.Fatal(err)
