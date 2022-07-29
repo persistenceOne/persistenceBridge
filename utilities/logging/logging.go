@@ -26,7 +26,10 @@ var fatalPrefix = []interface{}{"[FATAL]"}
 
 func InitializeBot() (err error) {
 
-	sendSlackMessage("pBridge bot initialized")
+	err = sendSlackMessage("pBridge bot initialized")
+	if err != nil {
+		return err
+	}
 
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
 		bot, err = tb.NewBot(tb.Settings{Token: configuration.GetAppConfig().TelegramBot.Token})
@@ -98,19 +101,13 @@ func sendMessage(message string) error {
 
 func sendSlackMessage(message string) error {
 	values := map[string]string{"text": "message"}
-	json_data, err := json.Marshal(values)
-	resp, err := http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json", bytes.NewBuffer(json_data))
+	jsonData, err := json.Marshal(values)
+	_, err = http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json", bytes.NewBuffer(jsonData))
 
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
-
-	var res map[string]interface{}
-
-	json.NewDecoder(resp.Body).Decode(&res)
-
-	fmt.Println(res["json"])
 
 	return nil
 }
