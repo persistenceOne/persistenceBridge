@@ -33,15 +33,6 @@ func InitializeBot() (err error) {
 		}
 	}
 
-	values := map[string]string{"name": "John Doe", "occupation": "gardener"}
-	json_data, err := json.Marshal(values)
-	_, err = http.Post("https://hooks.slack.com/services" + constants.SlackToken, "application/json",
-		bytes.NewBuffer(json_data))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	if configuration.GetAppConfig().TelegramBot.Token != "" {
 		bot, err = tb.NewBot(tb.Settings{Token: configuration.GetAppConfig().TelegramBot.Token})
 		if err != nil {
