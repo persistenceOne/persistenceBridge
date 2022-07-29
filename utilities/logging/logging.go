@@ -102,9 +102,14 @@ func sendMessage(message string) error {
 
 func sendSlackMessage(message string) error {
 	fmt.Println("inside slackMessage Bot")
+	fmt.Println(message)
 
 	values := map[string]string{"text": message}
+	fmt.Println("values",values)
+
 	jsonData, err := json.Marshal(values)
+	fmt.Println("jsonData",jsonData)
+
 	_, err = http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json", bytes.NewBuffer(jsonData))
 
 	if err != nil {
