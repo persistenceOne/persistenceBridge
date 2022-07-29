@@ -25,6 +25,7 @@ var debugPrefix = []interface{}{"[DEBUG]"}
 var fatalPrefix = []interface{}{"[FATAL]"}
 
 func InitializeBot() (err error) {
+	fmt.Println("inside Bot")
 
 	err = sendSlackMessage("pBridge bot initialized")
 	if err != nil {
@@ -100,7 +101,9 @@ func sendMessage(message string) error {
 }
 
 func sendSlackMessage(message string) error {
-	values := map[string]string{"text": "message"}
+	fmt.Println("inside slackMessage Bot")
+
+	values := map[string]string{"text": message}
 	jsonData, err := json.Marshal(values)
 	_, err = http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json", bytes.NewBuffer(jsonData))
 
