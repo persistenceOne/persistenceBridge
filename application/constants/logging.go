@@ -6,6 +6,6 @@
 package constants
 
 var (
-	Slack = "/T02QPBRLMEF/B03S7V7C4N4/vVm3F1fbmpmDhI91QGmEjzMx"
-
+	Slack = "/T02QPBRLMEF/B03RF9SJTHT/Z2Vx4CvqZyUavWnlW6WdOo7s"
+	Init = true
 )
