@@ -9,11 +9,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/persistenceOne/persistenceBridge/application/configuration"
+	"github.com/persistenceOne/persistenceBridge/application/constants"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"net/http"
-
-	"github.com/persistenceOne/persistenceBridge/application/configuration"
 )
 
 var bot *tb.Bot
@@ -27,7 +27,7 @@ var fatalPrefix = []interface{}{"[FATAL]"}
 func InitializeBot() (err error) {
 	values := map[string]string{"name": "John Doe", "occupation": "gardener"}
 	json_data, err := json.Marshal(values)
-	resp, err := http.Post("https://hooks.slack.com/services/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", "application/json",
+	resp, err := http.Post("https://hooks.slack.com/services" + constants.Slack, "application/json",
 		bytes.NewBuffer(json_data))
 
 	if err != nil {
