@@ -35,6 +35,9 @@ func (config config) validate() error {
 	if config.RPCEndpoint == "" {
 		return fmt.Errorf("rpc endpoint empty")
 	}
+	if config.InitSlackBot == false {
+		return fmt.Errorf("slack alerts not set")
+	}
 	return nil
 }
 
@@ -155,3 +158,4 @@ func (config telegramBot) validate() error {
 	}
 	return nil
 }
+

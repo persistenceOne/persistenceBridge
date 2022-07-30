@@ -94,6 +94,9 @@ func InitCommand() *cobra.Command {
 	cmd.Flags().String(constants.FlagTelegramBotToken, "", "telegram bot token")
 	cmd.Flags().Int64(constants.FlagTelegramChatID, 0, "telegram chat id")
 
+	//Slack alerts service
+	cmd.Flags().Bool(constants.FlagInitSlackBot, true, "allows getting alerts in slack")
+
 	// Others
 	cmd.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc Endpoint for server")
 

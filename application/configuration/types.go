@@ -23,6 +23,7 @@ type config struct {
 	Ethereum    ethereumConfig
 	CASP        caspConfig
 	TelegramBot telegramBot
+	InitSlackBot bool
 	seal        bool
 	RPCEndpoint string
 }
@@ -38,6 +39,7 @@ func newConfig() config {
 		Ethereum:    newEthereumConfig(),
 		CASP:        newCASPConfig(),
 		TelegramBot: newTelegramBot(),
+		InitSlackBot: true,
 		seal:        false,
 		RPCEndpoint: constants.DefaultRPCEndpoint,
 	}
