@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/persistenceOne/persistenceBridge/application/configuration"
-	"github.com/persistenceOne/persistenceBridge/application/constants"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"net/http"
@@ -101,7 +100,7 @@ func sendSlackMessage(message string) error {
 	values := map[string]string{"text": message}
 
 	jsonData, err := json.Marshal(values)
-	_, err = http.Post("https://hooks.slack.com/services"+constants.SlackToken, "application/json", bytes.NewBuffer(jsonData))
+	_, err = http.Post("https://hooks.slack.com/services"+configuration.GetAppConfig().SlackBotToken, "application/json", bytes.NewBuffer(jsonData))
 
 	if err != nil {
 		log.Fatal(err)
