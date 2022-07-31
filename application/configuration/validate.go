@@ -38,6 +38,9 @@ func (config config) validate() error {
 	if config.InitSlackBot == false {
 		return fmt.Errorf("slack alerts not set")
 	}
+	if config.SlackBotToken == "" {
+		return fmt.Errorf("slack bot configuration invalid")
+	}
 	return nil
 }
 
@@ -158,4 +161,5 @@ func (config telegramBot) validate() error {
 	}
 	return nil
 }
+
 
