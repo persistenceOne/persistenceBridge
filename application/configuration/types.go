@@ -43,7 +43,7 @@ func newConfig() config {
 		InitSlackBot: true,
 		seal:        false,
 		RPCEndpoint: constants.DefaultRPCEndpoint,
-		SlackBotToken: constants.DefaultSlackBotToken",
+		SlackBotToken: constants.DefaultSlackBotToken,
 	}
 }
 
