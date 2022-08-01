@@ -26,6 +26,7 @@ type config struct {
 	InitSlackBot bool
 	seal        bool
 	RPCEndpoint string
+	SlackBotToken string
 }
 
 func (c config) IsSealed() bool {
@@ -42,6 +43,7 @@ func newConfig() config {
 		InitSlackBot: true,
 		seal:        false,
 		RPCEndpoint: constants.DefaultRPCEndpoint,
+		SlackBotToken: constants.DefaultSlackBotToken,
 	}
 }
 

@@ -96,6 +96,8 @@ func InitCommand() *cobra.Command {
 
 	//Slack alerts service
 	cmd.Flags().Bool(constants.FlagInitSlackBot, true, "allows getting alerts in slack")
+	cmd.Flags().String(constants.FlagSlackBotToken, "", "token for setting slack api")
+
 
 	// Others
 	cmd.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc Endpoint for server")

@@ -49,6 +49,7 @@ func GetCmdWithConfig() *cobra.Command {
 	cmd.Flags().Int64(constants.FlagTelegramChatID, 0, "telegram chat id")
 
 	cmd.Flags().Bool(constants.FlagInitSlackBot, true, "slack bot init")
+	cmd.Flags().String(constants.FlagSlackBotToken, "", "slack bot api token")
 
 	cmd.Flags().String(constants.FlagRPCEndpoint, constants.DefaultRPCEndpoint, "rpc Endpoint for server")
 
