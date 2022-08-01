@@ -6,6 +6,6 @@
 package constants
 
 var (
-	SlackToken = "/T02QPBRLMEF/B03RF9SJTHT/Z2Vx4CvqZyUavWnlW6WdOo7s"
-	Init = true
+	SlackToken = ""
+	Init       = true
 )
