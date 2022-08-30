@@ -23,6 +23,8 @@ func main() {
 	rootCommand.AddCommand(commands.StartCommand())
 	rootCommand.AddCommand(commands.RemoveCommand())
 	rootCommand.AddCommand(commands.GetVersion())
+	rootCommand.AddCommand(commands.SendCommand())
+	rootCommand.AddCommand(commands.UnbondCommand())
 
 	err := rootCommand.Execute()
 	if err != nil {
