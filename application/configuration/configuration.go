@@ -204,6 +204,18 @@ func SetConfig(cmd *cobra.Command) config {
 			log.Fatalln(err)
 		}
 		appConfig.RPCEndpoint = bridgeRPCEndpoint
+
+		initSlack, err := cmd.Flags().GetBool(constants.FlagInitSlackBot)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		appConfig.InitSlackBot = initSlack
+
+		slackToken, err := cmd.Flags().GetString(constants.FlagSlackBotToken)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		appConfig.SlackBotToken = slackToken
 	}
 
 	return appConfig

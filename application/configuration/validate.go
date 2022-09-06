@@ -35,6 +35,12 @@ func (config config) validate() error {
 	if config.RPCEndpoint == "" {
 		return fmt.Errorf("rpc endpoint empty")
 	}
+	if config.InitSlackBot == false {
+		return fmt.Errorf("slack alerts not set")
+	}
+	if config.SlackBotToken == "" {
+		return fmt.Errorf("slack bot configuration invalid")
+	}
 	return nil
 }
 

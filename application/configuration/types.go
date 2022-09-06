@@ -18,13 +18,15 @@ import (
 )
 
 type config struct {
-	Kafka       kafkaConfig
-	Tendermint  tendermintConfig
-	Ethereum    ethereumConfig
-	CASP        caspConfig
-	TelegramBot telegramBot
-	seal        bool
-	RPCEndpoint string
+	Kafka         kafkaConfig
+	Tendermint    tendermintConfig
+	Ethereum      ethereumConfig
+	CASP          caspConfig
+	TelegramBot   telegramBot
+	InitSlackBot  bool
+	seal          bool
+	RPCEndpoint   string
+	SlackBotToken string
 }
 
 func (c config) IsSealed() bool {
@@ -33,13 +35,15 @@ func (c config) IsSealed() bool {
 
 func newConfig() config {
 	return config{
-		Kafka:       newKafkaConfig(),
-		Tendermint:  newTendermintConfig(),
-		Ethereum:    newEthereumConfig(),
-		CASP:        newCASPConfig(),
-		TelegramBot: newTelegramBot(),
-		seal:        false,
-		RPCEndpoint: constants.DefaultRPCEndpoint,
+		Kafka:         newKafkaConfig(),
+		Tendermint:    newTendermintConfig(),
+		Ethereum:      newEthereumConfig(),
+		CASP:          newCASPConfig(),
+		TelegramBot:   newTelegramBot(),
+		InitSlackBot:  true,
+		seal:          false,
+		RPCEndpoint:   constants.DefaultRPCEndpoint,
+		SlackBotToken: constants.DefaultSlackBotToken,
 	}
 }
 

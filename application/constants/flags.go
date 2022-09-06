@@ -46,6 +46,8 @@ const (
 	FlagTendermintChainID     = "chainID"
 	FlagTokenWrapperAddress   = "tokenWrapper"
 	FlagLiquidStakingAddress  = "liquidStaking"
+	FlagInitSlackBot          = "initSlack"
+	FlagSlackBotToken         = "slackToken"
 )
 
 var (
@@ -74,4 +76,5 @@ var (
 	DefaultRPCEndpoint             = "localhost:4040"
 	DefaultTendermintMaxTxAttempts = 5
 	DefaultEthZeroAddress          = EthereumZeroAddress
+	DefaultSlackBotToken           = ""
 )
