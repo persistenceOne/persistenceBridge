@@ -60,7 +60,7 @@ func collectAllWrapAndRevertTxs(clientCtx client.Context, txQueryResult *tmCoreT
 		for i, msg := range transaction.GetMsgs() {
 			switch txMsg := msg.(type) {
 			case *bankTypes.MsgSend:
-				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetWrapAddress() {
+				if txMsg.ToAddress == configuration.GetAppConfig().Tendermint.GetWrapAddress() && txMsg.ToAddress != txMsg.FromAddress {
 					if memo != "DO_NOT_REVERT" {
 						for _, coin := range txMsg.Amount {
 							// Do not check for TendermintTxToKafka exists.
