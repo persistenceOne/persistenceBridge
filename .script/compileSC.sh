@@ -1,17 +1,19 @@
 #!/bin/bash
 
 OPENZEPPELIN_DIR_NAME="@openzeppelin"
+LIQUID_STAKING=LiquidStaking
+TOKEN_WRAPPER=TokenWrapper
+OPENZEPPELIN_VERSION=v3.3.0
 
-rm -rf pStake-smartContracts
+rm -rf stkATOM-ERC20
 rm -rf "$OPENZEPPELIN_DIR_NAME"
 rm -rf ./ethereum/abi/liquidStaking/liquidStaking.go
 rm -rf ./ethereum/abi/tokenWrapper/tokenWrapper.go
 
-echo "Downloading pStake-smartContracts..."
-git clone git@github.com:persistenceOne/pStake-smartContracts.git
+echo "Downloading stkATOM-ERC20..."
+git clone git@github.com:persistenceOne/stkATOM-ERC20.git
 # shellcheck disable=SC2164
-cd pStake-smartContracts
-git checkout "$SMART_CONTRACT_VERSION"
+cd stkATOM-ERC20
 # shellcheck disable=SC2103
 cd ..
 
@@ -39,9 +41,9 @@ mv openzeppelin-contracts-upgradeable/contracts ./contracts-upgradeable
 rm -rf openzeppelin-contracts-upgradeable
 
 cd ..
-mv "$OPENZEPPELIN_DIR_NAME" ./pStake-smartContracts/
+mv "$OPENZEPPELIN_DIR_NAME" ./stkATOM-ERC20/
 # shellcheck disable=SC2164
-cd pStake-smartContracts
+cd stkATOM-ERC20
 
 echo "Compiling smart contracts..."
 # shellcheck disable=SC2046
@@ -53,9 +55,9 @@ solc --abi --bin contracts/"$TOKEN_WRAPPER".sol -o build --overwrite @openzeppel
 abigen --bin ./build/"$TOKEN_WRAPPER".bin --abi ./build/"$TOKEN_WRAPPER".abi --pkg=tokenWrapper --out=tokenWrapper.go
 
 cd ..
-mv pStake-smartContracts/liquidStaking.go ./ethereum/abi/liquidStaking
-mv pStake-smartContracts/tokenWrapper.go ./ethereum/abi/tokenWrapper
+mv stkATOM-ERC20/liquidStaking.go ./ethereum/abi/liquidStaking
+mv stkATOM-ERC20/tokenWrapper.go ./ethereum/abi/tokenWrapper
 
-rm -rf pStake-smartContracts
+rm -rf stkATOM-ERC20
 
 echo "Compilation done."

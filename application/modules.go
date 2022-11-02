@@ -32,6 +32,11 @@ import (
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcClientClient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
 	"github.com/gravity-devs/liquidity/x/liquidity"
+	"github.com/persistenceOne/persistence-sdk/x/epochs"
+	"github.com/persistenceOne/persistence-sdk/x/halving"
+	"github.com/persistenceOne/persistence-sdk/x/ibchooker"
+	"github.com/persistenceOne/persistence-sdk/x/interchainquery"
+	"github.com/persistenceOne/pstake-native/x/lscosmos"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
 )
 
@@ -65,4 +70,9 @@ var ModuleBasics = module.NewBasicManager(
 	router.AppModuleBasic{},
 	ica.AppModuleBasic{},
 	wasm.AppModuleBasic{},
+	lscosmos.AppModuleBasic{},
+	interchainquery.AppModuleBasic{},
+	epochs.AppModuleBasic{},
+	halving.AppModuleBasic{},
+	ibchooker.AppModuleBasic{},
 )
